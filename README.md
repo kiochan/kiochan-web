@@ -86,3 +86,32 @@ The website listens on `127.0.0.1:4095`, ready for an Nginx reverse proxy. Verif
 - Back up the cluster before adding production data. Define and test backup/restore procedures before relying on it for other applications.
 
 See [AGENTS.md](AGENTS.md) for development and infrastructure conventions.
+
+## Server deployment
+
+Production uses the `deploy` account and follows the existing Sovia layout:
+
+```text
+/home/deploy/kiochan-web/       Source checkout or release snapshot
+/opt/kiochan-web/              compose.yaml, deploy.sh, env/prod.env
+/opt/kiochan-postgres/         compose.yaml, .env, init/, backup.sh, backups/
+```
+
+Build and tag an immutable website image before changing `KIOCHAN_WEB_IMAGE` in `/opt/kiochan-web/env/prod.env`. Database secrets are generated on the server; never reuse the SSH password. Keep secret files at mode 600 and their directories private.
+
+Start the independent cluster with:
+
+```sh
+cd /opt/kiochan-postgres
+docker compose --env-file .env -f compose.yaml up -d --wait
+```
+
+Deploy the already built website image with:
+
+```sh
+/opt/kiochan-web/deploy.sh
+```
+
+The script waits for container health, checks both HTTP health endpoints, and restores the previous image on failure when one exists. It does not modify database storage. The Nginx reference configuration is `infrastructure/web/nginx.conf`; validate with `nginx -t` before reloading.
+
+Run `/opt/kiochan-postgres/backup.sh` for a private full-cluster logical backup. A successful dump is not a restore test or an off-server backup. Automated deployment and scheduled off-server backups are not enabled by this repository.

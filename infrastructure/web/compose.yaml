@@ -3,9 +3,6 @@ name: kiochan-web
 services:
   web:
     image: ${KIOCHAN_WEB_IMAGE:-kiochan-web:local}
-    build:
-      context: ../..
-      dockerfile: Dockerfile
     container_name: kiochan-web
     restart: unless-stopped
     environment:

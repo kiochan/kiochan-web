@@ -44,4 +44,8 @@
 - Use the standalone Next.js production output and a non-root container user.
 - Prefer building images in CI rather than on the 2-vCPU, 4-GB production server.
 - CI currently validates and builds only. It must not deploy automatically.
+- Production deployments use the `deploy` Linux account. Runtime files live in `/opt/kiochan-web`; shared database infrastructure lives in `/opt/kiochan-postgres`.
+- `/opt/kiochan-web/env/prod.env` selects the website image and database URL. `/opt/kiochan-postgres/.env` holds administrator and website database passwords. Both must be mode 600 and must never be printed.
+- Run `/opt/kiochan-web/deploy.sh` to replace the website with health checks and image rollback. It must never recreate or remove the shared PostgreSQL volume.
+- `/opt/kiochan-postgres/backup.sh` creates a private full-cluster logical backup, including roles. Keep backups private and copy them off the server before relying on them for disaster recovery.
 - Preserve Sovia, Connectric, Hitekcircuits, existing databases, and unrelated services.

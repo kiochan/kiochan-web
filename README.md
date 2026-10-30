@@ -1,6 +1,6 @@
 # Kiochan
 
-A personal website built with Next.js, React, TypeScript, and Biome in a pnpm monorepo. The first release contains a Hello World page.
+A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, and Biome in a pnpm monorepo. The first release contains a Hello World page.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ Open http://localhost:3000. The home page works without PostgreSQL.
 
 ```text
 apps/web/                  Next.js website
-packages/database/         Server-side PostgreSQL connection pool
+packages/database/         Prisma schema, migrations, and server-side client
 infrastructure/postgres/   Independent shared PostgreSQL service
 infrastructure/web/        Website container configuration
 ```
@@ -41,7 +41,7 @@ pnpm format
 
 After building, `pnpm start` runs the standalone production server with its static assets. It also reads `apps/web/.env.local` when present.
 
-Biome handles both linting and formatting. CI runs the checks, builds a production container, and verifies the page, PostgreSQL connection, and restricted database role in isolated runner containers. It does not publish or deploy anything.
+Biome handles both linting and formatting. CI checks types, builds production and migration containers, applies Prisma migrations, and verifies the page, PostgreSQL connection, and restricted role in isolated runner containers. CI runs on non-production pushes and pull requests and is reused by the production workflow.
 
 With the production server running locally, `node scripts/smoke-test.mjs` verifies the page and graceful database-unavailable response. Set `EXPECT_DATABASE=connected` when checking a configured database. `BASE_URL` defaults to `http://127.0.0.1:3000`.
 
@@ -58,7 +58,10 @@ pnpm db:up
 ```
 
 4. Copy `apps/web/.env.example` to `apps/web/.env.local`, replace the website password with the matching value, and restart the development server.
-5. Open http://localhost:3000/api/health/database to verify connectivity.
+5. Apply migrations with `pnpm db:migrate`. Set `DATABASE_URL` in your shell to the same local connection URL before running this command; Prisma CLI does not read Next.js environment files automatically.
+6. Open http://localhost:3000/api/health/database to verify connectivity through Prisma.
+
+`pnpm db:generate` generates Prisma Client without connecting to PostgreSQL. Development, type checking, and production builds run generation automatically. The initial migration creates no business tables. Add future models to `packages/database/prisma/schema.prisma` and create migrations with `pnpm --filter @kiochan/database migrate:dev` against a development database only.
 
 Host tools connect to `127.0.0.1:5434`. Containers attached to `kiochan-data` connect to `kiochan-postgres:5432`. The administrator is `kiochan_admin`; the website never uses that role.
 
@@ -66,7 +69,7 @@ Host tools connect to `127.0.0.1:5434`. Containers attached to `kiochan-data` co
 
 ## Production container preparation
 
-No production deployment is enabled. The following commands are for an explicitly authorized deployment or local container verification:
+The following commands build a local website image for container verification:
 
 ```sh
 docker build -t kiochan-web:local .
@@ -112,6 +115,20 @@ Deploy the already built website image with:
 /opt/kiochan-web/deploy.sh
 ```
 
-The script waits for container health, checks both HTTP health endpoints, and restores the previous image on failure when one exists. It does not modify database storage. The Nginx reference configuration is `infrastructure/web/nginx.conf`; validate with `nginx -t` before reloading.
+The script locks concurrent deployments, backs up the shared cluster, applies checked-in migrations when a migration image is selected, and then replaces the website. It checks both health endpoints and restores the previous website image on failure when one exists. Only a healthy release is saved in `env/prod.env`. Migrations are not rolled back automatically; changes must remain compatible with the previous image. The script never deletes database storage. The Nginx reference configuration is `infrastructure/web/nginx.conf`; validate with `nginx -t` before reloading.
 
-Run `/opt/kiochan-postgres/backup.sh` for a private full-cluster logical backup. A successful dump is not a restore test or an off-server backup. Automated deployment and scheduled off-server backups are not enabled by this repository.
+Run `/opt/kiochan-postgres/backup.sh` for a private full-cluster logical backup. A successful dump is not a restore test or an off-server backup. Scheduled off-server backups are not enabled by this repository.
+
+## GitHub Actions production releases
+
+Push to `prod` to run `.github/workflows/deploy.yml`:
+
+1. Run the reusable CI workflow, including a fresh PostgreSQL migration test.
+2. Publish `ghcr.io/kiochan/kiochan-web:sha-<commit>` and `:migrate-<commit>` to GHCR, plus convenience tags `prod` and `prod-migrate`.
+3. Upload the runtime Compose file and deployment scripts using the `deploy` account with verified SSH host keys.
+4. Authenticate to GHCR using the job's temporary token, run migrations and deployment, and remove registry credentials afterward.
+5. Check the public Hello World page, CSS, and database health endpoint through HTTPS.
+
+Configure the repository Actions Secret `PROD_SSH_KEY` with a dedicated Ed25519 private key whose public key is installed for the server's `deploy` account. Never use the SSH password as a permanent CI secret. `PROD_HOST` is an optional repository variable, defaulting to `ip.kiochan.one`. If the server's host key legitimately changes, verify it independently before updating `infrastructure/web/known_hosts`.
+
+No personal access token is needed for GHCR. Publishing requires job-level `packages: write`; deployment uses `packages: read`. Private packages must grant this repository's Actions access. The shared PostgreSQL service, secrets, Nginx, and unrelated applications are not replaced by the release workflow.

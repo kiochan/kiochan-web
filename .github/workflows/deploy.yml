@@ -1,0 +1,100 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - prod
+  workflow_dispatch:
+
+concurrency:
+  group: kiochan-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/prod'
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the migration image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: |
+            ghcr.io/kiochan/kiochan-web:migrate-${{ github.sha }}
+            ghcr.io/kiochan/kiochan-web:prod-migrate
+          labels: org.opencontainers.image.source=https://github.com/kiochan/kiochan-web
+          cache-from: type=gha,scope=kiochan-migrate
+          cache-to: type=gha,mode=max,scope=kiochan-migrate
+      - name: Publish the website image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/kiochan/kiochan-web:sha-${{ github.sha }}
+            ghcr.io/kiochan/kiochan-web:prod
+          labels: org.opencontainers.image.source=https://github.com/kiochan/kiochan-web
+          cache-from: type=gha,scope=kiochan-web
+          cache-to: type=gha,mode=max,scope=kiochan-web
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      PROD_HOST: ${{ vars.PROD_HOST || 'ip.kiochan.one' }}
+      PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the deployment SSH identity
+        run: |
+          test -n "$PROD_SSH_KEY"
+          install -d -m 700 "$RUNNER_TEMP/kiochan-ssh"
+          printf '%s\n' "$PROD_SSH_KEY" > "$RUNNER_TEMP/kiochan-ssh/id_ed25519"
+          chmod 600 "$RUNNER_TEMP/kiochan-ssh/id_ed25519"
+          install -m 600 infrastructure/web/known_hosts "$RUNNER_TEMP/kiochan-ssh/known_hosts"
+      - name: Upload runtime deployment helpers
+        run: |
+          scp -i "$RUNNER_TEMP/kiochan-ssh/id_ed25519" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
+            infrastructure/web/compose.yaml infrastructure/web/deploy.sh infrastructure/web/ci-deploy.sh \
+            "deploy@$PROD_HOST:/opt/kiochan-web/"
+      - name: Deploy the exact published commit
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s\n%s\n' "$GITHUB_ACTOR" "$GHCR_TOKEN" | \
+            ssh -T -i "$RUNNER_TEMP/kiochan-ssh/id_ed25519" \
+              -o BatchMode=yes -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
+              "deploy@$PROD_HOST" "bash /opt/kiochan-web/ci-deploy.sh $GITHUB_SHA"
+      - name: Verify the public website
+        env:
+          BASE_URL: https://kiochan.one
+          EXPECT_DATABASE: connected
+        run: node scripts/smoke-test.mjs
+      - name: Remove the runner SSH identity
+        if: always()
+        run: rm -f "$RUNNER_TEMP/kiochan-ssh/id_ed25519"

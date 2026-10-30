@@ -9,4 +9,5 @@ coverage/
 !.env.example
 !.env.*.example
 *.log
+packages/database/src/generated/
 .DS_Store

@@ -1,6 +1,7 @@
 FROM node:24-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@10.34.9 --activate
 WORKDIR /app
 
@@ -14,6 +15,13 @@ FROM dependencies AS builder
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
+
+FROM dependencies AS migrator
+COPY packages/database/prisma packages/database/prisma
+COPY packages/database/prisma.config.ts packages/database/prisma.config.ts
+WORKDIR /app/packages/database
+USER node
+CMD ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
 
 FROM node:24-bookworm-slim AS runner
 WORKDIR /app

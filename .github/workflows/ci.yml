@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
+    branches-ignore:
+      - prod
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
@@ -27,6 +30,8 @@ jobs:
         run: pnpm build
       - name: Build the production container
         run: docker build -t kiochan-web:ci .
+      - name: Build the migration container
+        run: docker build --target migrator -t kiochan-web:migrate-ci .
       - name: Start the isolated integration database
         env:
           KIOCHAN_POSTGRES_ADMIN_PASSWORD: ci-admin-password
@@ -36,6 +41,15 @@ jobs:
         run: |
           result=$(docker exec -e PGPASSWORD=ci-web-password kiochan-postgres psql -h 127.0.0.1 -U kiochan_web -d kiochan_web -Atc "SELECT NOT (rolsuper OR rolcreatedb OR rolcreaterole) FROM pg_roles WHERE rolname = current_user")
           test "$result" = "t"
+      - name: Apply checked-in Prisma migrations
+        run: >-
+          docker run --rm --network kiochan-data
+          -e DATABASE_URL=postgresql://kiochan_web:ci-web-password@kiochan-postgres:5432/kiochan_web
+          kiochan-web:migrate-ci
+      - name: Verify the migration was recorded
+        run: |
+          result=$(docker exec -e PGPASSWORD=ci-web-password kiochan-postgres psql -h 127.0.0.1 -U kiochan_web -d kiochan_web -Atc 'SELECT COUNT(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL')
+          test "$result" -ge 1
       - name: Start the production website
         run: >-
           docker run -d --name kiochan-web-ci --network kiochan-data

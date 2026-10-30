@@ -49,3 +49,4 @@
 - Run `/opt/kiochan-web/deploy.sh` to replace the website with health checks and image rollback. It must never recreate or remove the shared PostgreSQL volume.
 - `/opt/kiochan-postgres/backup.sh` creates a private full-cluster logical backup, including roles. Keep backups private and copy them off the server before relying on them for disaster recovery.
 - Preserve Sovia, Connectric, Hitekcircuits, existing databases, and unrelated services.
+- The current Cloudflare configuration can send HTTP origin requests for public HTTPS traffic. Preserve the original `X-Forwarded-Proto` in Nginx; an unconditional HTTP-to-HTTPS redirect at the origin creates a redirect loop. Do not change the account-wide Cloudflare TLS mode as part of a website deployment.

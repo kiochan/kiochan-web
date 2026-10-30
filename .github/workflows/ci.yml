@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable the pinned package manager
+        run: corepack enable && corepack prepare pnpm@10.34.9 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check formatting and lint
+        run: pnpm lint
+      - name: Check TypeScript
+        run: pnpm typecheck
+      - name: Build the website
+        run: pnpm build
+      - name: Build the production container
+        run: docker build -t kiochan-web:ci .
+      - name: Start the isolated integration database
+        env:
+          KIOCHAN_POSTGRES_ADMIN_PASSWORD: ci-admin-password
+          KIOCHAN_WEB_DATABASE_PASSWORD: ci-web-password
+        run: docker compose -f infrastructure/postgres/compose.yaml up -d --wait
+      - name: Verify the website role is restricted
+        run: |
+          result=$(docker exec -e PGPASSWORD=ci-web-password kiochan-postgres psql -h 127.0.0.1 -U kiochan_web -d kiochan_web -Atc "SELECT NOT (rolsuper OR rolcreatedb OR rolcreaterole) FROM pg_roles WHERE rolname = current_user")
+          test "$result" = "t"
+      - name: Start the production website
+        run: >-
+          docker run -d --name kiochan-web-ci --network kiochan-data
+          -p 127.0.0.1:3000:3000
+          -e DATABASE_URL=postgresql://kiochan_web:ci-web-password@kiochan-postgres:5432/kiochan_web
+          kiochan-web:ci
+      - name: Check the page and database connection
+        env:
+          EXPECT_DATABASE: connected
+        run: node scripts/smoke-test.mjs
+      - name: Show failed integration logs
+        if: failure()
+        run: |
+          docker logs kiochan-web-ci 2>/dev/null || true
+          docker logs kiochan-postgres 2>/dev/null || true
+      - name: Stop integration containers
+        if: always()
+        env:
+          KIOCHAN_POSTGRES_ADMIN_PASSWORD: ci-admin-password
+          KIOCHAN_WEB_DATABASE_PASSWORD: ci-web-password
+        run: |
+          docker rm -f kiochan-web-ci 2>/dev/null || true
+          docker compose -f infrastructure/postgres/compose.yaml down

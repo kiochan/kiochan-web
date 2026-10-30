@@ -1,0 +1,30 @@
+FROM node:24-bookworm-slim AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable && corepack prepare pnpm@10.34.9 --activate
+WORKDIR /app
+
+FROM base AS dependencies
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/web/package.json apps/web/package.json
+COPY packages/database/package.json packages/database/package.json
+RUN pnpm install --frozen-lockfile
+
+FROM dependencies AS builder
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+
+FROM node:24-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+RUN groupadd --gid 1001 nodejs && useradd --uid 1001 --gid nodejs --no-create-home nextjs
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+USER nextjs
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

@@ -1,0 +1,21 @@
+{
+  "name": "kiochan-web",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @kiochan/web dev",
+    "build": "pnpm --filter @kiochan/web build",
+    "start": "pnpm --filter @kiochan/web start",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "pnpm -r typecheck",
+    "db:up": "docker compose --env-file .env -f infrastructure/postgres/compose.yaml up -d --wait",
+    "db:stop": "docker compose --env-file .env -f infrastructure/postgres/compose.yaml stop"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.4"
+  }
+}

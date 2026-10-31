@@ -1,6 +1,12 @@
 # Kiochan
 
-A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, and Biome in a pnpm monorepo. The first release contains a Hello World page.
+A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, and Biome in a pnpm monorepo. It includes public projects, engineering notes, an about page, and working GitHub contact paths.
+
+## Website content
+
+The home page introduces Kiochan and leads to `/projects`, `/notes`, `/about`, and `/contact`. Projects and notes have individual static detail pages. Edit typed content in `apps/web/src/content/site.ts`; route generation and the sitemap use the same content. Only verified public repositories are featured. Project artwork is illustrative, not a claim about a hosted demo.
+
+Public pages work without a database, account, or third-party API request. Contact links lead to GitHub profiles or the relevant repository issue tracker. The release includes responsive navigation, persistent theme selection, keyboard focus styles, a skip link, metadata, a sitemap, and a recovery page for unknown URLs. See [SITE_PLAN.md](SITE_PLAN.md) for scope and editorial boundaries.
 
 ## Requirements
 
@@ -145,7 +151,7 @@ Push to `prod` to run `.github/workflows/deploy.yml`:
 2. Publish `ghcr.io/kiochan/kiochan-web:sha-<commit>` and `:migrate-<commit>` to GHCR, plus convenience tags `prod` and `prod-migrate`.
 3. Upload the runtime Compose file and deployment scripts using the `deploy` account with verified SSH host keys.
 4. Authenticate to GHCR using the job's temporary token, run migrations and deployment, and remove registry credentials afterward.
-5. Check the public Hello World page, CSS, and database health endpoint through HTTPS.
+5. Check the public pages, detail routes, 404 responses, CSS, and database health endpoint through HTTPS.
 
 Configure the repository Actions Secret `PROD_SSH_KEY` with a dedicated Ed25519 private key whose public key is installed for the server's `deploy` account. Never use the SSH password as a permanent CI secret. `PROD_HOST` is an optional repository variable, defaulting to `ip.kiochan.one`. If the server's host key legitimately changes, verify it independently before updating `infrastructure/web/known_hosts`.
 

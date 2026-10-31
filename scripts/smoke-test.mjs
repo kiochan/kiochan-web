@@ -9,7 +9,38 @@ async function verify() {
   const page = await fetch(baseUrl, { signal: AbortSignal.timeout(10_000) });
   assert.equal(page.status, 200);
   const html = await page.text();
-  assert.match(html, /Hello, world\./);
+  assert.match(html, /Curiosity,/);
+  assert.match(html, /href="\/projects"/);
+  assert.match(html, /Skip to content/);
+  const routes = [
+    ["/projects", "Projects &amp; experiments"],
+    ["/projects/kiochan-web", "Kiochan Web"],
+    ["/projects/modbus-monitor", "Modbus Monitor"],
+    ["/notes", "Thinking out loud"],
+    ["/notes/a-theme-without-a-framework", "A shared theme"],
+    [
+      "/notes/from-commit-to-production",
+      "Making a small deployment predictable.",
+    ],
+    ["/about", "Kiochan"],
+    ["/contact", "conversation"],
+    ["/sitemap.xml", "https://kiochan.one/projects/kiochan-web"],
+    ["/robots.txt", "Sitemap: https://kiochan.one/sitemap.xml"],
+  ];
+  for (const [path, content] of routes) {
+    const response = await fetch(new URL(path, baseUrl), {
+      signal: AbortSignal.timeout(10_000),
+    });
+    assert.equal(response.status, 200, path);
+    assert.ok((await response.text()).includes(content), path);
+  }
+  for (const path of ["/missing-page", "/projects/missing", "/notes/missing"]) {
+    const response = await fetch(new URL(path, baseUrl), {
+      signal: AbortSignal.timeout(10_000),
+    });
+    assert.equal(response.status, 404, path);
+    assert.match(await response.text(), /Back home/);
+  }
   const stylesheet = html.match(
     /href="([^"\s]*\/_next\/static\/[^"\s]*\.css)"/,
   );

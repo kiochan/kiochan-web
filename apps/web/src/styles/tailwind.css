@@ -4,6 +4,11 @@
   --color-ink: var(--kio-color-text);
   --color-ink-muted: var(--kio-color-text-muted);
   --color-brand: var(--kio-color-brand);
+  --color-on-brand: var(--kio-color-on-brand);
+  --color-surface: var(--kio-color-surface);
+  --color-surface-muted: var(--kio-color-surface-muted);
+  --color-edge: var(--kio-color-border);
+  --color-focus: var(--kio-color-focus);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

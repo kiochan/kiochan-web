@@ -3,7 +3,9 @@
 ## Language and scope
 
 - Use English for code, comments, documentation, UI copy, and commit messages.
-- The first release is a Hello World website. Do not add speculative product features.
+- The website contains a home page, public project profiles, engineering notes, an about page, and GitHub contact paths. Do not invent personal history, claims, testimonials, contact details, or project capabilities.
+- Keep editorial content in `apps/web/src/content/site.ts`. Feature only verified public repositories. Private repository access does not authorize publication.
+- Keep public pages statically renderable and independent of PostgreSQL. Add routes to the sitemap and route smoke checks when expanding the site.
 - Do not deploy, push commits, or change production infrastructure without user authorization.
 
 ## Architecture

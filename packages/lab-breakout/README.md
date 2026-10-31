@@ -23,3 +23,7 @@ Open /lab/breakout using `pnpm dev` at the workspace root. Run `pnpm --filter @k
 src/engine.ts contains collision, paddle, score, lives, and win/loss logic. src/index.tsx handles React controls and rendering. The website embeds the actual engine source in a server-rendered details panel.
 
 The host provides semantic --kio-* CSS tokens. Shared experiment controls and canvas lifecycle live in @kiochan/lab-ui. All controls, comments, and documentation use English.
+
+## Card preview
+
+The ./preview export contains lightweight, server-rendered SVG artwork for the Lab index. It imports only shared preview styles, not this package's engine or runtime. Playback is controlled by the host card through data-preview-playing, with pointer, keyboard, touch-button, visibility, and reduced-motion handling. The illustration is a feature preview rather than a live instance of the experiment.

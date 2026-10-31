@@ -39,6 +39,18 @@ async function verify() {
     assert.equal(response.status, 200, path);
     const body = await response.text();
     assert.ok(body.includes(content), path);
+    if (path === "/lab") {
+      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 5);
+      for (const name of [
+        "Liquid Playground",
+        "Lattice Generator",
+        "Cubism Workbench",
+        "Breakout",
+        "Quick Snake",
+      ]) {
+        assert.ok(body.includes(`aria-label="Play ${name} preview"`), name);
+      }
+    }
     if (path.startsWith("/lab/")) {
       assert.ok(body.includes('aria-label="Lab sidebar"'), path);
       assert.ok(body.includes(`href="https://kiochan.one${path}"`), path);

@@ -39,6 +39,7 @@
 - Preserve the provider's pre-hydration theme script and the root's `suppressHydrationWarning`. Theme-dependent controls must render the same initial server/client markup before reading the saved selection.
 - Navigation feedback uses the app-router BProgress provider. Do not delay real navigation for animation. Keep reduced-motion support, static page metadata, loading boundaries, and per-experiment dynamic imports; do not put every experiment runtime in the main layout.
 - Motion must preserve readable server-rendered content. Scroll reveals are progressive enhancement and must clean up observers and animations. Never hide content until JavaScript runs.
+- Lab card previews belong to each project's ./preview export and must remain independent of its full runtime. Keep illustrative previews truthful, pause offscreen/background/reduced-motion playback, and provide a separate touch-friendly play button outside the navigation link.
 
 ## Quality checks
 

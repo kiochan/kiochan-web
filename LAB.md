@@ -13,6 +13,8 @@ Liquid, Lattice, Cubism Workbench, Breakout, and Quick Snake each own a package 
 
 Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidFun port. Lattice generates SVG directly and credits its upstream design. Breakout and Snake expose the actual engine source in static HTML. Cubism includes a local manifest inspector and an adapter-based viewer boundary; model rendering is not enabled without an authorized SDK adapter and model assets. No original Cubism resources are copied.
 
+Each package exports a lightweight ./preview entry for its server-rendered SVG card artwork. This entry must not import the experiment runtime, engine, SDK, model, or asset loader. Shared preview motion styles live in lab-ui. The website owns card playback state: mouse hover and keyboard focus start a preview, while a separate 44px button supports explicit play/pause on touch devices. Buttons are siblings of project links, never nested inside them. Offscreen cards, hidden documents, and reduced-motion preference pause playback. Cubism previews illustrate manifest inspection only.
+
 Run `node --test scripts/lab-engines.test.mjs` for engine, pattern, and manifest checks, then the standard lint/type/build and production smoke checks. Every added lab package manifest must also be copied in the Docker dependency stage.
 
 ## Small React experiments

@@ -16,7 +16,8 @@ export function ProjectCard({
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className="group block rounded-xl"
+      className="project-card group block rounded-xl"
+      data-reveal
       aria-labelledby={`project-${project.slug}`}
     >
       <article>
@@ -56,7 +57,7 @@ export function NoteCard({
 }) {
   const Heading = heading;
   return (
-    <article className="border-t border-edge py-7">
+    <article data-reveal className="border-t border-edge py-7">
       <p className="eyebrow">
         {note.category} <span aria-hidden="true">/</span> {readingTime(note)}{" "}
         min read

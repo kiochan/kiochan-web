@@ -7,11 +7,9 @@
 - `/projects/<slug>` is an optional editorial project profile, not the tool itself.
 - `apps/web/src/content/lab.ts` contains only public catalogue metadata. Keep runtime imports in each experiment's route, so opening the home or lab index does not load every experiment's JavaScript.
 
-The first working example is `/lab/type-playground`, owned by `packages/lab-type-playground`. It edits text and typography entirely in the browser. It has no persistence or backend.
-
 ## Current collection
 
-Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, and Type Playground each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+Liquid, Lattice, Cubism Workbench, Breakout, and Quick Snake each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
 
 Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidFun port. Lattice generates SVG directly and credits its upstream design. Breakout and Snake expose the actual engine source in static HTML. Cubism includes a local manifest inspector and an adapter-based viewer boundary; model rendering is not enabled without an authorized SDK adapter and model assets. No original Cubism resources are copied.
 

@@ -14,12 +14,12 @@ Introduce Kiochan, show real work, share useful engineering notes, and provide a
 
 ## Content boundaries
 
-Feature only the verified public repositories kiochan/kiochan-web and kiochan/modbus-monitor. Descriptions of Modbus Monitor are based on public metadata and its package manifest. Do not publish private repository information, personal contact details, credentials, fictional employers, testimonials, or performance claims. Do not fabricate article publication dates or advertise retired demos.
+Feature only verified public projects selected for the website. Do not publish private repository information, personal contact details, credentials, fictional employers, testimonials, or performance claims. Do not fabricate article publication dates or advertise retired demos.
 
 Keep editorial data in apps/web/src/content/site.ts. A CMS, authentication, visitor tracking, newsletter, and contact-form backend are outside this release. Contact uses genuine GitHub destinations rather than a nonfunctional form.
 
 ## Design and implementation
 
-Use a quiet editorial layout with a warm canvas, sage accents, strong typography, fine borders, and generous spacing. Illustrations are abstract project diagrams, not screenshots. Keep palette values in packages/theme. Preserve light/dark/system preferences and small-screen usability.
+Use a technical visual language with cool blue/cyan accents, a fine grid, an animated orbital illustration, readable typography, and restrained glow. Add route-entry motion, progressive scroll reveals, hover feedback, real navigation progress, and lazy experiment loading. Keep palette values in packages/theme. Preserve light/dark/system preferences, reduced-motion behavior, static SEO content, and small-screen usability.
 
 Pages remain statically renderable without PostgreSQL or GitHub API requests. Add metadata, keyboard focus, a skip link, reduced-motion support, and real empty/error destinations. Verify navigation, detail pages, 404s, theme persistence, console errors, and narrow-screen layout. Run quality checks before an English commit. Do not push or deploy without authorization.

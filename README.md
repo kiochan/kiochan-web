@@ -4,7 +4,7 @@ A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, an
 
 ## Website content
 
-`/lab` is the collection of runnable small projects, each at `/lab/<slug>`. The first is an interactive typography playground at `/lab/type-playground`, implemented in its own `packages/lab-type-playground` workspace. The website hosts its route and navigation; the experiment owns its controls and scoped styling. See [LAB.md](LAB.md) for adding React experiments and bringing independently built Vue/Angular applications behind the same URL structure later.
+`/lab` is the collection of runnable small projects, each at `/lab/<slug>` in its own workspace package. The website hosts routes and navigation; experiments own their controls and scoped styling. See [LAB.md](LAB.md) for adding experiments and integrating independently built applications.
 
 The collection now also includes Liquid, Lattice, Breakout, Quick Snake, and a resource-free Cubism Workbench. All lab routes share the website navbar and responsive project sidebar. Each experiment has an independent package and README. Liquid uses a new lightweight particle approximation; Lattice supports SVG/PNG export with upstream attribution. The games expose their running engine source in static HTML. Cubism provides local manifest inspection and an injectable basic viewer adapter; rendering needs separately authorized SDK/model assets and is not enabled by default. Run `node --test scripts/lab-engines.test.mjs` for deterministic engine and file-format checks.
 
@@ -42,6 +42,8 @@ infrastructure/web/        Website container configuration
 Each package declares its own dependencies. Framework versions do not need to match across future applications. No Nx or generators are required.
 
 ## Theme and UI
+
+The interface uses a cool technical palette from packages/theme, a decorative animated signal globe, responsive card feedback, progressive scroll reveals, and short route-entry transitions. System reduced-motion preference disables decorative motion. The top BProgress bar follows App Router navigation without adding an artificial wait. Next.js loading boundaries and dynamically imported experiment runtimes provide real loading placeholders; headings, descriptions, canonical URLs, and source disclosures remain server-rendered.
 
 The website uses Tailwind CSS and local shadcn/ui components. `packages/theme` is the source of truth for color and control-radius tokens. It ships only plain CSS and has no framework or UI-library dependencies.
 

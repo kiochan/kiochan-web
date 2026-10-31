@@ -26,7 +26,8 @@ export default function LabPage() {
           <Link
             key={experiment.slug}
             href={`/lab/${experiment.slug}`}
-            className="group rounded-2xl border border-edge bg-surface p-7 sm:p-9"
+            className="lab-card group rounded-2xl border border-edge bg-surface p-7 sm:p-9"
+            data-reveal
           >
             <div className="flex items-center justify-between gap-4">
               <p className="eyebrow">

@@ -14,6 +14,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@bprogress/next':
+        specifier: 3.2.12
+        version: 3.2.12(next@16.4.3(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@kiochan/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -32,9 +35,6 @@ importers:
       '@kiochan/lab-snake':
         specifier: workspace:*
         version: link:../../packages/lab-snake
-      '@kiochan/lab-type-playground':
-        specifier: workspace:*
-        version: link:../../packages/lab-type-playground
       '@kiochan/theme':
         specifier: workspace:*
         version: link:../../packages/theme
@@ -190,18 +190,6 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
-  packages/lab-type-playground:
-    devDependencies:
-      '@types/react':
-        specifier: 19.3.0
-        version: 19.3.0
-      react:
-        specifier: 19.3.1
-        version: 19.3.1
-      typescript:
-        specifier: 5.9.3
-        version: 5.9.3
-
   packages/lab-ui:
     devDependencies:
       '@types/react':
@@ -290,6 +278,22 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@bprogress/core@1.3.4':
+    resolution: {integrity: sha512-q/AqpurI/1uJzOrQROuZWixn/+ARekh+uvJGwLCP6HQ/EqAX4SkvNf618tSBxL4NysC0MwqAppb/mRw6Tzi61w==}
+
+  '@bprogress/next@3.2.12':
+    resolution: {integrity: sha512-/ZvNwbAd0ty9QiQwCfT2AfwWVdAaEyCPx5RUz3CfiiJS/OLBohhDz/IC/srhwK9GnXeXavvtiUrpKzN5GJDwlw==}
+    peerDependencies:
+      next: '>=13.0.0'
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+
+  '@bprogress/react@1.2.7':
+    resolution: {integrity: sha512-MqJfHW+R5CQeWqyqrLxUjdBRHk24Xl63OkBLo5DMWqUqocUikRTfCIc/jtQQbPk7BRfdr5OP3Lx7YlfQ9QOZMQ==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
 
   '@electric-sql/pglite-socket@0.1.3':
     resolution: {integrity: sha512-LAciWM0M1dCL8hlsxu2venbVZcdxema0BtDfpWYVqr+Y468UADw0pFWidhKw1M8sfJ8rdLT71tjMmnirf/IZRQ==}
@@ -1512,6 +1516,22 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.6.4':
     optional: true
+
+  '@bprogress/core@1.3.4': {}
+
+  '@bprogress/next@3.2.12(next@16.4.3(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@bprogress/core': 1.3.4
+      '@bprogress/react': 1.2.7(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next: 16.4.3(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+
+  '@bprogress/react@1.2.7(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@bprogress/core': 1.3.4
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
 
   '@electric-sql/pglite-socket@0.1.3(@electric-sql/pglite@0.4.3)':
     dependencies:

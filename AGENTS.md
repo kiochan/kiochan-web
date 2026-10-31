@@ -5,6 +5,7 @@
 - Use English for code, comments, documentation, UI copy, and commit messages.
 - The website contains a home page, public project profiles, engineering notes, an about page, and GitHub contact paths. Do not invent personal history, claims, testimonials, contact details, or project capabilities.
 - Keep editorial content in `apps/web/src/content/site.ts`. Feature only verified public repositories. Private repository access does not authorize publication.
+- Do not add temporary demonstration projects to the committed website. The Type Playground example and Modbus Monitor profile have been withdrawn by the user. Keep the requested game source disclosures.
 - Keep public pages statically renderable and independent of PostgreSQL. Add routes to the sitemap and route smoke checks when expanding the site.
 - Do not deploy, push commits, or change production infrastructure without user authorization.
 
@@ -36,6 +37,8 @@
 - Theme preference behavior belongs to the web application, not `packages/theme`. Its `next-themes` provider stores `light`, `dark`, or `system` under the browser-local `kiochan-theme` key and resolves the preference to `data-theme` on the document root.
 - Keep `enableColorScheme` disabled in the provider: the shared theme CSS owns `color-scheme` and all palette values. Do not duplicate colors in JavaScript or switch the provider to shadcn's `.dark` convention.
 - Preserve the provider's pre-hydration theme script and the root's `suppressHydrationWarning`. Theme-dependent controls must render the same initial server/client markup before reading the saved selection.
+- Navigation feedback uses the app-router BProgress provider. Do not delay real navigation for animation. Keep reduced-motion support, static page metadata, loading boundaries, and per-experiment dynamic imports; do not put every experiment runtime in the main layout.
+- Motion must preserve readable server-rendered content. Scroll reveals are progressive enhancement and must clean up observers and animations. Never hide content until JavaScript runs.
 
 ## Quality checks
 

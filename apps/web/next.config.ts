@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
   turbopack: { root: workspaceRoot },
   transpilePackages: [
     "@kiochan/database",
-    "@kiochan/lab-type-playground",
     "@kiochan/lab-ui",
     "@kiochan/lab-liquid",
     "@kiochan/lab-lattice",

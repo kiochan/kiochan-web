@@ -34,30 +34,6 @@ export const projects = [
       },
     ],
   },
-  {
-    slug: "modbus-monitor",
-    name: "Modbus Monitor",
-    title: "A web interface meets a different kind of network.",
-    category: "Protocol experiment",
-    summary:
-      "An earlier JavaScript exploration of Modbus monitoring, combining a React web interface with protocol-oriented tooling.",
-    stack: ["JavaScript", "React", "Next.js", "Modbus"],
-    repository: "https://github.com/kiochan/modbus-monitor",
-    status: "Public source",
-    artwork: "monitor",
-    overview:
-      "A public repository exploring a browser-facing interface for Modbus monitoring. Its source combines Next.js, React, Evergreen UI, and modbus-stream.",
-    details: [
-      {
-        title: "An experiment across boundaries",
-        text: "The project brings web interface work into contact with protocol-level tools: an exploration of an unfamiliar domain through a small, inspectable application.",
-      },
-      {
-        title: "Explore the source",
-        text: "The repository is the reference for implementation and setup. This page describes the source project; it does not offer a hosted demo or promise support for a particular device.",
-      },
-    ],
-  },
 ] as const;
 
 export const notes = [

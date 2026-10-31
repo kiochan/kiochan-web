@@ -31,7 +31,7 @@ export function LabNavigation() {
   return (
     <>
       <aside className="hidden lg:block" aria-label="Lab sidebar">
-        <div className="sticky top-8">
+        <div className="sticky top-28">
           <p className="eyebrow px-3 mb-5">Kiochan / Lab</p>
           <Links />
           <p className="mt-8 px-3 text-xs leading-6 text-ink-muted">

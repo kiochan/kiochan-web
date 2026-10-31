@@ -60,7 +60,7 @@ export default async function NotePage({ params }: Props) {
         </div>
         <nav
           aria-label="In this note"
-          className="order-first self-start pt-6 lg:order-none lg:sticky lg:top-8"
+          className="order-first self-start pt-6 lg:order-none lg:sticky lg:top-28"
         >
           <p className="eyebrow">In this note</p>
           <ol className="mt-5 space-y-4 text-sm leading-6 text-ink-muted">

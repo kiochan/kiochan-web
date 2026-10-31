@@ -1,22 +1,24 @@
 import Link from "next/link";
 import { NoteCard, ProjectCard } from "@/components/content-cards";
+import { SignalGlobe } from "@/components/signal-globe";
 import { ArrowIcon, ContactInvitation } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { experiments } from "@/content/lab";
 import { notes, projects } from "@/content/site";
 
 export default function HomePage() {
   return (
     <>
-      <section className="site-container grid gap-14 py-16 sm:py-24 lg:grid-cols-[1.5fr_0.7fr] lg:items-center lg:gap-20">
-        <div>
-          <p className="eyebrow">A personal corner of the internet</p>
+      <section className="hero site-container grid gap-14 py-16 sm:py-24 lg:grid-cols-[1.25fr_0.9fr] lg:items-center lg:gap-16">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="status-light" aria-hidden="true" />A personal
+            corner of the internet
+          </p>
           <h1 className="mt-7 max-w-3xl text-[clamp(3.5rem,7vw,6.6rem)] leading-[1.02] font-medium tracking-[-0.065em]">
             Curiosity,
             <br />
-            turned into{" "}
-            <span className="font-serif font-normal italic text-brand">
-              code.
-            </span>
+            turned into <span className="hero-code">code.</span>
           </h1>
           <p className="mt-8 max-w-md text-base leading-8 text-ink-muted">
             Hi, I’m Kiochan. I build things for the web, explore practical
@@ -33,24 +35,15 @@ export default function HomePage() {
             </Button>
           </div>
         </div>
-        <aside aria-label="On the workbench" className="max-w-sm">
-          <div className="flex aspect-square items-center justify-center rounded-[3rem_0.75rem_3rem_0.75rem] border border-edge bg-surface-muted">
-            <div className="relative flex size-48 items-center justify-center rounded-full border border-brand/25 text-brand">
-              <span
-                className="font-serif text-[8rem] leading-none italic"
-                aria-hidden="true"
-              >
-                k.
-              </span>
-              <span className="absolute -right-2 top-6 flex size-10 items-center justify-center rounded-full border border-edge bg-canvas">
-                <ArrowIcon diagonal />
-              </span>
-            </div>
-          </div>
+        <aside aria-label="On the workbench" className="hero-visual">
+          <SignalGlobe />
           <div className="mt-5 flex justify-between gap-3 text-xs text-ink-muted">
-            <span>On the workbench</span>
-            <Link href="/projects/kiochan-web" className="text-link">
-              This little website ↗
+            <span>
+              {String(experiments.length).padStart(2, "0")} experiments / one
+              home
+            </span>
+            <Link href="/lab" className="text-link">
+              Enter the lab ↗
             </Link>
           </div>
         </aside>

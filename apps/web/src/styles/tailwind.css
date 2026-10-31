@@ -1,5 +1,6 @@
 @theme inline {
   --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --color-canvas: var(--kio-color-canvas);
   --color-ink: var(--kio-color-text);
   --color-ink-muted: var(--kio-color-text-muted);

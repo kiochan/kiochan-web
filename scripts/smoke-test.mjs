@@ -14,7 +14,6 @@ async function verify() {
   assert.match(html, /Skip to content/);
   const routes = [
     ["/lab", "Small ideas. Open tabs"],
-    ["/lab/type-playground", "Type Playground"],
     ["/lab/liquid", "Start simulation"],
     ["/lab/lattice", "Download SVG"],
     ["/lab/cubism", "Model manifest"],
@@ -22,7 +21,6 @@ async function verify() {
     ["/lab/snake", "Read the game engine source"],
     ["/projects", "Projects &amp; experiments"],
     ["/projects/kiochan-web", "Kiochan Web"],
-    ["/projects/modbus-monitor", "Modbus Monitor"],
     ["/notes", "Thinking out loud"],
     ["/notes/a-theme-without-a-framework", "A shared theme"],
     [
@@ -57,6 +55,8 @@ async function verify() {
     "/projects/missing",
     "/notes/missing",
     "/lab/missing",
+    "/lab/type-playground",
+    "/projects/modbus-monitor",
   ]) {
     const response = await fetch(new URL(path, baseUrl), {
       signal: AbortSignal.timeout(10_000),

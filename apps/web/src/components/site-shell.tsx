@@ -30,7 +30,7 @@ export function ArrowIcon({
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-edge">
+    <header className="site-header border-b border-edge">
       <div className="site-container flex flex-wrap items-center justify-between gap-x-8 gap-y-5 py-6">
         <Link
           href="/"

@@ -90,7 +90,7 @@ export function LabProject({
           )}
           <a
             className="text-link text-brand"
-            href={`https://github.com/kiochan/kiochan-web/tree/dev/packages/${project.packageName}`}
+            href={`https://github.com/kiochan/kiochan-web/tree/prod/packages/${project.packageName}`}
           >
             Package source & README ↗
           </a>

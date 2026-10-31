@@ -9,6 +9,11 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@kiochan/lab-liquid": "workspace:*",
+    "@kiochan/lab-lattice": "workspace:*",
+    "@kiochan/lab-cubism": "workspace:*",
+    "@kiochan/lab-breakout": "workspace:*",
+    "@kiochan/lab-snake": "workspace:*",
     "@kiochan/lab-type-playground": "workspace:*",
     "@kiochan/database": "workspace:*",
     "@kiochan/theme": "workspace:*",

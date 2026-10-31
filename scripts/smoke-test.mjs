@@ -15,6 +15,11 @@ async function verify() {
   const routes = [
     ["/lab", "Small ideas. Open tabs"],
     ["/lab/type-playground", "Type Playground"],
+    ["/lab/liquid", "Start simulation"],
+    ["/lab/lattice", "Download SVG"],
+    ["/lab/cubism", "Model manifest"],
+    ["/lab/breakout", "Read the game engine source"],
+    ["/lab/snake", "Read the game engine source"],
     ["/projects", "Projects &amp; experiments"],
     ["/projects/kiochan-web", "Kiochan Web"],
     ["/projects/modbus-monitor", "Modbus Monitor"],
@@ -34,7 +39,18 @@ async function verify() {
       signal: AbortSignal.timeout(10_000),
     });
     assert.equal(response.status, 200, path);
-    assert.ok((await response.text()).includes(content), path);
+    const body = await response.text();
+    assert.ok(body.includes(content), path);
+    if (path.startsWith("/lab/")) {
+      assert.ok(body.includes('aria-label="Lab sidebar"'), path);
+      assert.ok(body.includes(`href="https://kiochan.one${path}"`), path);
+      const schema = body.match(
+        /<script type="application\/ld\+json">([^<]+)<\/script>/,
+      );
+      assert.ok(schema, path);
+      assert.equal(JSON.parse(schema[1])["@type"], "BreadcrumbList");
+      assert.ok(body.includes("Further development continues here"), path);
+    }
   }
   for (const path of [
     "/missing-page",

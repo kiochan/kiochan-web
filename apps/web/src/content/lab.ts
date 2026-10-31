@@ -1,10 +1,62 @@
 export const experiments = [
   {
+    slug: "liquid",
+    name: "Liquid Playground",
+    category: "Simulation",
+    description:
+      "Pour particles, change gravity, and play with a lightweight fluid-like simulation.",
+    stack: "React · Canvas",
+    packageName: "lab-liquid",
+    original: "https://github.com/kiochan/liquid-playground",
+  },
+  {
+    slug: "lattice",
+    name: "Lattice Generator",
+    category: "Creative tools",
+    description:
+      "Design a repeating plaid, adjust its rhythm and colors, and export SVG or PNG.",
+    stack: "React · SVG",
+    packageName: "lab-lattice",
+    original: "https://github.com/kiochan/lattice-generator",
+  },
+  {
+    slug: "cubism",
+    name: "Cubism Workbench",
+    category: "Live2D",
+    description:
+      "Inspect a local Cubism model manifest and explore the resource-free viewer integration.",
+    stack: "React · Local files",
+    packageName: "lab-cubism",
+    original: "https://github.com/kiochan/react-cubism",
+  },
+  {
+    slug: "breakout",
+    name: "Breakout",
+    category: "Games",
+    description:
+      "A small brick-breaking game rebuilt for the browser, with readable TypeScript source.",
+    stack: "React · Canvas",
+    packageName: "lab-breakout",
+    original: "https://github.com/kiochan/breakout",
+  },
+  {
+    slug: "snake",
+    name: "Quick Snake",
+    category: "Games",
+    description:
+      "A keyboard and touch-friendly Snake game with food, collision handling, and source to explore.",
+    stack: "React · Canvas",
+    packageName: "lab-snake",
+    original: "https://github.com/kiochan/quick-snake",
+  },
+  {
     slug: "type-playground",
     name: "Type Playground",
     category: "Typography",
     description:
       "A little space to try a few words, change their rhythm, and see how type feels.",
     stack: "React",
+    packageName: "lab-type-playground",
+    original: null,
   },
 ] as const;

@@ -13,6 +13,9 @@
   --kio-color-danger: #b42318;
   --kio-color-on-danger: #ffffff;
   --kio-radius-control: 0.625rem;
+  --kio-pattern-base: #e9eee5;
+  --kio-pattern-stripe: #496850;
+  --kio-pattern-line: #626a60;
 }
 
 [data-theme="dark"] {

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function LabPage() {
   return (
-    <section className="site-container section-space">
+    <section className="py-2">
       <p className="eyebrow">The lab</p>
       <h1 className="mt-5 text-5xl font-medium tracking-tight sm:text-6xl">
         Small ideas. Open tabs<span className="text-brand">.</span>

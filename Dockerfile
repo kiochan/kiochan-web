@@ -11,6 +11,12 @@ COPY apps/web/package.json apps/web/package.json
 COPY packages/database/package.json packages/database/package.json
 COPY packages/theme/package.json packages/theme/package.json
 COPY packages/lab-type-playground/package.json packages/lab-type-playground/package.json
+COPY packages/lab-ui/package.json packages/lab-ui/package.json
+COPY packages/lab-liquid/package.json packages/lab-liquid/package.json
+COPY packages/lab-lattice/package.json packages/lab-lattice/package.json
+COPY packages/lab-cubism/package.json packages/lab-cubism/package.json
+COPY packages/lab-breakout/package.json packages/lab-breakout/package.json
+COPY packages/lab-snake/package.json packages/lab-snake/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder

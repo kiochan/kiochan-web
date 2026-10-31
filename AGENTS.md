@@ -18,6 +18,9 @@
 - Prefer Server Components. Add client components only when interaction requires them.
 - `/lab/<slug>` is the stable public address for runnable experiments; `/projects/<slug>` is an optional introduction. Follow `LAB.md` for integration and migration.
 - Small embedded React experiments live in independent `packages/lab-*` workspaces with host-compatible React peers and scoped CSS. Keep runtime imports in individual routes and only metadata in the lab catalogue.
+- Lab routes share `app/lab/layout.tsx`, the global navbar, and the responsive project sidebar. Do not replace website chrome inside an experiment. Every experiment package needs its own English README with origin, behavior, maintenance location, and verification.
+- Never import Cubism SDK binaries, vendor resources, sample models, or third-party model assets. The resource-free viewer accepts an explicitly supplied authorized adapter; the public manifest inspector must not claim to render models.
+- Keep game engines independent of React, expose their actual source for reading, and scope keyboard input to focused game controls. Cancel animation and release resources on unmount.
 - Different-framework or independently deployed apps belong in `apps/*`; introduce prefix-aware proxy routing only for a concrete app. Do not assume a URL prefix isolates origin-level storage or security.
 - Keep the home page independent of database availability. Never query PostgreSQL while building the static home page.
 

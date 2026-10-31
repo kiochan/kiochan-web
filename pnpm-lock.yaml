@@ -17,6 +17,21 @@ importers:
       '@kiochan/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@kiochan/lab-breakout':
+        specifier: workspace:*
+        version: link:../../packages/lab-breakout
+      '@kiochan/lab-cubism':
+        specifier: workspace:*
+        version: link:../../packages/lab-cubism
+      '@kiochan/lab-lattice':
+        specifier: workspace:*
+        version: link:../../packages/lab-lattice
+      '@kiochan/lab-liquid':
+        specifier: workspace:*
+        version: link:../../packages/lab-liquid
+      '@kiochan/lab-snake':
+        specifier: workspace:*
+        version: link:../../packages/lab-snake
       '@kiochan/lab-type-playground':
         specifier: workspace:*
         version: link:../../packages/lab-type-playground
@@ -95,7 +110,99 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  packages/lab-breakout:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-cubism:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-lattice:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-liquid:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-snake:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/lab-type-playground:
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-ui:
     devDependencies:
       '@types/react':
         specifier: 19.3.0

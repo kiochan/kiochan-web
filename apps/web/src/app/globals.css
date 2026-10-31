@@ -1,71 +1,14 @@
-:root {
-  color-scheme: light dark;
-  --background: #f7f6f2;
-  --foreground: #242724;
-  --muted: #70766e;
-  --accent: #63816a;
-}
+@import "tailwindcss";
+@import "@kiochan/theme/tokens.css";
+@import "../styles/shadcn.css";
+@import "../styles/tailwind.css";
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-main {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(1.5rem, 5vw, 4rem);
-}
-
-.wordmark {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-}
-
-.wordmark span {
-  color: var(--accent);
-}
-
-.greeting {
-  margin-block: auto;
-  padding-block: 5rem;
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(3rem, 10vw, 8rem);
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.07em;
-}
-
-.greeting p {
-  margin: 1.5rem 0 0;
-  color: var(--muted);
-  font-size: clamp(1rem, 2vw, 1.25rem);
-}
-
-footer {
-  color: var(--muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #171b18;
-    --foreground: #eeefe8;
-    --muted: #a0aa9e;
-    --accent: #a6c1a9;
+@layer base {
+  body {
+    margin: 0;
+    background: var(--kio-color-canvas);
+    color: var(--kio-color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
 }

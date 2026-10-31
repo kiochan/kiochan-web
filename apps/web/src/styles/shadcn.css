@@ -1,0 +1,24 @@
+/* This adapter belongs to the React application, not the shared theme. */
+:root,
+[data-theme] {
+  --background: var(--kio-color-canvas);
+  --foreground: var(--kio-color-text);
+  --card: var(--kio-color-surface);
+  --card-foreground: var(--kio-color-text);
+  --popover: var(--kio-color-surface);
+  --popover-foreground: var(--kio-color-text);
+  --primary: var(--kio-color-brand);
+  --primary-foreground: var(--kio-color-on-brand);
+  --secondary: var(--kio-color-surface-muted);
+  --secondary-foreground: var(--kio-color-text);
+  --muted: var(--kio-color-surface-muted);
+  --muted-foreground: var(--kio-color-text-muted);
+  --accent: var(--kio-color-surface-muted);
+  --accent-foreground: var(--kio-color-text);
+  --destructive: var(--kio-color-danger);
+  --destructive-foreground: var(--kio-color-on-danger);
+  --border: var(--kio-color-border);
+  --input: var(--kio-color-border);
+  --ring: var(--kio-color-focus);
+  --radius: var(--kio-radius-control);
+}

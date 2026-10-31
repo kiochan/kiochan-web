@@ -24,11 +24,27 @@ Open http://localhost:3000. The home page works without PostgreSQL.
 ```text
 apps/web/                  Next.js website
 packages/database/         Prisma schema, migrations, and server-side client
+packages/theme/            Framework-independent semantic CSS tokens
 infrastructure/postgres/   Independent shared PostgreSQL service
 infrastructure/web/        Website container configuration
 ```
 
 Each package declares its own dependencies. Framework versions do not need to match across future applications. No Nx or generators are required.
+
+## Theme and UI
+
+The website uses Tailwind CSS and local shadcn/ui components. `packages/theme` is the source of truth for color and control-radius tokens. It ships only plain CSS and has no framework or UI-library dependencies.
+
+```text
+packages/theme/src/tokens.css       Kiochan palette and semantic --kio-* tokens
+apps/web/src/styles/shadcn.css      Application-owned shadcn variable adapter
+apps/web/src/styles/tailwind.css    Application-owned Tailwind utility mapping
+apps/web/src/components/ui/         Local shadcn component source
+```
+
+Edit shared palette values in `packages/theme`, not in components or vendor configuration. The root follows system light/dark preference unless `data-theme="light"` or `data-theme="dark"` is set. A future Vue/Angular application can import `@kiochan/theme/tokens.css` without adopting shadcn or Tailwind.
+
+`apps/web/components.json` supports adding shadcn components when needed; initial setup does not require a generator. Review any generated CSS and keep literal palettes out of the website. See [the theme package documentation](packages/theme/README.md) for the token contract.
 
 ## Quality checks
 

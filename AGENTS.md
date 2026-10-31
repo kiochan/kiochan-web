@@ -16,6 +16,16 @@
 - Prefer Server Components. Add client components only when interaction requires them.
 - Keep the home page independent of database availability. Never query PostgreSQL while building the static home page.
 
+## Theme and UI boundaries
+
+- Use Tailwind CSS for website styling and local shadcn/ui component source in `apps/web/src/components/ui`.
+- `packages/theme` owns framework-independent `--kio-*` semantic CSS tokens and light/dark palettes. It must not depend on React, Tailwind, Radix, or shadcn and must not expose shadcn variable names.
+- The website owns integration adapters: `src/styles/shadcn.css` maps theme tokens to shadcn names; `src/styles/tailwind.css` registers Tailwind utilities. Keep palette literals exclusively in the shared theme.
+- Application layout should use brand tokens or its own semantic utilities. Keep vendor-specific component variants inside the local UI boundary rather than spreading them through business logic.
+- Add components as needed. Do not run shadcn initialization over the existing theme or accept generated palette overrides without review. CLI generation is optional.
+- Future Vue/Angular applications may import the theme CSS directly and provide their own UI adapters without installing shadcn.
+- Use `data-theme="light"` or `data-theme="dark"` for explicit mode selection; without an attribute the theme follows the operating system.
+
 ## Quality checks
 
 - Use Biome for linting, formatting, and import organization. Do not introduce ESLint or Prettier.

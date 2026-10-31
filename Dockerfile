@@ -9,6 +9,7 @@ FROM base AS dependencies
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/database/package.json packages/database/package.json
+COPY packages/theme/package.json packages/theme/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder

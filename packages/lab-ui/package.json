@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     ".": "./src/index.tsx",
-    "./styles.module.css": "./src/styles.module.css"
+    "./styles.module.css": "./src/styles.module.css",
+    "./preview.module.css": "./src/preview.module.css"
   },
   "sideEffects": [
     "**/*.css"

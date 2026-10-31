@@ -1,6 +1,10 @@
+import { BreakoutPreview } from "@kiochan/lab-breakout/preview";
+import { CubismPreview } from "@kiochan/lab-cubism/preview";
+import { LatticePreview } from "@kiochan/lab-lattice/preview";
+import { LiquidPreview } from "@kiochan/lab-liquid/preview";
+import { SnakePreview } from "@kiochan/lab-snake/preview";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowIcon } from "@/components/site-shell";
+import { LabCard } from "@/components/lab-card";
 import { experiments } from "@/content/lab";
 
 export const metadata: Metadata = {
@@ -8,6 +12,13 @@ export const metadata: Metadata = {
   description:
     "Small tools, playful experiments, and ideas you can try in your browser.",
   alternates: { canonical: "/lab" },
+};
+const previews = {
+  liquid: LiquidPreview,
+  lattice: LatticePreview,
+  cubism: CubismPreview,
+  breakout: BreakoutPreview,
+  snake: SnakePreview,
 };
 
 export default function LabPage() {
@@ -22,30 +33,14 @@ export default function LabPage() {
         little projects to open and play with, all in one place.
       </p>
       <div className="mt-14 grid gap-6 md:grid-cols-2">
-        {experiments.map((experiment) => (
-          <Link
-            key={experiment.slug}
-            href={`/lab/${experiment.slug}`}
-            className="lab-card group rounded-2xl border border-edge bg-surface p-7 sm:p-9"
-            data-reveal
-          >
-            <div className="flex items-center justify-between gap-4">
-              <p className="eyebrow">
-                {experiment.category} / {experiment.stack}
-              </p>
-              <ArrowIcon diagonal className="text-brand" />
-            </div>
-            <h2 className="mt-8 text-2xl font-medium tracking-tight group-hover:text-brand">
-              {experiment.name}
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-ink-muted">
-              {experiment.description}
-            </p>
-            <p className="mt-8 text-sm font-medium text-brand">
-              Open experiment →
-            </p>
-          </Link>
-        ))}
+        {experiments.map((experiment) => {
+          const Preview = previews[experiment.slug];
+          return (
+            <LabCard key={experiment.slug} experiment={experiment}>
+              <Preview />
+            </LabCard>
+          );
+        })}
       </div>
       <p className="mt-10 text-sm text-ink-muted">
         An evolving collection. More experiments will find their way here.

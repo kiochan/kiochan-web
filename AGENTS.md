@@ -25,6 +25,9 @@
 - Add components as needed. Do not run shadcn initialization over the existing theme or accept generated palette overrides without review. CLI generation is optional.
 - Future Vue/Angular applications may import the theme CSS directly and provide their own UI adapters without installing shadcn.
 - Use `data-theme="light"` or `data-theme="dark"` for explicit mode selection; without an attribute the theme follows the operating system.
+- Theme preference behavior belongs to the web application, not `packages/theme`. Its `next-themes` provider stores `light`, `dark`, or `system` under the browser-local `kiochan-theme` key and resolves the preference to `data-theme` on the document root.
+- Keep `enableColorScheme` disabled in the provider: the shared theme CSS owns `color-scheme` and all palette values. Do not duplicate colors in JavaScript or switch the provider to shadcn's `.dark` convention.
+- Preserve the provider's pre-hydration theme script and the root's `suppressHydrationWarning`. Theme-dependent controls must render the same initial server/client markup before reading the saved selection.
 
 ## Quality checks
 

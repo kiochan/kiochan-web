@@ -9,6 +9,7 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@kiochan/lab-type-playground": "workspace:*",
     "@kiochan/database": "workspace:*",
     "@kiochan/theme": "workspace:*",
     "@radix-ui/react-slot": "1.5.0",

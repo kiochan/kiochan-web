@@ -13,6 +13,8 @@ async function verify() {
   assert.match(html, /href="\/projects"/);
   assert.match(html, /Skip to content/);
   const routes = [
+    ["/lab", "Small ideas. Open tabs"],
+    ["/lab/type-playground", "Type Playground"],
     ["/projects", "Projects &amp; experiments"],
     ["/projects/kiochan-web", "Kiochan Web"],
     ["/projects/modbus-monitor", "Modbus Monitor"],
@@ -34,7 +36,12 @@ async function verify() {
     assert.equal(response.status, 200, path);
     assert.ok((await response.text()).includes(content), path);
   }
-  for (const path of ["/missing-page", "/projects/missing", "/notes/missing"]) {
+  for (const path of [
+    "/missing-page",
+    "/projects/missing",
+    "/notes/missing",
+    "/lab/missing",
+  ]) {
     const response = await fetch(new URL(path, baseUrl), {
       signal: AbortSignal.timeout(10_000),
     });

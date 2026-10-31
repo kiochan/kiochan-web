@@ -4,6 +4,8 @@ A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, an
 
 ## Website content
 
+`/lab` is the collection of runnable small projects, each at `/lab/<slug>`. The first is an interactive typography playground at `/lab/type-playground`, implemented in its own `packages/lab-type-playground` workspace. The website hosts its route and navigation; the experiment owns its controls and scoped styling. See [LAB.md](LAB.md) for adding React experiments and bringing independently built Vue/Angular applications behind the same URL structure later.
+
 The home page introduces Kiochan and leads to `/projects`, `/notes`, `/about`, and `/contact`. Projects and notes have individual static detail pages. Edit typed content in `apps/web/src/content/site.ts`; route generation and the sitemap use the same content. Only verified public repositories are featured. Project artwork is illustrative, not a claim about a hosted demo.
 
 Public pages work without a database, account, or third-party API request. Contact links lead to GitHub profiles or the relevant repository issue tracker. The release includes responsive navigation, persistent theme selection, keyboard focus styles, a skip link, metadata, a sitemap, and a recovery page for unknown URLs. See [SITE_PLAN.md](SITE_PLAN.md) for scope and editorial boundaries.

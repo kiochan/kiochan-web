@@ -24,8 +24,8 @@ export default function HomePage() {
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Button asChild className="h-11 gap-5 px-5">
-              <Link href="/projects">
-                Explore projects <ArrowIcon />
+              <Link href="/lab">
+                Explore the lab <ArrowIcon />
               </Link>
             </Button>
             <Button asChild variant="outline" className="h-11 px-5">

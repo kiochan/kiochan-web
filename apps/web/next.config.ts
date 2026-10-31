@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: workspaceRoot,
   turbopack: { root: workspaceRoot },
-  transpilePackages: ["@kiochan/database"],
+  transpilePackages: ["@kiochan/database", "@kiochan/lab-type-playground"],
   poweredByHeader: false,
 };
 

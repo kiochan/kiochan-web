@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links = [
+  { href: "/lab", label: "Lab" },
   { href: "/projects", label: "Projects" },
   { href: "/notes", label: "Notes" },
   { href: "/about", label: "About" },
@@ -16,7 +17,7 @@ export function SiteNavigation() {
   return (
     <nav
       aria-label="Main navigation"
-      className="flex items-center gap-6 text-sm sm:gap-8"
+      className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm sm:gap-x-8"
     >
       {links.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);

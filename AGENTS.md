@@ -16,6 +16,9 @@
 - Keep dependencies in the package that uses them. Applications may use different dependency versions.
 - Future Vue or Angular applications belong in separate workspace packages. Choose integration when a concrete requirement exists.
 - Prefer Server Components. Add client components only when interaction requires them.
+- `/lab/<slug>` is the stable public address for runnable experiments; `/projects/<slug>` is an optional introduction. Follow `LAB.md` for integration and migration.
+- Small embedded React experiments live in independent `packages/lab-*` workspaces with host-compatible React peers and scoped CSS. Keep runtime imports in individual routes and only metadata in the lab catalogue.
+- Different-framework or independently deployed apps belong in `apps/*`; introduce prefix-aware proxy routing only for a concrete app. Do not assume a URL prefix isolates origin-level storage or security.
 - Keep the home page independent of database availability. Never query PostgreSQL while building the static home page.
 
 ## Theme and UI boundaries

@@ -6,6 +6,7 @@ Introduce Kiochan, show real work, share useful engineering notes, and provide a
 
 - Home: introduction, selected projects, latest notes, and contact invitation.
 - Projects: curated index and individual project pages.
+- Lab: a growing collection of runnable tools at `/lab/<slug>`, with separate workspace ownership for each embedded experiment. See LAB.md.
 - Notes: original articles about this repository's real theme and deployment decisions.
 - About: concise introduction and working principles.
 - Contact: GitHub profile and project issue links.

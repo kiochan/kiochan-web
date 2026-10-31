@@ -1,0 +1,103 @@
+.panel {
+  border: 1px solid var(--kio-color-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--kio-color-surface);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--kio-color-border);
+}
+.button {
+  cursor: pointer;
+  border: 1px solid var(--kio-color-border);
+  border-radius: var(--kio-radius-control);
+  background: var(--kio-color-canvas);
+  color: var(--kio-color-text);
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+}
+.button:hover {
+  background: var(--kio-color-surface-muted);
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+.field input,
+.field select {
+  font: inherit;
+  color: var(--kio-color-text);
+  background: var(--kio-color-canvas);
+  border: 1px solid var(--kio-color-border);
+  border-radius: 0.5rem;
+  padding: 0.45rem;
+  max-width: 100%;
+}
+.field input[type="range"] {
+  accent-color: var(--kio-color-brand);
+  padding: 0;
+  min-height: 2rem;
+}
+.canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--kio-color-canvas);
+}
+.interactive {
+  touch-action: none;
+}
+.status {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--kio-color-text-muted);
+  border-top: 1px solid var(--kio-color-border);
+}
+.body {
+  padding: 1.5rem;
+}
+.grid {
+  display: grid;
+  gap: 1.25rem;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+.error {
+  color: var(--kio-color-danger);
+}
+.summary {
+  cursor: pointer;
+  padding: 1rem 0;
+  font-weight: 500;
+}
+.preview {
+  width: 100%;
+  display: block;
+  max-height: 28rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--kio-color-border);
+}
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

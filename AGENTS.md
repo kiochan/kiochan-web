@@ -3,7 +3,10 @@
 ## Language and scope
 
 - Use English for code, comments, documentation, UI copy, and commit messages.
-- The first release is a Hello World website. Do not add speculative product features.
+- The website contains a home page, public project profiles, engineering notes, an about page, and GitHub contact paths. Do not invent personal history, claims, testimonials, contact details, or project capabilities.
+- Keep editorial content in `apps/web/src/content/site.ts`. Feature only verified public repositories. Private repository access does not authorize publication.
+- Do not add temporary demonstration projects to the committed website. The Type Playground example and Modbus Monitor profile have been withdrawn by the user. Keep the requested game source disclosures.
+- Keep public pages statically renderable and independent of PostgreSQL. Add routes to the sitemap and route smoke checks when expanding the site.
 - Do not deploy, push commits, or change production infrastructure without user authorization.
 
 ## Architecture
@@ -14,6 +17,12 @@
 - Keep dependencies in the package that uses them. Applications may use different dependency versions.
 - Future Vue or Angular applications belong in separate workspace packages. Choose integration when a concrete requirement exists.
 - Prefer Server Components. Add client components only when interaction requires them.
+- `/lab/<slug>` is the stable public address for runnable experiments; `/projects/<slug>` is an optional introduction. Follow `LAB.md` for integration and migration.
+- Small embedded React experiments live in independent `packages/lab-*` workspaces with host-compatible React peers and scoped CSS. Keep runtime imports in individual routes and only metadata in the lab catalogue.
+- Lab routes share `app/lab/layout.tsx`, the global navbar, and the responsive project sidebar. Do not replace website chrome inside an experiment. Every experiment package needs its own English README with origin, behavior, maintenance location, and verification.
+- Never import Cubism SDK binaries, vendor resources, sample models, or third-party model assets. The resource-free viewer accepts an explicitly supplied authorized adapter; the public manifest inspector must not claim to render models.
+- Keep game engines independent of React, expose their actual source for reading, and scope keyboard input to focused game controls. Cancel animation and release resources on unmount.
+- Different-framework or independently deployed apps belong in `apps/*`; introduce prefix-aware proxy routing only for a concrete app. Do not assume a URL prefix isolates origin-level storage or security.
 - Keep the home page independent of database availability. Never query PostgreSQL while building the static home page.
 
 ## Theme and UI boundaries
@@ -25,6 +34,11 @@
 - Add components as needed. Do not run shadcn initialization over the existing theme or accept generated palette overrides without review. CLI generation is optional.
 - Future Vue/Angular applications may import the theme CSS directly and provide their own UI adapters without installing shadcn.
 - Use `data-theme="light"` or `data-theme="dark"` for explicit mode selection; without an attribute the theme follows the operating system.
+- Theme preference behavior belongs to the web application, not `packages/theme`. Its `next-themes` provider stores `light`, `dark`, or `system` under the browser-local `kiochan-theme` key and resolves the preference to `data-theme` on the document root.
+- Keep `enableColorScheme` disabled in the provider: the shared theme CSS owns `color-scheme` and all palette values. Do not duplicate colors in JavaScript or switch the provider to shadcn's `.dark` convention.
+- Preserve the provider's pre-hydration theme script and the root's `suppressHydrationWarning`. Theme-dependent controls must render the same initial server/client markup before reading the saved selection.
+- Navigation feedback uses the app-router BProgress provider. Do not delay real navigation for animation. Keep reduced-motion support, static page metadata, loading boundaries, and per-experiment dynamic imports; do not put every experiment runtime in the main layout.
+- Motion must preserve readable server-rendered content. Scroll reveals are progressive enhancement and must clean up observers and animations. Never hide content until JavaScript runs.
 
 ## Quality checks
 

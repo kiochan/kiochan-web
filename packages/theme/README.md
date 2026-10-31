@@ -24,6 +24,9 @@ Without an explicit `data-theme`, the root follows the operating system color sc
 | `--kio-color-on-brand`      | Text on brand backgrounds             |
 | `--kio-color-border`        | Control and surface borders           |
 | `--kio-color-focus`         | Keyboard focus indicators             |
+| `--kio-color-accent`        | Secondary decorative emphasis         |
+| `--kio-color-grid`          | Subtle background grid lines          |
+| `--kio-color-glow`          | Translucent decorative surface light  |
 | `--kio-color-danger`        | Destructive actions                   |
 | `--kio-color-on-danger`     | Text on destructive backgrounds       |
 | `--kio-radius-control`      | Default control corner radius         |

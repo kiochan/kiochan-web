@@ -4,11 +4,353 @@
 @import "../styles/tailwind.css";
 
 @layer base {
+  html {
+    scroll-padding-top: 11rem;
+  }
   body {
     margin: 0;
     background: var(--kio-color-canvas);
     color: var(--kio-color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    isolation: isolate;
+    background-image: radial-gradient(
+      ellipse at 85% 5%,
+      var(--kio-color-glow),
+      transparent 45%
+    );
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--kio-color-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kio-color-grid) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, currentColor, transparent 85%);
+  }
+
+  a,
+  button,
+  select,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--kio-color-focus);
+    outline-offset: 5px;
+  }
+
+  ::selection {
+    color: var(--kio-color-on-brand);
+    background: var(--kio-color-brand);
+  }
+}
+
+@layer components {
+  .site-container {
+    @apply mx-auto w-full max-w-6xl px-6 sm:px-10;
+  }
+  .section-space {
+    @apply py-14 sm:py-20;
+  }
+  .eyebrow {
+    @apply text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted;
+    font-family: var(--font-mono);
+  }
+  .text-link {
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 5px;
+    transition:
+      color 160ms,
+      text-decoration-color 160ms;
+  }
+  .text-link:hover {
+    color: var(--kio-color-brand);
+    text-decoration-color: currentColor;
+  }
+  .nav-link {
+    position: relative;
+  }
+  .nav-link[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 1rem;
+    height: 2px;
+    background: var(--kio-color-brand);
+  }
+  .project-art {
+    aspect-ratio: 28 / 15;
+    overflow: hidden;
+    border: 1px solid var(--kio-color-border);
+    border-radius: 0.875rem;
+    background: var(--kio-color-surface-muted);
+  }
+  .art-surface {
+    fill: var(--kio-color-canvas);
+  }
+  .article-copy p {
+    @apply mt-5 text-base leading-8 text-ink-muted;
+  }
+  .article-copy h2 {
+    @apply mt-12 text-2xl font-medium tracking-tight text-ink;
+  }
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--kio-color-canvas) 86%, transparent);
+  backdrop-filter: blur(18px);
+}
+@media (min-width: 1024px) {
+  html {
+    scroll-padding-top: 7rem;
+  }
+}
+.page-enter {
+  animation: page-arrive 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hero {
+  position: relative;
+}
+.hero-copy {
+  animation: page-arrive 650ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.hero-code {
+  background: linear-gradient(
+    105deg,
+    var(--kio-color-brand),
+    var(--kio-color-accent),
+    var(--kio-color-brand)
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-drift 9s ease-in-out infinite;
+}
+.status-light {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0.7rem;
+  background: var(--kio-color-brand);
+  box-shadow: 0 0 14px var(--kio-color-brand);
+  animation: signal-pulse 3s ease-in-out infinite;
+}
+.hero-visual {
+  animation: page-arrive 850ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  min-width: 0;
+}
+.signal-panel {
+  border: 1px solid var(--kio-color-border);
+  border-radius: 1rem;
+  background: linear-gradient(
+    150deg,
+    var(--kio-color-surface),
+    color-mix(in srgb, var(--kio-color-surface) 65%, transparent)
+  );
+  box-shadow:
+    0 0 60px var(--kio-color-glow),
+    inset 0 1px 0 color-mix(in srgb, var(--kio-color-brand) 10%, transparent);
+  overflow: hidden;
+}
+.signal-panel-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  font: 9px var(--font-mono);
+  letter-spacing: 0.07em;
+  color: var(--kio-color-text-muted);
+}
+.signal-panel-label > :last-child {
+  margin-left: auto;
+}
+.signal-panel-label .status-light {
+  margin-right: 0;
+  width: 4px;
+  height: 4px;
+}
+.signal-field {
+  position: relative;
+  aspect-ratio: 1;
+  border-block: 1px solid var(--kio-color-border);
+  background-image:
+    radial-gradient(ellipse at center, var(--kio-color-glow), transparent 65%),
+    linear-gradient(var(--kio-color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kio-color-grid) 1px, transparent 1px);
+  background-size:
+    auto,
+    24px 24px,
+    24px 24px;
+}
+.signal-globe {
+  width: 100%;
+  height: 100%;
+  color: var(--kio-color-brand);
+}
+.signal-ring {
+  transform-origin: center;
+  animation: orbit 24s linear infinite;
+}
+.signal-ring-reverse {
+  transform-origin: center;
+  animation: orbit 40s linear infinite reverse;
+}
+.signal-coordinate {
+  position: absolute;
+  left: 1rem;
+  font: 8px var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--kio-color-text-muted);
+}
+.signal-coordinate-top {
+  top: 1rem;
+}
+.signal-coordinate-bottom {
+  bottom: 1rem;
+}
+.lab-card,
+.project-card {
+  transition:
+    transform 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease;
+}
+.lab-card {
+  position: relative;
+  background-image: radial-gradient(
+    ellipse at top right,
+    var(--kio-color-glow),
+    transparent 70%
+  );
+}
+.lab-card:hover,
+.project-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(
+    in srgb,
+    var(--kio-color-brand) 65%,
+    var(--kio-color-border)
+  );
+  box-shadow: 0 12px 35px var(--kio-color-glow);
+}
+.nav-link::after {
+  transition: width 180ms ease;
+}
+.nav-link[aria-current="page"]::after {
+  width: 100%;
+}
+.loading-state {
+  padding: 1.5rem;
+  border: 1px solid var(--kio-color-border);
+  border-radius: 1rem;
+  background: var(--kio-color-surface);
+}
+.loading-heading {
+  display: flex;
+  align-items: center;
+  font: 0.8rem var(--font-mono);
+  color: var(--kio-color-text-muted);
+  margin-bottom: 2rem;
+}
+.loading-line {
+  height: 0.8rem;
+  border-radius: 0.2rem;
+  background: linear-gradient(
+    90deg,
+    var(--kio-color-surface-muted),
+    var(--kio-color-border),
+    var(--kio-color-surface-muted)
+  );
+  background-size: 200% 100%;
+  animation: gradient-drift 2s linear infinite;
+  margin-top: 0.75rem;
+  width: 80%;
+}
+.loading-line-short {
+  width: 55%;
+}
+.loading-stage {
+  min-height: 16rem;
+  display: grid;
+  place-items: center;
+  margin-top: 2rem;
+  border: 1px solid var(--kio-color-border);
+  border-radius: 0.75rem;
+}
+.loading-orbit {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--kio-color-border);
+  border-top-color: var(--kio-color-brand);
+  border-radius: 50%;
+  animation: orbit 1.2s linear infinite;
+}
+@keyframes page-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes signal-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes gradient-drift {
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+  .page-enter,
+  .hero-copy,
+  .hero-visual,
+  .hero-code,
+  .status-light,
+  .signal-ring,
+  .signal-ring-reverse,
+  .loading-orbit,
+  .loading-line {
+    animation: none;
+  }
+  .lab-card,
+  .project-card {
+    transition: none;
+  }
+  .lab-card:hover,
+  .project-card:hover {
+    transform: none;
   }
 }

@@ -1,48 +1,60 @@
 :root,
 [data-theme="light"] {
   color-scheme: light;
-  --kio-color-canvas: #f7f6f2;
-  --kio-color-text: #242724;
-  --kio-color-text-muted: #626a60;
+  --kio-color-canvas: #f5f8ff;
+  --kio-color-text: #12213a;
+  --kio-color-text-muted: #536580;
   --kio-color-surface: #ffffff;
-  --kio-color-surface-muted: #e9eee5;
-  --kio-color-brand: #496850;
+  --kio-color-surface-muted: #e5edf9;
+  --kio-color-brand: #006f87;
   --kio-color-on-brand: #ffffff;
-  --kio-color-border: #d6dcd2;
-  --kio-color-focus: #496850;
+  --kio-color-border: #cedbee;
+  --kio-color-focus: #006f87;
   --kio-color-danger: #b42318;
   --kio-color-on-danger: #ffffff;
+  --kio-color-accent: #6346d9;
+  --kio-color-grid: #24658c12;
+  --kio-color-glow: #00a1c518;
   --kio-radius-control: 0.625rem;
+  --kio-pattern-base: #e5edf9;
+  --kio-pattern-stripe: #006f87;
+  --kio-pattern-line: #536580;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --kio-color-canvas: #171b18;
-  --kio-color-text: #eeefe8;
-  --kio-color-text-muted: #a0aa9e;
-  --kio-color-surface: #202620;
-  --kio-color-surface-muted: #2c352c;
-  --kio-color-brand: #a6c1a9;
-  --kio-color-on-brand: #17251b;
-  --kio-color-border: #414c40;
-  --kio-color-focus: #a6c1a9;
+  --kio-color-canvas: #080e1c;
+  --kio-color-text: #e8f1ff;
+  --kio-color-text-muted: #9aadc7;
+  --kio-color-surface: #101a2c;
+  --kio-color-surface-muted: #15253c;
+  --kio-color-brand: #63e2f4;
+  --kio-color-on-brand: #071521;
+  --kio-color-border: #293d58;
+  --kio-color-focus: #63e2f4;
   --kio-color-danger: #ffb4ab;
   --kio-color-on-danger: #3b0906;
+  --kio-color-accent: #b4a0ff;
+  --kio-color-grid: #63e2f410;
+  --kio-color-glow: #00c8ee14;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
     color-scheme: dark;
-    --kio-color-canvas: #171b18;
-    --kio-color-text: #eeefe8;
-    --kio-color-text-muted: #a0aa9e;
-    --kio-color-surface: #202620;
-    --kio-color-surface-muted: #2c352c;
-    --kio-color-brand: #a6c1a9;
-    --kio-color-on-brand: #17251b;
-    --kio-color-border: #414c40;
-    --kio-color-focus: #a6c1a9;
+    --kio-color-canvas: #080e1c;
+    --kio-color-text: #e8f1ff;
+    --kio-color-text-muted: #9aadc7;
+    --kio-color-surface: #101a2c;
+    --kio-color-surface-muted: #15253c;
+    --kio-color-brand: #63e2f4;
+    --kio-color-on-brand: #071521;
+    --kio-color-border: #293d58;
+    --kio-color-focus: #63e2f4;
     --kio-color-danger: #ffb4ab;
     --kio-color-on-danger: #3b0906;
+    --kio-color-accent: #b4a0ff;
+    --kio-color-grid: #63e2f410;
+    --kio-color-glow: #00c8ee14;
   }
 }

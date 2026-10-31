@@ -9,7 +9,61 @@ async function verify() {
   const page = await fetch(baseUrl, { signal: AbortSignal.timeout(10_000) });
   assert.equal(page.status, 200);
   const html = await page.text();
-  assert.match(html, /Hello, world\./);
+  assert.match(html, /Curiosity,/);
+  assert.match(html, /href="\/projects"/);
+  assert.match(html, /Skip to content/);
+  const routes = [
+    ["/lab", "Small ideas. Open tabs"],
+    ["/lab/liquid", "Start simulation"],
+    ["/lab/lattice", "Download SVG"],
+    ["/lab/cubism", "Model manifest"],
+    ["/lab/breakout", "Read the game engine source"],
+    ["/lab/snake", "Read the game engine source"],
+    ["/projects", "Projects &amp; experiments"],
+    ["/projects/kiochan-web", "Kiochan Web"],
+    ["/notes", "Thinking out loud"],
+    ["/notes/a-theme-without-a-framework", "A shared theme"],
+    [
+      "/notes/from-commit-to-production",
+      "Making a small deployment predictable.",
+    ],
+    ["/about", "Kiochan"],
+    ["/contact", "conversation"],
+    ["/sitemap.xml", "https://kiochan.one/projects/kiochan-web"],
+    ["/robots.txt", "Sitemap: https://kiochan.one/sitemap.xml"],
+  ];
+  for (const [path, content] of routes) {
+    const response = await fetch(new URL(path, baseUrl), {
+      signal: AbortSignal.timeout(10_000),
+    });
+    assert.equal(response.status, 200, path);
+    const body = await response.text();
+    assert.ok(body.includes(content), path);
+    if (path.startsWith("/lab/")) {
+      assert.ok(body.includes('aria-label="Lab sidebar"'), path);
+      assert.ok(body.includes(`href="https://kiochan.one${path}"`), path);
+      const schema = body.match(
+        /<script type="application\/ld\+json">([^<]+)<\/script>/,
+      );
+      assert.ok(schema, path);
+      assert.equal(JSON.parse(schema[1])["@type"], "BreadcrumbList");
+      assert.ok(body.includes("Further development continues here"), path);
+    }
+  }
+  for (const path of [
+    "/missing-page",
+    "/projects/missing",
+    "/notes/missing",
+    "/lab/missing",
+    "/lab/type-playground",
+    "/projects/modbus-monitor",
+  ]) {
+    const response = await fetch(new URL(path, baseUrl), {
+      signal: AbortSignal.timeout(10_000),
+    });
+    assert.equal(response.status, 404, path);
+    assert.match(await response.text(), /Back home/);
+  }
   const stylesheet = html.match(
     /href="([^"\s]*\/_next\/static\/[^"\s]*\.css)"/,
   );

@@ -1,6 +1,16 @@
 # Kiochan
 
-A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, and Biome in a pnpm monorepo. The first release contains a Hello World page.
+A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, and Biome in a pnpm monorepo. It includes public projects, engineering notes, an about page, and working GitHub contact paths.
+
+## Website content
+
+`/lab` is the collection of runnable small projects, each at `/lab/<slug>` in its own workspace package. The website hosts routes and navigation; experiments own their controls and scoped styling. See [LAB.md](LAB.md) for adding experiments and integrating independently built applications.
+
+The collection now also includes Liquid, Lattice, Breakout, Quick Snake, and a resource-free Cubism Workbench. All lab routes share the website navbar and responsive project sidebar. Each experiment has an independent package and README. Liquid uses a new lightweight particle approximation; Lattice supports SVG/PNG export with upstream attribution. The games expose their running engine source in static HTML. Cubism provides local manifest inspection and an injectable basic viewer adapter; rendering needs separately authorized SDK/model assets and is not enabled by default. Run `node --test scripts/lab-engines.test.mjs` for deterministic engine and file-format checks.
+
+The home page introduces Kiochan and leads to `/projects`, `/notes`, `/about`, and `/contact`. Projects and notes have individual static detail pages. Edit typed content in `apps/web/src/content/site.ts`; route generation and the sitemap use the same content. Only verified public repositories are featured. Project artwork is illustrative, not a claim about a hosted demo.
+
+Public pages work without a database, account, or third-party API request. Contact links lead to GitHub profiles or the relevant repository issue tracker. The release includes responsive navigation, persistent theme selection, keyboard focus styles, a skip link, metadata, a sitemap, and a recovery page for unknown URLs. See [SITE_PLAN.md](SITE_PLAN.md) for scope and editorial boundaries.
 
 ## Requirements
 
@@ -33,6 +43,8 @@ Each package declares its own dependencies. Framework versions do not need to ma
 
 ## Theme and UI
 
+The interface uses a cool technical palette from packages/theme, a decorative animated signal globe, responsive card feedback, progressive scroll reveals, and short route-entry transitions. System reduced-motion preference disables decorative motion. The top BProgress bar follows App Router navigation without adding an artificial wait. Next.js loading boundaries and dynamically imported experiment runtimes provide real loading placeholders; headings, descriptions, canonical URLs, and source disclosures remain server-rendered.
+
 The website uses Tailwind CSS and local shadcn/ui components. `packages/theme` is the source of truth for color and control-radius tokens. It ships only plain CSS and has no framework or UI-library dependencies.
 
 ```text
@@ -43,6 +55,8 @@ apps/web/src/components/ui/         Local shadcn component source
 ```
 
 Edit shared palette values in `packages/theme`, not in components or vendor configuration. The root follows system light/dark preference unless `data-theme="light"` or `data-theme="dark"` is set. A future Vue/Angular application can import `@kiochan/theme/tokens.css` without adopting shadcn or Tailwind.
+
+The website's Theme selector offers Light, Dark, and System. System is the default. The application uses `next-themes` to remember the selection in browser local storage (`kiochan-theme`), synchronize tabs, and react to operating-system changes when System is selected. Its pre-hydration script applies the saved choice before the page paints. Palette values and the CSS `color-scheme` remain exclusively in `packages/theme`; no user preference is stored in PostgreSQL.
 
 `apps/web/components.json` supports adding shadcn components when needed; initial setup does not require a generator. Review any generated CSS and keep literal palettes out of the website. See [the theme package documentation](packages/theme/README.md) for the token contract.
 
@@ -143,7 +157,7 @@ Push to `prod` to run `.github/workflows/deploy.yml`:
 2. Publish `ghcr.io/kiochan/kiochan-web:sha-<commit>` and `:migrate-<commit>` to GHCR, plus convenience tags `prod` and `prod-migrate`.
 3. Upload the runtime Compose file and deployment scripts using the `deploy` account with verified SSH host keys.
 4. Authenticate to GHCR using the job's temporary token, run migrations and deployment, and remove registry credentials afterward.
-5. Check the public Hello World page, CSS, and database health endpoint through HTTPS.
+5. Check the public pages, detail routes, 404 responses, CSS, and database health endpoint through HTTPS.
 
 Configure the repository Actions Secret `PROD_SSH_KEY` with a dedicated Ed25519 private key whose public key is installed for the server's `deploy` account. Never use the SSH password as a permanent CI secret. `PROD_HOST` is an optional repository variable, defaulting to `ip.kiochan.one`. If the server's host key legitimately changes, verify it independently before updating `infrastructure/web/known_hosts`.
 

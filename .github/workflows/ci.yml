@@ -26,6 +26,8 @@ jobs:
         run: pnpm lint
       - name: Check TypeScript
         run: pnpm typecheck
+      - name: Check Lab engines
+        run: node --test scripts/lab-engines.test.mjs
       - name: Build the website
         run: pnpm build
       - name: Build the production container

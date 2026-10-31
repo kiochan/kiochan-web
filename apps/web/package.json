@@ -9,23 +9,30 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@bprogress/next": "3.2.12",
     "@kiochan/database": "workspace:*",
+    "@kiochan/lab-breakout": "workspace:*",
+    "@kiochan/lab-cubism": "workspace:*",
+    "@kiochan/lab-lattice": "workspace:*",
+    "@kiochan/lab-liquid": "workspace:*",
+    "@kiochan/lab-snake": "workspace:*",
     "@kiochan/theme": "workspace:*",
     "@radix-ui/react-slot": "1.5.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "tailwind-merge": "3.7.0",
     "next": "16.4.3",
+    "next-themes": "0.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "tailwind-merge": "3.7.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
-    "tailwindcss": "4.3.3",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.3",
     "typescript": "5.9.3"
   }
 }

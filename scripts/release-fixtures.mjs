@@ -16,9 +16,16 @@ export function pythonCommand(args) {
   if (result.error) throw result.error;
   return result;
 }
-export async function fixtureBundle(directory, marker, corrupt = false) {
+export async function fixtureBundle(
+  directory,
+  marker,
+  corrupt = false,
+  options = {},
+) {
+  const slug = options.slug || "panel-tools";
+  const producer = options.producer || "kiochan/photoshop-panel-tools";
   const stage = path.join(directory, marker);
-  const product = path.join(stage, "products/panel-tools");
+  const product = path.join(stage, "products", slug);
   await mkdir(path.join(product, "downloads"), { recursive: true });
   await mkdir(path.join(product, "screenshots"), { recursive: true });
   const zip = path.join(product, "downloads/panel-tools.zip");
@@ -31,7 +38,7 @@ export async function fixtureBundle(directory, marker, corrupt = false) {
   if (result.status !== 0) throw new Error(result.stderr);
   const data = await readFile(zip);
   const metadata = {
-    slug: "panel-tools",
+    slug,
     title: "Runtime release fixture",
     summary: "Isolated release integration fixture.",
     version: "0.1.0",
@@ -66,8 +73,8 @@ export async function fixtureBundle(directory, marker, corrupt = false) {
     path.join(stage, "bundle.json"),
     JSON.stringify({
       schema: 1,
-      repository: "kiochan/cep-card-layer",
-      products: ["panel-tools"],
+      repository: producer,
+      products: [slug],
       buildCommit: metadata.buildCommit,
     }),
   );
@@ -81,7 +88,13 @@ export async function fixtureBundle(directory, marker, corrupt = false) {
   if (packed.status !== 0) throw new Error(packed.stderr);
   return { bundle, metadata, data };
 }
-export function publishFixture(root, bundle, channel, revision) {
+export function publishFixture(
+  root,
+  bundle,
+  channel,
+  revision,
+  producer = "kiochan/photoshop-panel-tools",
+) {
   return pythonCommand([
     path.join(repository, "infrastructure/releases/publish.py"),
     "--root",
@@ -92,5 +105,7 @@ export function publishFixture(root, bundle, channel, revision) {
     channel,
     "--revision",
     revision,
+    "--repository",
+    producer,
   ]);
 }

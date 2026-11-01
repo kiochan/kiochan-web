@@ -92,13 +92,13 @@ jobs:
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
             infrastructure/releases/publish.py infrastructure/releases/receive.py infrastructure/releases/setup.py \
-            infrastructure/releases/publishers/cep-card-layer.pub \
+            infrastructure/releases/publishers/cep-card-layer.pub infrastructure/releases/publishers/photoshop-panel-tools.pub \
             "deploy@$PROD_HOST:/opt/kiochan-web/releases/"
           ssh -T -i "$RUNNER_TEMP/kiochan-ssh/id_ed25519" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
             "deploy@$PROD_HOST" \
-            'python3 /opt/kiochan-web/releases/setup.py --key /opt/kiochan-web/releases/cep-card-layer.pub'
+            'python3 /opt/kiochan-web/releases/setup.py --key /opt/kiochan-web/releases/cep-card-layer.pub --repository kiochan/cep-card-layer && python3 /opt/kiochan-web/releases/setup.py --key /opt/kiochan-web/releases/photoshop-panel-tools.pub --repository kiochan/photoshop-panel-tools'
       - name: Deploy the exact published commit
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

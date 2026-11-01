@@ -78,3 +78,10 @@ Only current revision directories are retained. Updating notes or screenshots th
 Run `pnpm lint`, `pnpm typecheck`, `node --test scripts/releases.test.mjs`, and `pnpm build`. The release boundary checks use isolated temporary data: channel isolation, SHA mismatch rejection, archive traversal rejection, linked-file rejection, same-process content reload, latest-only cleanup, stable download URLs and safe range/resume behavior.
 
 CI additionally mounts an isolated runtime directory into the already-built production container and runs `scripts/releases-smoke.mjs`. It publishes twice without rebuilding or restarting the container, checks SSR Markdown and screenshots, verifies latest downloads and metadata, and confirms old dev removal without removing prod. Fixture publication is restricted to a temporary mount and a loopback integration server. No fixture is copied into a production image or real release storage.
+
+
+## Independent producer identities
+
+`kiochan/photoshop-panel-tools` is the MIT-licensed public producer for `panel-tools`. `kiochan/cep-card-layer` remains the private producer for `bailey-workspace`. Each repository has its own restricted SSH key. The forced receiver binds the authenticated key to its repository, then validates that the bundle contains only that repository's assigned product. Metadata alone cannot impersonate another producer. The old private producer can no longer overwrite Panel Tools.
+
+Provision keys with `setup.py --key <public-key-file> --repository <owner/repository>`. This replaces only the matching key's forced-command entry, preserving unrelated SSH access. Both keys are reprovisioned by website deployment. Product and channel URLs remain unchanged; normal tool publication updates the permanent mount without rebuilding the website.

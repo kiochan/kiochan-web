@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Forced-command SSH receiver for the plugin repository's publication key."""
+import argparse
 import os
 import re
 import sys
 import tempfile
 from pathlib import Path
-from publish import MAX_BUNDLE, publish_bundle
+from publish import MAX_BUNDLE, PRODUCER_PRODUCTS, publish_bundle
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--repository", choices=sorted(PRODUCER_PRODUCTS), required=True)
+args = parser.parse_args()
 
 ROOT = Path("/opt/kiochan-web/releases-data")
 command = re.fullmatch(r"publish (dev|prod) ([a-f0-9]{40}-[0-9]+-[0-9]+)", os.environ.get("SSH_ORIGINAL_COMMAND", ""))
@@ -21,6 +26,6 @@ try:
             if total > MAX_BUNDLE:
                 raise ValueError("Publication transport exceeds its size limit.")
             stream.write(chunk)
-    publish_bundle(ROOT, Path(incoming), command[1], command[2])
+    publish_bundle(ROOT, Path(incoming), command[1], command[2], args.repository)
 finally:
     Path(incoming).unlink(missing_ok=True)

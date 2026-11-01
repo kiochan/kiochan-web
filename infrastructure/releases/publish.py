@@ -16,7 +16,10 @@ from pathlib import Path, PurePosixPath
 SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,63}\Z")
 REVISION = re.compile(r"[a-z0-9][a-z0-9.-]{0,127}\Z")
 PACKAGE = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9._-]*\.zip\Z")
-ALLOWED_PRODUCTS = {"panel-tools", "bailey-workspace"}
+PRODUCER_PRODUCTS = {
+    "kiochan/cep-card-layer": {"bailey-workspace"},
+    "kiochan/photoshop-panel-tools": {"panel-tools"},
+}
 MAX_BUNDLE = 536870912
 
 def require(condition, message):
@@ -163,7 +166,9 @@ def managed_directory(parent, name):
     require(not target.is_symlink() and target.resolve().parent == parent.resolve(), "Managed path escapes its parent.")
     return target
 
-def publish_bundle(root, bundle, channel, revision, allowed_products=ALLOWED_PRODUCTS):
+def publish_bundle(root, bundle, channel, revision, repository):
+    require(repository in PRODUCER_PRODUCTS, "Unknown publication identity.")
+    allowed_products = PRODUCER_PRODUCTS[repository]
     require(channel in {"dev", "prod"} and REVISION.fullmatch(revision), "Invalid publication channel or revision.")
     root = Path(root).resolve()
     require(root != Path(root.anchor), "Refusing a filesystem root as the release mount.")
@@ -181,7 +186,7 @@ def publish_bundle(root, bundle, channel, revision, allowed_products=ALLOWED_PRO
             bundle_file = stage / "bundle.json"
             require(bundle_file.is_file() and bundle_file.stat().st_size <= 32768, "Missing bundle manifest.")
             manifest = json.loads(bundle_file.read_text())
-            require(isinstance(manifest, dict) and manifest.get("schema") == 1 and manifest.get("repository") == "kiochan/cep-card-layer", "Unexpected bundle producer.")
+            require(isinstance(manifest, dict) and manifest.get("schema") == 1 and manifest.get("repository") == repository, "Unexpected bundle producer.")
             products = manifest.get("products")
             require(isinstance(products, list) and 1 <= len(products) <= 8 and len(set(products)) == len(products) and all(isinstance(slug, str) and slug in allowed_products for slug in products), "Unexpected product list.")
             require((stage / "products").is_dir() and {p.name for p in (stage / "products").iterdir()} == set(products), "Bundle products do not match the manifest.")
@@ -226,8 +231,9 @@ def main():
     parser.add_argument("--bundle", required=True)
     parser.add_argument("--channel", choices=["dev", "prod"], required=True)
     parser.add_argument("--revision", required=True)
+    parser.add_argument("--repository", choices=sorted(PRODUCER_PRODUCTS), required=True)
     args = parser.parse_args()
-    publish_bundle(args.root, args.bundle, args.channel, args.revision)
+    publish_bundle(args.root, args.bundle, args.channel, args.revision, args.repository)
 
 if __name__ == "__main__":
     try:

@@ -195,42 +195,34 @@ test("range and document validation reject malformed input", () => {
   );
 });
 
-test("publisher identities cannot replace another repository's product", async () => {
+test("retired producer identities and products cannot be republished", async () => {
   const temporary = await mkdtemp(path.join(os.tmpdir(), "kiochan-release-"));
   const root = path.join(temporary, "mount");
-  const bailey = "kiochan/cep-card-layer";
+  const retired = "kiochan/cep-card-layer";
   const panel = "kiochan/photoshop-panel-tools";
   try {
     const a = await fixtureBundle(temporary, "panel-first");
-    const b = await fixtureBundle(temporary, "bailey-first", false, {
-      slug: "bailey-workspace",
-      producer: bailey,
-    });
     assert.equal(
       publishFixture(root, a.bundle, "dev", "panel-first", panel).status,
       0,
     );
-    assert.equal(
-      publishFixture(root, b.bundle, "dev", "bailey-first", bailey).status,
-      0,
-    );
     const catalogue = path.join(root, "channels/dev/catalog.json");
     const initial = await readFile(catalogue, "utf8");
-    // An identity cannot claim to be the other repository.
-    assert.notEqual(
-      publishFixture(root, a.bundle, "dev", "spoof", bailey).status,
-      0,
-    );
-    assert.notEqual(
-      publishFixture(root, b.bundle, "dev", "spoof", panel).status,
-      0,
-    );
-    // Nor can it set its own producer name but include the other product.
-    const forged = await fixtureBundle(temporary, "forged", false, {
-      producer: bailey,
+    const b = await fixtureBundle(temporary, "retired", false, {
+      slug: "bailey-workspace",
+      producer: retired,
     });
     assert.notEqual(
-      publishFixture(root, forged.bundle, "dev", "forged", bailey).status,
+      publishFixture(root, b.bundle, "dev", "retired", retired).status,
+      0,
+    );
+    // The active identity cannot add the retired product under its own name.
+    const forged = await fixtureBundle(temporary, "forged", false, {
+      slug: "bailey-workspace",
+      producer: panel,
+    });
+    assert.notEqual(
+      publishFixture(root, forged.bundle, "dev", "forged", panel).status,
       0,
     );
     assert.equal(await readFile(catalogue, "utf8"), initial);
@@ -240,14 +232,7 @@ test("publisher identities cannot replace another repository's product", async (
       0,
     );
     const latest = JSON.parse(await readFile(catalogue, "utf8"));
-    assert.equal(latest.products["panel-tools"], "panel-second");
-    assert.equal(latest.products["bailey-workspace"], "bailey-first");
-    await access(
-      path.join(
-        root,
-        "channels/dev/products/bailey-workspace/versions/bailey-first/release.md",
-      ),
-    );
+    assert.deepEqual(latest.products, { "panel-tools": "panel-second" });
   } finally {
     assert.equal(path.dirname(temporary), path.resolve(os.tmpdir()));
     assert.ok(path.basename(temporary).startsWith("kiochan-release-"));

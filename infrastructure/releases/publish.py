@@ -17,7 +17,6 @@ SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,63}\Z")
 REVISION = re.compile(r"[a-z0-9][a-z0-9.-]{0,127}\Z")
 PACKAGE = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9._-]*\.zip\Z")
 PRODUCER_PRODUCTS = {
-    "kiochan/cep-card-layer": {"bailey-workspace"},
     "kiochan/photoshop-panel-tools": {"panel-tools"},
 }
 MAX_BUNDLE = 536870912

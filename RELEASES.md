@@ -63,15 +63,15 @@ The sizes, digests and commit above are format examples, not a downloadable rele
 
 Put reviewed raster screenshots beside the document under `screenshots/`. Keep screenshot text free of chat identities, private documents, credentials and personal paths. Markdown raw HTML is skipped and external images are not fetched. The document limit is 256 KiB, each screenshot is at most 8 MiB, and at most 32 screenshots are accepted.
 
-## Plugin CI publication
+## Tool CI publication
 
-The private plugin repository maintains `.github/releases/panel-tools.md` and `.github/releases/bailey-workspace.md`. The notes contain human-written front matter and Markdown; CI fills version, timestamp, build identity, file sizes and SHA256 values. Add approved images to `.github/releases/<slug>/screenshots/` and reference them from the notes.
+The public MIT-licensed repository `kiochan/photoshop-panel-tools` owns `panel-tools`. Its root `release.md` contains JSON front matter and Markdown; CI fills version, timestamp, commit identity, file sizes and SHA256. Reviewed screenshots belong in its `screenshots/` directory.
 
-After each successful `dev` or `prod` push build, the CI publication job downloads that run's artifacts, prepares `bundle.json` plus `products/<slug>/release.md`, packages and screenshots, and sends one bounded tar.gz stream over pinned-host SSH. The private key is a repository Secret, never website source, client JavaScript, logs or the bundle.
+Successful dev/prod builds publish only the matching channel's latest Panel Tools package. The restricted Ed25519 key lives in that repository's RELEASE_SSH_KEY Actions Secret; only its public key is tracked here. The server pins the authenticated key to the repository and accepts only panel-tools bundles. Archive traversal, links, malformed metadata, invalid image signatures and mismatched ZIP hashes are rejected before the atomic catalogue switch.
 
-The dedicated SSH key is installed with `restrict` and a forced receiver command. Only `publish dev <sha>-<run>-<attempt>` or the corresponding `prod` command is accepted. The receiver accepts only the two approved plugin product IDs, validates metadata, raster signatures and package hashes, then atomically replaces a whole channel catalogue. A failed upload never switches the catalogue. Old version removal only touches managed directories with matching ownership markers after the switch; the opposite channel and unrelated products remain intact. If interrupted after promotion but before the catalogue switch, a later successful publication cleans the unreachable managed revision.
+The catalogue preserves unrelated products and channels. Cleanup removes only older publisher-owned versions after a successful switch. Normal publication requires no website rebuild or restart.
 
-Only current revision directories are retained. Updating notes or screenshots through another valid publication does not require rebuilding the website. Direct operator edits should use an atomic temporary-file replacement and preserve the metadata contract; do not edit or replace ZIP files in an active revision in place.
+Bailey website pages and both channel packages have been withdrawn at the owner's request. Its old publication key is revoked and its repository/product are no longer accepted by the receiver; it distributes through private GitHub tag Releases instead. A missing runtime catalogue entry produces a 404 rather than a placeholder download page.
 
 ## Verification
 
@@ -80,8 +80,6 @@ Run `pnpm lint`, `pnpm typecheck`, `node --test scripts/releases.test.mjs`, and 
 CI additionally mounts an isolated runtime directory into the already-built production container and runs `scripts/releases-smoke.mjs`. It publishes twice without rebuilding or restarting the container, checks SSR Markdown and screenshots, verifies latest downloads and metadata, and confirms old dev removal without removing prod. Fixture publication is restricted to a temporary mount and a loopback integration server. No fixture is copied into a production image or real release storage.
 
 
-## Independent producer identities
+## Restricted producer identity
 
-`kiochan/photoshop-panel-tools` is the MIT-licensed public producer for `panel-tools`. `kiochan/cep-card-layer` remains the private producer for `bailey-workspace`. Each repository has its own restricted SSH key. The forced receiver binds the authenticated key to its repository, then validates that the bundle contains only that repository's assigned product. Metadata alone cannot impersonate another producer. The old private producer can no longer overwrite Panel Tools.
-
-Provision keys with `setup.py --key <public-key-file> --repository <owner/repository>`. This replaces only the matching key's forced-command entry, preserving unrelated SSH access. Both keys are reprovisioned by website deployment. Product and channel URLs remain unchanged; normal tool publication updates the permanent mount without rebuilding the website.
+Provision the active public key with `setup.py --key <public-key-file> --repository kiochan/photoshop-panel-tools`. This replaces only that key's forced-command entry, preserving unrelated SSH access. Website deployment reprovisions only this active publisher. Never re-enable the retired producer or reconstruct withdrawn catalogue entries from source templates.

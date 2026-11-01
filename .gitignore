@@ -11,3 +11,6 @@ coverage/
 *.log
 packages/database/src/generated/
 .DS_Store
+.releases/
+**/__pycache__/
+*.pyc

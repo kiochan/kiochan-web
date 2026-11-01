@@ -162,3 +162,15 @@ Push to `prod` to run `.github/workflows/deploy.yml`:
 Configure the repository Actions Secret `PROD_SSH_KEY` with a dedicated Ed25519 private key whose public key is installed for the server's `deploy` account. Never use the SSH password as a permanent CI secret. `PROD_HOST` is an optional repository variable, defaulting to `ip.kiochan.one`. If the server's host key legitimately changes, verify it independently before updating `infrastructure/web/known_hosts`.
 
 No personal access token is needed for GHCR. Publishing requires job-level `packages: write`; deployment uses `packages: read`. Private packages must grant this repository's Actions access. The shared PostgreSQL service, secrets, Nginx, and unrelated applications are not replaced by the release workflow.
+
+## Runtime software releases
+
+The website has `/releases` and `/releases/<slug>` pages backed by a read-only Docker bind mount, independent of PostgreSQL. Both `dev` and `prod` have their own latest version. Markdown notes, screenshots and package downloads can be replaced without rebuilding or restarting the website; the initial feature deployment is needed once.
+
+Production mounts `/opt/kiochan-web/releases-data` at `/releases`. The public page reads JSON front matter and Markdown from that mount on each request. Raw HTML and external screenshot loading are disabled. Fixed download addresses are `/downloads/<slug>/<channel>/windows-x64`; the metadata endpoint is `/api/releases/<slug>/<channel>`.
+
+Publication validates package sizes and SHA256 digests, promotes complete version directories, atomically switches one channel catalogue and then removes older publisher-owned versions in that channel. No history is exposed or retained. In-flight downloads use already-open files; interrupted or invalid uploads leave the existing catalogue intact. Other products, the other channel, website images and database volumes are outside this cleanup scope.
+
+The plugin repository's CI holds a dedicated `RELEASE_SSH_KEY` Secret. The matching public key is restricted on the server to `infrastructure/releases/receive.py`: it cannot open a shell, forward ports or deploy the website. Website production deployment installs the receiver, prepares the persistent directory and appends this restricted key without replacing existing deployment keys.
+
+See [RELEASES.md](RELEASES.md) for the document format, publication contract, screenshots and verification. Never add runtime release data or secret keys to Git or the image build context.

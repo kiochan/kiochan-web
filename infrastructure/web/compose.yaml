@@ -7,6 +7,14 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?Set the website database URL}
+      RELEASES_ROOT: /releases
+    volumes:
+      - type: bind
+        source: ${KIOCHAN_RELEASES_DIR:-/opt/kiochan-web/releases-data}
+        target: /releases
+        read_only: true
+        bind:
+          create_host_path: false
     ports:
       - "127.0.0.1:4095:3000"
     networks:

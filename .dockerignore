@@ -6,3 +6,6 @@
 **/.env.*
 **/*.log
 packages/database/src/generated
+.releases/
+**/__pycache__/
+*.pyc

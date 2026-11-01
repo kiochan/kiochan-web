@@ -20,6 +20,7 @@ async function verify() {
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
     ["/projects", "Projects &amp; experiments"],
+    ["/releases", "Fresh builds"],
     ["/projects/kiochan-web", "Kiochan Web"],
     ["/notes", "Thinking out loud"],
     ["/notes/a-theme-without-a-framework", "A shared theme"],
@@ -76,6 +77,20 @@ async function verify() {
     assert.equal(response.status, 404, path);
     assert.match(await response.text(), /Back home/);
   }
+  // Next.js may already have streamed the shell for runtime notFound().
+  // Require its not-found UI and noindex marker, not a normal content success.
+  const missingRelease = await fetch(new URL("/releases/missing", baseUrl));
+  assert.ok([200, 404].includes(missingRelease.status));
+  const missingReleaseHtml = await missingRelease.text();
+  assert.match(missingReleaseHtml, /Back home/);
+  assert.match(
+    missingReleaseHtml,
+    /<meta[^>]+name="robots"[^>]+content="noindex"[^>]*>/,
+  );
+  assert.equal(
+    (await fetch(new URL("/api/releases/missing/dev", baseUrl))).status,
+    404,
+  );
   const stylesheet = html.match(
     /href="([^"\s]*\/_next\/static\/[^"\s]*\.css)"/,
   );

@@ -28,6 +28,8 @@ jobs:
         run: pnpm typecheck
       - name: Check Lab engines
         run: node --test scripts/lab-engines.test.mjs
+      - name: Check runtime release boundaries
+        run: node --test scripts/releases.test.mjs
       - name: Build the website
         run: pnpm build
       - name: Build the production container
@@ -52,16 +54,23 @@ jobs:
         run: |
           result=$(docker exec -e PGPASSWORD=ci-web-password kiochan-postgres psql -h 127.0.0.1 -U kiochan_web -d kiochan_web -Atc 'SELECT COUNT(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL')
           test "$result" -ge 1
+      - name: Prepare the isolated public release mount
+        run: mkdir -p "$RUNNER_TEMP/kiochan-releases"
       - name: Start the production website
         run: >-
           docker run -d --name kiochan-web-ci --network kiochan-data
           -p 127.0.0.1:3000:3000
+          --mount type=bind,src=${{ runner.temp }}/kiochan-releases,dst=/releases,readonly
           -e DATABASE_URL=postgresql://kiochan_web:ci-web-password@kiochan-postgres:5432/kiochan_web
           kiochan-web:ci
       - name: Check the page and database connection
         env:
           EXPECT_DATABASE: connected
         run: node scripts/smoke-test.mjs
+      - name: Verify Markdown and downloads update without rebuilding
+        env:
+          RELEASES_ROOT: ${{ runner.temp }}/kiochan-releases
+        run: node scripts/releases-smoke.mjs
       - name: Show failed integration logs
         if: failure()
         run: |

@@ -5,6 +5,9 @@ const workspaceRoot = path.resolve(import.meta.dirname, "../..");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingExcludes: {
+    "/*": ["./.releases/**/*", "../../.releases/**/*"],
+  },
   outputFileTracingRoot: workspaceRoot,
   turbopack: { root: workspaceRoot },
   transpilePackages: [

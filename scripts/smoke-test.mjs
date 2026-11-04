@@ -9,9 +9,21 @@ async function verify() {
   const page = await fetch(baseUrl, { signal: AbortSignal.timeout(10_000) });
   assert.equal(page.status, 200);
   const html = await page.text();
-  assert.match(html, /Curiosity,/);
+  assert.match(html, /Projects &amp; experiments/);
+  assert.ok(html.indexOf("Panel Tools") < html.indexOf('id="home-about"'));
+  assert.ok(html.includes('href="/projects/panel-tools"'));
   assert.match(html, /href="\/projects"/);
   assert.match(html, /Skip to content/);
+  const header = html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/)?.[1];
+  assert.ok(header);
+  const mainNavigation = header.match(/<nav\b[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+  assert.ok(mainNavigation);
+  assert.deepEqual(
+    [...mainNavigation.matchAll(/href="([^"]+)"/g)].map((match) => match[1]),
+    ["/projects", "/lab", "/about", "/contact"],
+  );
+  assert.ok(!header.includes('href="/notes"'));
+  assert.ok(!html.includes('href="/notes'));
   const routes = [
     ["/lab", "Small ideas. Open tabs"],
     ["/lab/liquid", "Start simulation"],
@@ -19,18 +31,15 @@ async function verify() {
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
-    ["/projects", "Projects &amp; experiments"],
-    ["/releases", "Fresh builds"],
-    ["/projects/kiochan-web", "Kiochan Web"],
-    ["/notes", "Thinking out loud"],
-    ["/notes/a-theme-without-a-framework", "A shared theme"],
+    ["/projects", "Panel Tools"],
+    ["/releases", "Panel Tools"],
     [
-      "/notes/from-commit-to-production",
-      "Making a small deployment predictable.",
+      "/projects/panel-tools",
+      "Photoshop runtime compatibility has not been verified.",
     ],
     ["/about", "Kiochan"],
     ["/contact", "conversation"],
-    ["/sitemap.xml", "https://kiochan.one/projects/kiochan-web"],
+    ["/sitemap.xml", "https://kiochan.one/projects"],
     ["/robots.txt", "Sitemap: https://kiochan.one/sitemap.xml"],
   ];
   for (const [path, content] of routes) {
@@ -40,6 +49,39 @@ async function verify() {
     assert.equal(response.status, 200, path);
     const body = await response.text();
     assert.ok(body.includes(content), path);
+    if (path === "/projects") {
+      assert.ok(body.includes('href="/projects/panel-tools"'));
+      assert.ok(body.includes("Source on GitHub"));
+      assert.ok(body.includes('href="https://github.com/kiochan/kiochan-web"'));
+      assert.ok(!body.includes("Kiochan Web"));
+      assert.ok(!body.includes('href="/projects/kiochan-web"'));
+    }
+    if (path === "/projects/panel-tools") {
+      assert.ok(body.includes('href="#releases"'));
+      assert.ok(body.includes("Release notes &amp; downloads"));
+      assert.ok(!body.includes('href="/releases/panel-tools"'));
+    }
+    if (path === "/about") {
+      for (const skill of [
+        "React &amp; TypeScript",
+        "Interactive graphics",
+        "Windows tooling",
+        "Builds &amp; delivery",
+      ]) {
+        assert.ok(body.includes(skill), skill);
+      }
+      assert.ok(
+        body.includes(
+          'href="https://github.com/kiochan/react-cubism/blob/dev/packages/live2d-react/src/Live2DViewer.tsx"',
+        ),
+      );
+    }
+    if (path === "/sitemap.xml") {
+      assert.ok(!body.includes("/projects/kiochan-web"));
+      assert.ok(body.includes("/projects/panel-tools"));
+      assert.ok(!body.includes("/notes"));
+      assert.ok(!body.includes("https://kiochan.one/releases"));
+    }
     if (path === "/lab") {
       assert.equal((body.match(/data-lab-card="/g) ?? []).length, 5);
       for (const name of [
@@ -67,15 +109,35 @@ async function verify() {
     "/missing-page",
     "/projects/missing",
     "/notes/missing",
+    "/notes",
+    "/notes/a-theme-without-a-framework",
+    "/notes/from-commit-to-production",
     "/lab/missing",
     "/lab/type-playground",
     "/projects/modbus-monitor",
+    "/projects/kiochan-web",
   ]) {
     const response = await fetch(new URL(path, baseUrl), {
       signal: AbortSignal.timeout(10_000),
     });
-    assert.equal(response.status, 404, path);
-    assert.match(await response.text(), /Back home/);
+    const body = await response.text();
+    if (path.startsWith("/projects/")) {
+      assert.ok([200, 404].includes(response.status), path);
+      assert.match(body, /<meta[^>]+name="robots"[^>]+content="noindex"[^>]*>/);
+    } else {
+      assert.equal(response.status, 404, path);
+    }
+    assert.match(body, /Back home/);
+  }
+  for (const [legacy, canonical] of [
+    ["/releases", "/projects"],
+    ["/releases/panel-tools", "/projects/panel-tools"],
+  ]) {
+    const response = await fetch(new URL(legacy, baseUrl), {
+      redirect: "manual",
+    });
+    assert.equal(response.status, 307);
+    assert.equal(response.headers.get("location"), canonical);
   }
   // Next.js may already have streamed the shell for runtime notFound().
   // Require its not-found UI and noindex marker, not a normal content success.

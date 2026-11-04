@@ -43,39 +43,6 @@ export const panelTools = {
   ],
 } as const;
 
-export const projects = [
-  {
-    slug: "kiochan-web",
-    name: "Kiochan Web",
-    title: "A home for the things I build.",
-    category: "Personal website",
-    summary:
-      "An evolving personal site with a shared visual language and a straightforward path from code to production.",
-    stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL"],
-    repository: "https://github.com/kiochan/kiochan-web",
-    status: "This website",
-    artwork: "web",
-    overview:
-      "This is the project you are visiting: a place to collect work and document the decisions behind it. The website uses Next.js and React, with a pnpm workspace that leaves room for other applications.",
-    details: [
-      {
-        title: "One visual language",
-        text: "A framework-independent CSS package owns the palette. The website adapts its tokens to Tailwind and local shadcn/ui components. Future applications can share the colors without sharing a UI runtime.",
-      },
-      {
-        title: "A production foundation",
-        text: "Prisma provides PostgreSQL access. Website and database containers have separate lifecycles, while GitHub Actions checks and deploys versioned images with migration and health checks.",
-      },
-      {
-        title: "Content first",
-        text: "Public pages render statically and remain available without a database connection. Light, dark, or system preference is remembered in the browser.",
-      },
-    ],
-  },
-] as const;
-
-export type Project = (typeof projects)[number];
-
 export const projectCatalog = [panelTools] as const;
 
 export const about = {

@@ -8,9 +8,11 @@ A personal website built with Next.js, React, TypeScript, Prisma, PostgreSQL, an
 
 The collection now also includes Liquid, Lattice, Breakout, Quick Snake, and a resource-free Cubism Workbench. All lab routes share the website navbar and responsive project sidebar. Each experiment has an independent package and README. Liquid uses a new lightweight particle approximation; Lattice supports SVG/PNG export with upstream attribution. The games expose their running engine source in static HTML. Cubism provides local manifest inspection and an injectable basic viewer adapter; rendering needs separately authorized SDK/model assets and is not enabled by default. Run `node --test scripts/lab-engines.test.mjs` for deterministic engine and file-format checks.
 
-The home page introduces Kiochan and leads to `/projects`, `/notes`, `/about`, and `/contact`. Projects and notes have individual static detail pages. Edit typed content in `apps/web/src/content/site.ts`; route generation and the sitemap use the same content. Only verified public repositories are featured. Project artwork is illustrative, not a claim about a hosted demo.
+The home page introduces Kiochan and leads to `/projects`, `/notes`, `/about`, and `/contact`. The projects page features Panel Tools at `/projects/panel-tools`, with its public repository, release notes, and downloads on one page. Notes are currently paused: drafts remain in the content file, while navigation, home-page cards, public routes, and sitemap entries are removed. About summarizes skills demonstrated by linked public source files; forks are attributed. Edit typed content in `apps/web/src/content/site.ts`; route generation and the sitemap use the same content. Only verified public repositories are featured. Project artwork is illustrative, not a claim about a hosted demo.
 
 Public pages work without a database, account, or third-party API request. Contact links lead to GitHub profiles or the relevant repository issue tracker. The release includes responsive navigation, persistent theme selection, keyboard focus styles, a skip link, metadata, a sitemap, and a recovery page for unknown URLs. See [SITE_PLAN.md](SITE_PLAN.md) for scope and editorial boundaries.
+
+The language selector shows EN, 中, あ, or DE and opens English, 中文, 日本語, and Deutsch choices. Site interface and editorial translations live in `apps/web/src/content/site.ts`. English is the static HTML and metadata default; the client restores the browser-local `kiochan-language` choice after hydration, updates the document language, and preserves selection during navigation. Project names, code, experiment-owned controls, and publisher-supplied release content retain their original language. No cookies, database access, or additional routes are needed.
 
 ## Requirements
 
@@ -56,7 +58,7 @@ apps/web/src/components/ui/         Local shadcn component source
 
 Edit shared palette values in `packages/theme`, not in components or vendor configuration. The root follows system light/dark preference unless `data-theme="light"` or `data-theme="dark"` is set. A future Vue/Angular application can import `@kiochan/theme/tokens.css` without adopting shadcn or Tailwind.
 
-The website's Theme selector offers Light, Dark, and System. System is the default. The application uses `next-themes` to remember the selection in browser local storage (`kiochan-theme`), synchronize tabs, and react to operating-system changes when System is selected. Its pre-hydration script applies the saved choice before the page paints. Palette values and the CSS `color-scheme` remain exclusively in `packages/theme`; no user preference is stored in PostgreSQL.
+The website's theme buttons use ☀️ for Light, 🌙 for Dark, and A for Auto (System). System is the default. The application uses `next-themes` to remember the selection in browser local storage (`kiochan-theme`), synchronize tabs, and react to operating-system changes when System is selected. Its pre-hydration script applies the saved choice before the page paints. Palette values and the CSS `color-scheme` remain exclusively in `packages/theme`; no user preference is stored in PostgreSQL.
 
 `apps/web/components.json` supports adding shadcn components when needed; initial setup does not require a generator. Review any generated CSS and keep literal palettes out of the website. See [the theme package documentation](packages/theme/README.md) for the token contract.
 
@@ -165,7 +167,7 @@ No personal access token is needed for GHCR. Publishing requires job-level `pack
 
 ## Runtime software releases
 
-The website has `/releases` and `/releases/<slug>` pages backed by a read-only Docker bind mount, independent of PostgreSQL. Both `dev` and `prod` have their own latest version. Markdown notes, screenshots and package downloads can be replaced without rebuilding or restarting the website; the initial feature deployment is needed once.
+The website integrates runtime releases into `/projects` and `/projects/<slug>`, backed by a read-only Docker bind mount independent of PostgreSQL. Legacy `/releases` URLs redirect to the matching project routes. Both `dev` and `prod` have their own latest version. Markdown notes, screenshots and package downloads can be replaced without rebuilding or restarting the website; the initial feature deployment is needed once.
 
 Production mounts `/opt/kiochan-web/releases-data` at `/releases`. The public page reads JSON front matter and Markdown from that mount on each request. Raw HTML and external screenshot loading are disabled. Fixed download addresses are `/downloads/<slug>/<channel>/windows-x64`; the metadata endpoint is `/api/releases/<slug>/<channel>`.
 

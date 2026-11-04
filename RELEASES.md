@@ -2,13 +2,14 @@
 
 ## Public addresses
 
-- `/releases`: published software, with separate production and development channels.
-- `/releases/<slug>`: the latest notes and downloads for both channels. No version history.
+- `/projects`: curated project profiles and validated published products in one catalogue.
+- `/projects/<slug>`: project introduction plus the latest notes and downloads for both channels. No version history. Curated profiles can exist before their first published package.
+- `/releases` redirects to `/projects`; `/releases/<slug>` redirects to the corresponding project page. Missing projects return 404. Existing download, metadata, and media addresses are unchanged.
 - `/downloads/<slug>/dev/windows-x64` and `/downloads/<slug>/prod/windows-x64`: stable latest-package URLs; responses use `no-store`, attachment filenames, range requests and strong SHA256 ETags.
 - `/api/releases/<slug>/<channel>`: current public metadata, Markdown and download URLs. This endpoint does not implement client auto-installation or package signing.
 - `/release-assets/<slug>/<channel>/<revision>/screenshots/<file>`: reviewed PNG, JPEG or WebP screenshots from the current publication only. SVG, HTML and arbitrary files are not served.
 
-The release pages and sitemap read the mount at request time. Other editorial pages remain statically renderable. There is no database dependency, build-time release catalogue, revalidation webhook or in-memory content cache to invalidate.
+The project catalogue, project detail pages, and sitemap read the mount at request time. Other editorial pages remain statically renderable. There is no database dependency, build-time release catalogue, revalidation webhook or in-memory content cache to invalidate.
 
 ## Persistent storage
 

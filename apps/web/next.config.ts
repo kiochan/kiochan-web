@@ -5,6 +5,16 @@ const workspaceRoot = path.resolve(import.meta.dirname, "../..");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  async redirects() {
+    return [
+      { source: "/releases", destination: "/projects", permanent: false },
+      {
+        source: "/releases/:slug",
+        destination: "/projects/:slug",
+        permanent: false,
+      },
+    ];
+  },
   outputFileTracingExcludes: {
     "/*": ["./.releases/**/*", "../../.releases/**/*"],
   },

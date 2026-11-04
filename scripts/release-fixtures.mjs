@@ -41,7 +41,7 @@ export async function fixtureBundle(
     slug,
     title: "Runtime release fixture",
     summary: "Isolated release integration fixture.",
-    version: "0.1.0",
+    version: options.version ?? "0.1.0",
     publishedAt: "2026-11-01T00:00:00Z",
     buildCommit: "a".repeat(40),
     status: "trial",

@@ -36,9 +36,20 @@ for (const channel of ["dev", "prod"]) {
   );
   assert.equal(publication.status, 0, publication.stderr);
 }
-const page = await get("/releases/panel-tools");
+const page = await get("/projects/panel-tools");
 assert.equal(page.status, 200);
 const html = await page.text();
+assert.ok(html.includes('href="#releases"'));
+assert.ok(html.includes('href="/downloads/panel-tools/dev/windows-x64"'));
+assert.ok(html.includes('href="https://kiochan.one/projects/panel-tools"'));
+for (const [legacy, canonical] of [
+  ["/releases", "/projects"],
+  ["/releases/panel-tools", "/projects/panel-tools"],
+]) {
+  const redirect = await fetch(new URL(legacy, base), { redirect: "manual" });
+  assert.equal(redirect.status, 307);
+  assert.equal(redirect.headers.get("location"), canonical);
+}
 assert.ok(html.includes(firstRevision));
 assert.ok(html.includes("Prod channel") && html.includes("Dev channel"));
 assert.ok(!html.includes("<script>alert('unsafe')</script>"));
@@ -57,17 +68,22 @@ assert.equal(
     .status,
   404,
 );
-const second = await fixtureBundle(fixtures, secondRevision);
+const second = await fixtureBundle(fixtures, secondRevision, false, {
+  version: "0.2.0",
+});
 assert.equal(
   publishFixture(root, second.bundle, "dev", secondRevision).status,
   0,
 );
 assert.ok(
-  (await (await get("/releases/panel-tools")).text()).includes(secondRevision),
+  (await (await get("/projects/panel-tools")).text()).includes(secondRevision),
 );
-assert.ok(
-  (await (await get("/releases")).text()).includes("Runtime release fixture"),
+const updatedProjects = (await (await get("/projects")).text()).replaceAll(
+  /<!--[\s\S]*?-->/g,
+  "",
 );
+assert.ok(updatedProjects.includes("v0.2.0"));
+assert.ok(updatedProjects.includes("v0.1.0"));
 const latest = await get(endpoint);
 assert.equal(
   createHash("sha256")
@@ -85,7 +101,7 @@ assert.equal(
 );
 assert.ok(
   (await (await get("/sitemap.xml")).text()).includes(
-    "https://kiochan.one/releases/panel-tools",
+    "https://kiochan.one/projects/panel-tools",
   ),
 );
 await assert.rejects(

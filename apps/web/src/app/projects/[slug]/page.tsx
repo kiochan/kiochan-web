@@ -1,83 +1,105 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProjectArt } from "@/components/project-art";
+import { Localized } from "@/components/language-provider";
+import { ProjectReleases } from "@/components/project-releases";
 import { ArrowIcon } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
-import { projects } from "@/content/site";
+import { MaterialIcon } from "@/components/ui/material-icon";
+import { readProject } from "@/lib/projects";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 type Props = { params: Promise<{ slug: string }> };
-export const dynamicParams = false;
-export function generateStaticParams() {
-  return projects.map(({ slug }) => ({ slug }));
-}
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
-  return project
-    ? {
-        title: project.name,
-        description: project.summary,
-        alternates: { canonical: `/projects/${slug}` },
-      }
-    : { title: "Project not found" };
+  const project = await readProject(slug);
+  if (!project) notFound();
+  return {
+    title: project.name,
+    description: project.summary,
+    alternates: { canonical: `/projects/${slug}` },
+  };
 }
-
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
+  const project = await readProject(slug);
   if (!project) notFound();
+  const { editorial, releases } = project;
   return (
-    <article className="site-container section-space">
-      <Link href="/projects" className="text-sm text-ink-muted text-link">
-        ← All projects
+    <div className="site-container section-space">
+      <Link
+        href="/projects"
+        prefetch={false}
+        className="text-sm text-ink-muted text-link"
+      >
+        <MaterialIcon
+          name="arrow_back"
+          className="inline-block size-4 align-[-0.15em]"
+        />{" "}
+        <Localized text="All projects" />
       </Link>
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1.5fr_0.7fr]">
-        <div>
+      <article>
+        <header className="mt-10 max-w-3xl">
           <p className="eyebrow">
-            {project.category} / {project.status}
+            <Localized text={editorial?.category ?? "Software release"} />
           </p>
           <h1 className="mt-5 text-5xl font-medium tracking-tight sm:text-6xl">
             {project.name}
+            <span className="text-brand">.</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-xl leading-8 text-ink-muted">
-            {project.title}
+          <p className="mt-7 text-lg leading-8 text-ink-muted">
+            {editorial ? <Localized text={project.summary} /> : project.summary}
           </p>
-        </div>
-        <div className="flex flex-col items-start justify-end gap-5">
-          <p className="text-sm leading-7 text-ink-muted">
-            {project.stack.join(" / ")}
-          </p>
-          <Button asChild>
-            <a href={project.repository}>
-              Explore the source <ArrowIcon diagonal />
-            </a>
-          </Button>
-        </div>
-      </div>
-      <div className="mt-12">
-        <ProjectArt kind={project.artwork} />
-      </div>
-      <div className="mt-12 grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20">
-        <h2 className="text-sm font-medium">A closer look</h2>
-        <div className="article-copy max-w-2xl">
-          <p className="!mt-0">{project.overview}</p>
-          {project.details.map((detail) => (
-            <section key={detail.title}>
-              <h2>{detail.title}</h2>
-              <p>{detail.text}</p>
-            </section>
-          ))}
-          <div className="mt-12 border-t border-edge pt-8">
-            <a
-              href={`${project.repository}/issues`}
-              className="inline-flex items-center gap-3 text-sm text-brand text-link"
-            >
-              Questions about this project? <ArrowIcon diagonal />
-            </a>
+          {editorial && (
+            <p className="mt-5 font-mono text-sm text-ink-muted">
+              {editorial.stack.join(" / ")}
+            </p>
+          )}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild>
+              <a href="#releases">
+                <Localized text="Release notes & downloads" /> <ArrowIcon />
+              </a>
+            </Button>
+            {editorial && (
+              <Button asChild variant="outline">
+                <a href={editorial.repository}>
+                  <Localized text="Source on GitHub" /> <ArrowIcon diagonal />
+                </a>
+              </Button>
+            )}
           </div>
-        </div>
-      </div>
-    </article>
+        </header>
+        {editorial && (
+          <>
+            <aside className="mt-10 rounded-xl border border-edge bg-surface-muted p-6">
+              <p className="text-sm font-medium">
+                <Localized text={editorial.status} />
+              </p>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-ink-muted">
+                <Localized text={editorial.compatibility} />
+              </p>
+            </aside>
+            <div className="mt-12 grid gap-8 md:grid-cols-3">
+              {editorial.features.map((feature) => (
+                <section
+                  key={feature.title}
+                  className="border-t border-edge pt-6"
+                >
+                  <h2 className="text-xl font-medium">
+                    <Localized text={feature.title} />
+                  </h2>
+                  <p className="mt-4 text-sm leading-7 text-ink-muted">
+                    <Localized text={feature.text} />
+                  </p>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+      </article>
+      <ProjectReleases releases={releases} />
+    </div>
   );
 }

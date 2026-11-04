@@ -26,6 +26,8 @@ jobs:
         run: pnpm lint
       - name: Check TypeScript
         run: pnpm typecheck
+      - name: Check translations
+        run: node --test scripts/localization.test.mjs
       - name: Check Lab engines
         run: node --test scripts/lab-engines.test.mjs
       - name: Check runtime release boundaries

@@ -1,7 +1,10 @@
 "use client";
+
 import Link from "next/link";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { Localized } from "@/components/language-provider";
 import { ArrowIcon } from "@/components/site-shell";
+import { MaterialIcon } from "@/components/ui/material-icon";
 import type { experiments } from "@/content/lab";
 import styles from "./lab-card.module.css";
 
@@ -87,34 +90,48 @@ export function LabCard({
         <div className={styles.preview}>
           {children}
           <span className={styles.badge}>
-            {experiment.slug === "cubism"
-              ? "Manifest inspection"
-              : "Illustrated preview"}
+            <Localized
+              text={
+                experiment.slug === "cubism"
+                  ? "Manifest inspection"
+                  : "Illustrated preview"
+              }
+            />
           </span>
         </div>
         <div className={styles.copy}>
           <p className="eyebrow">
-            {experiment.category} / {experiment.stack}
+            <Localized text={experiment.category} /> / {experiment.stack}
           </p>
           <h2 id={title} className="mt-4 text-2xl font-medium tracking-tight">
             {experiment.name}
           </h2>
           <p className="mt-3 text-sm leading-7 text-ink-muted">
-            {experiment.description}
+            <Localized text={experiment.description} />
           </p>
           <span className={styles.open}>
-            Open experiment <ArrowIcon diagonal />
+            <Localized text="Open experiment" /> <ArrowIcon diagonal />
           </span>
         </div>
       </Link>
       <div className={styles.controls}>
         <span className={styles.hint}>
-          {reducedMotion
-            ? "Reduced motion enabled"
-            : "Hover or focus to preview"}
+          <Localized
+            text={
+              reducedMotion
+                ? "Reduced motion enabled"
+                : "Hover or focus to preview"
+            }
+          />
         </span>
         <span className={styles.touchHint}>
-          {reducedMotion ? "Reduced motion enabled" : "Preview before you open"}
+          <Localized
+            text={
+              reducedMotion
+                ? "Reduced motion enabled"
+                : "Preview before you open"
+            }
+          />
         </span>
         <button
           type="button"
@@ -124,20 +141,19 @@ export function LabCard({
           className={styles.button}
           onClick={() => setManual(playing ? "pause" : "play")}
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path d={playing ? "M2 1h3v10H2zm5 0h3v10H7z" : "M3 1v10l8-5z"} />
-          </svg>
-          {reducedMotion
-            ? "Motion off"
-            : playing
-              ? "Pause preview"
-              : "Play preview"}
+          <MaterialIcon
+            name={playing ? "pause" : "play_arrow"}
+            className="size-4"
+          />
+          <Localized
+            text={
+              reducedMotion
+                ? "Motion off"
+                : playing
+                  ? "Pause preview"
+                  : "Play preview"
+            }
+          />
         </button>
       </div>
     </article>

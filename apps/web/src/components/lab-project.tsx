@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Localized } from "@/components/language-provider";
+import { MaterialIcon } from "@/components/ui/material-icon";
 import { experiments } from "@/content/lab";
 export function labMetadata(slug: string): Metadata {
   const project = experiments.find((item) => item.slug === slug);
@@ -57,23 +59,24 @@ export function LabProject({
       <script type="application/ld+json">
         {JSON.stringify(breadcrumb).replaceAll("<", "\\u003c")}
       </script>
-      <p className="eyebrow">{project.category} / Kiochan Lab</p>
+      <p className="eyebrow">
+        <Localized text={project.category} /> / Kiochan Lab
+      </p>
       <h1 className="mt-4 text-4xl font-medium tracking-tight sm:text-5xl">
         {project.name}
         <span className="text-brand">.</span>
       </h1>
       <p className="mt-5 mb-9 max-w-2xl text-base leading-8 text-ink-muted">
-        {project.description}
+        <Localized text={project.description} />
       </p>
       {children}
       {source && (
         <details className="mt-8 rounded-xl border border-edge p-5">
           <summary className="cursor-pointer text-sm font-medium">
-            Read the game engine source · TypeScript
+            <Localized text="Read the game engine source · TypeScript" />{" "}
           </summary>
           <p className="my-4 text-sm leading-7 text-ink-muted">
-            This is the engine running above. Input, rendering, and React
-            controls live alongside it in the project package.
+            <Localized text="This is the engine running above. Input, rendering, and React controls live alongside it in the project package." />{" "}
           </p>
           <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-surface-muted p-5 text-xs leading-6">
             <code>{source}</code>
@@ -81,21 +84,31 @@ export function LabProject({
         </details>
       )}
       <footer className="mt-10 border-t border-edge pt-6 text-sm leading-7 text-ink-muted">
-        <p>Further development continues here, in the Kiochan monorepo.</p>
+        <p>
+          <Localized text="Further development continues here, in the Kiochan monorepo." />
+        </p>
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
           {project.original && (
             <a className="text-link text-brand" href={project.original}>
-              Original project ↗
+              <Localized text="Original project" />{" "}
+              <MaterialIcon
+                name="north_east"
+                className="inline-block size-4 align-[-0.15em]"
+              />{" "}
             </a>
           )}
           <a
             className="text-link text-brand"
             href={`https://github.com/kiochan/kiochan-web/tree/prod/packages/${project.packageName}`}
           >
-            Package source & README ↗
+            <Localized text="Package source & README" />{" "}
+            <MaterialIcon
+              name="north_east"
+              className="inline-block size-4 align-[-0.15em]"
+            />{" "}
           </a>
           <Link className="text-link" href="/lab">
-            All experiments
+            <Localized text="All experiments" />{" "}
           </Link>
         </div>
       </footer>

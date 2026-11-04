@@ -5,6 +5,7 @@ import { LiquidPreview } from "@kiochan/lab-liquid/preview";
 import { SnakePreview } from "@kiochan/lab-snake/preview";
 import type { Metadata } from "next";
 import { LabCard } from "@/components/lab-card";
+import { Localized } from "@/components/language-provider";
 import { experiments } from "@/content/lab";
 
 export const metadata: Metadata = {
@@ -24,13 +25,15 @@ const previews = {
 export default function LabPage() {
   return (
     <section className="py-2">
-      <p className="eyebrow">The lab</p>
+      <p className="eyebrow">
+        <Localized text="The lab" />
+      </p>
       <h1 className="mt-5 text-5xl font-medium tracking-tight sm:text-6xl">
-        Small ideas. Open tabs<span className="text-brand">.</span>
+        <Localized text="Small ideas. Open tabs" />
+        <span className="text-brand">.</span>
       </h1>
       <p className="mt-6 max-w-xl leading-8 text-ink-muted">
-        A home for the useful, the curious, and the just-for-fun. These are
-        little projects to open and play with, all in one place.
+        <Localized text="A home for the useful, the curious, and the just-for-fun. These are little projects to open and play with, all in one place." />{" "}
       </p>
       <div className="mt-14 grid gap-6 md:grid-cols-2">
         {experiments.map((experiment) => {
@@ -43,7 +46,7 @@ export default function LabPage() {
         })}
       </div>
       <p className="mt-10 text-sm text-ink-muted">
-        An evolving collection. More experiments will find their way here.
+        <Localized text="An evolving collection. More experiments will find their way here." />{" "}
       </p>
     </section>
   );

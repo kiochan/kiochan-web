@@ -3,11 +3,16 @@ export type LatticeSettings = {
   rows: number;
   layoutAngle: number;
   stagger: number;
+  spacingX?: number;
+  spacingY?: number;
 };
 export type Lattice = {
   positions: Float32Array<ArrayBuffer>;
   angle: number;
   count: number;
+  spacingX: number;
+  spacingY: number;
+  densityLimited: boolean;
   frequencies: readonly [number, number, number, number];
 };
 
@@ -15,6 +20,8 @@ export type Lattice = {
 // Quantize the rotated/sheared basis, then enumerate its finite fundamental tile.
 export function createLattice(settings: LatticeSettings): Lattice {
   const { columns, rows, layoutAngle, stagger } = settings;
+  const spacingX = settings.spacingX ?? 1,
+    spacingY = settings.spacingY ?? 1;
   if (
     !Number.isInteger(columns) ||
     !Number.isInteger(rows) ||
@@ -26,25 +33,40 @@ export function createLattice(settings: LatticeSettings): Lattice {
     Math.abs(layoutAngle) > 180 ||
     !Number.isFinite(stagger) ||
     stagger < 0 ||
-    stagger > 1
+    stagger > 1 ||
+    !Number.isFinite(spacingX) ||
+    spacingX < 0.5 ||
+    spacingX > 4 ||
+    !Number.isFinite(spacingY) ||
+    spacingY < 0.5 ||
+    spacingY > 4
   )
     throw new Error("Invalid lattice settings.");
   const theta = (layoutAngle * Math.PI) / 180;
   const cos = Math.cos(theta),
     sin = Math.sin(theta);
+  const requestedColumns = columns / spacingX,
+    requestedRows = rows / spacingY;
+  // Keep solver work and instance counts bounded at extreme dense settings.
+  const densityScale = Math.min(
+    1,
+    Math.sqrt(1024 / (requestedColumns * requestedRows)),
+  );
+  const frequencyX = requestedColumns * densityScale,
+    frequencyY = requestedRows * densityScale;
   const target = [
-    columns * cos + stagger * rows * sin,
-    columns * sin - stagger * rows * cos,
-    -rows * sin,
-    rows * cos,
+    frequencyX * cos + stagger * frequencyY * sin,
+    frequencyX * sin - stagger * frequencyY * cos,
+    -frequencyY * sin,
+    frequencyY * cos,
   ];
   const rounded = target.map(Math.round);
-  const desiredX = [cos / columns, sin / columns];
+  const desiredX = [cos / frequencyX, sin / frequencyX];
   const desiredY = [
-    (stagger * cos) / columns - sin / rows,
-    (stagger * sin) / columns + cos / rows,
+    (stagger * cos) / frequencyX - sin / frequencyY,
+    (stagger * sin) / frequencyX + cos / frequencyY,
   ];
-  const xLength = 1 / columns;
+  const xLength = 1 / frequencyX;
   const yLength = Math.hypot(...desiredY);
   let best: {
     matrix: [number, number, number, number];
@@ -72,7 +94,7 @@ export function createLattice(settings: LatticeSettings): Lattice {
             ((y[0] - desiredY[0]) ** 2 + (y[1] - desiredY[1]) ** 2) /
             yLength ** 2;
           const direction = (x[0] * cos + x[1] * sin) / Math.hypot(...x);
-          const density = Math.log(det / (columns * rows));
+          const density = Math.log(det / (frequencyX * frequencyY));
           const score =
             xError + yError + 4 * (1 - direction) + 0.2 * density * density;
           if (!best || score < best.score - 1e-12)
@@ -84,7 +106,7 @@ export function createLattice(settings: LatticeSettings): Lattice {
   const positions = new Float32Array(det * 2);
   const rangeX = Math.abs(a) + Math.abs(b),
     rangeY = Math.abs(c) + Math.abs(d);
-  const shift = (stagger * (rows - 1)) / (2 * columns);
+  const shift = (stagger * (rows - 1)) / (2 * frequencyX);
   let count = 0;
   for (
     let j = Math.floor(-rangeY / 2 - 0.5) - 1;
@@ -109,6 +131,9 @@ export function createLattice(settings: LatticeSettings): Lattice {
   return {
     positions,
     count,
+    spacingX: Math.hypot(c, d) / det,
+    spacingY: 1 / Math.hypot(c, d),
+    densityLimited: densityScale < 1,
     frequencies: best.matrix,
     angle: (Math.atan2(-c, d) * 180) / Math.PI,
   };

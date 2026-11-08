@@ -291,6 +291,8 @@ export function TextureArray() {
     key:
       | "columns"
       | "rows"
+      | "spacingX"
+      | "spacingY"
       | "size"
       | "rotation"
       | "layoutAngle"
@@ -700,6 +702,8 @@ export function TextureArray() {
               <div className={styles.fields}>
                 {field("columns", "Columns", 1, 32, 1)}
                 {field("rows", "Rows", 1, 32, 1)}
+                {field("spacingX", "Horizontal spacing (%)", 50, 400, 1, 100)}
+                {field("spacingY", "Vertical spacing (%)", 50, 400, 1, 100)}
                 {field("size", "Size (% of tile)", 1, 70, 0.5, 100)}
                 {field("rotation", "Image rotation (°)", -180, 180, 0.01)}
                 {field("layoutAngle", "Array angle (°)", -180, 180, 0.01)}
@@ -708,6 +712,19 @@ export function TextureArray() {
                 {field("stagger", "Row stagger (%)", 0, 100, 0.5, 100)}
                 {field("opacity", "Opacity (%)", 0, 100, 1, 100)}
               </div>
+              <p className={styles.hint}>
+                Spacing follows the rotated array axes. 100% uses the Columns
+                and Rows baseline; higher values spread motifs apart without
+                resizing the images.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  updateLayer({ spacingX: 1, spacingY: 1 }, "Reset spacing")
+                }
+              >
+                Reset spacing
+              </button>
               <label className={styles.field}>
                 <span>Image scaling</span>
                 <select
@@ -776,6 +793,15 @@ export function TextureArray() {
                 {lattice?.count ?? 0} motifs per tile. The requested angle and
                 spacing are matched to a uniform square repeat, so the actual
                 angle and count may adjust. Image rotation stays independent.
+              </p>
+              <p className={styles.hint}>
+                Fitted center spacing: X{" "}
+                {lattice ? Math.round(lattice.spacingX * 10000) / 100 : 0}% · Y{" "}
+                {lattice ? Math.round(lattice.spacingY * 10000) / 100 : 0}% of
+                tile. Uniform seamless repeats use discrete spacing steps.
+                {lattice?.densityLimited
+                  ? " The density limit is active; both axes are adjusted proportionally."
+                  : ""}
               </p>
             </>
           )}

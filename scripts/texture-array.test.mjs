@@ -69,7 +69,7 @@ test("version-one projects upgrade every historical layer without changing origi
       delete layer.sampling;
     }
   const upgraded = parseProject(JSON.stringify(project));
-  assert.equal(upgraded.version, 3);
+  assert.equal(upgraded.version, 4);
   assert.equal(upgraded.history[1].layers[0].layoutAngle, 0);
   assert.equal(upgraded.history[1].layers[0].sampling, "sharp");
   assert.deepEqual(upgraded.assets, project.assets);
@@ -95,7 +95,7 @@ test("fractional positive and negative array angles and sampling modes survive h
 test("import rejects unsupported formats, external/SVG sources, broken references and unbounded settings", () => {
   const mutations = [
     (p) => {
-      p.version = 4;
+      p.version = 5;
     },
     (p) => {
       p.assets[0].data = "https://example.com/image.png";
@@ -126,6 +126,18 @@ test("import rejects unsupported formats, external/SVG sources, broken reference
     },
     (p) => {
       p.history[1].layers[0].sampling = "unknown";
+    },
+    (p) => {
+      p.history[1].layers[0].spacingX = 0;
+    },
+    (p) => {
+      p.history[1].layers[0].spacingY = 4.01;
+    },
+    (p) => {
+      p.history[1].layers[0].spacingX = null;
+    },
+    (p) => {
+      delete p.history[1].layers[0].spacingY;
     },
     (p) => {
       p.history[1].layers[0].opacity = null;
@@ -194,7 +206,7 @@ test("periodic diagonal lattices cover corners and have no large empty regions",
 });
 
 test("lattice basis neighbors stay equally spaced across both square seams", () => {
-  for (const [columns, rows, layoutAngle, stagger] of [
+  for (const [columns, rows, layoutAngle, stagger, spacingX, spacingY] of [
     [4, 4, 45, 0],
     [3, 7, 37.25, 0.5],
     [1, 32, -66, 1],
@@ -202,8 +214,19 @@ test("lattice basis neighbors stay equally spaced across both square seams", () 
     [1, 1, 45, 0],
     [32, 32, 44.5, 0.5],
     [4, 4, 0, 0.5],
+    [4, 4, 45, 0, 2, 0.5],
+    [8, 5, 37.25, 0.5, 0.75, 2.25],
+    [32, 32, 45, 0.5, 0.5, 0.5],
+    [1, 1, -60, 1, 4, 4],
   ]) {
-    const lattice = createLattice({ columns, rows, layoutAngle, stagger });
+    const lattice = createLattice({
+      columns,
+      rows,
+      layoutAngle,
+      stagger,
+      spacingX,
+      spacingY,
+    });
     const [a, b, c, d] = lattice.frequencies;
     const det = a * d - b * c;
     assert.equal(lattice.count, det);
@@ -240,7 +263,99 @@ test("version-two projects retain requested angles and source data when upgradin
   project.version = 2;
   project.history[1].layers[0].layoutAngle = 37.25;
   const next = parseProject(JSON.stringify(project));
-  assert.equal(next.version, 3);
+  assert.equal(next.version, 4);
   assert.equal(next.history[1].layers[0].layoutAngle, 37.25);
   assert.deepEqual(next.assets, project.assets);
+});
+
+test("horizontal and vertical spacing independently change pitch without changing the requested motif size", () => {
+  const settings = {
+    columns: 4,
+    rows: 4,
+    layoutAngle: 0,
+    stagger: 0,
+    spacingX: 1,
+    spacingY: 1,
+  };
+  const base = createLattice(settings);
+  const wide = createLattice({ ...settings, spacingX: 2 });
+  const tall = createLattice({ ...settings, spacingY: 2 });
+  assert.equal(wide.spacingX, base.spacingX * 2);
+  assert.equal(wide.spacingY, base.spacingY);
+  assert.equal(tall.spacingX, base.spacingX);
+  assert.equal(tall.spacingY, base.spacingY * 2);
+  assert.equal(wide.count, base.count / 2);
+  assert.equal(tall.count, base.count / 2);
+  const diagonal = createLattice({ ...settings, layoutAngle: 45 });
+  const diagonalWide = createLattice({
+    ...settings,
+    layoutAngle: 45,
+    spacingX: 2,
+  });
+  const diagonalDenseY = createLattice({
+    ...settings,
+    layoutAngle: 45,
+    spacingY: 0.5,
+  });
+  assert.equal(diagonalWide.angle, 45);
+  assert.equal(diagonalWide.spacingX, diagonal.spacingX * 2);
+  assert.equal(diagonalWide.spacingY, diagonal.spacingY);
+  assert.equal(diagonalDenseY.spacingX, diagonal.spacingX);
+  assert.equal(diagonalDenseY.spacingY, diagonal.spacingY / 2);
+  const project = fixture(),
+    layer = project.history[1].layers[0];
+  const edited = commit(project, {
+    ...project.history[1],
+    label: "Change spacing",
+    layers: [{ ...layer, spacingX: 1.75, spacingY: 0.8 }],
+  });
+  assert.equal(edited.history[edited.cursor].layers[0].size, layer.size);
+  assert.deepEqual(parseProject(JSON.stringify(edited)), edited);
+});
+
+test("old project histories default both spacings to 100 percent", () => {
+  for (const version of [1, 2, 3]) {
+    const project = fixture();
+    project.version = version;
+    for (const frame of project.history)
+      for (const layer of frame.layers) {
+        delete layer.spacingX;
+        delete layer.spacingY;
+      }
+    const upgraded = parseProject(JSON.stringify(project));
+    assert.equal(upgraded.version, 4);
+    assert.equal(upgraded.history[1].layers[0].spacingX, 1);
+    assert.equal(upgraded.history[1].layers[0].spacingY, 1);
+    assert.deepEqual(upgraded.assets, project.assets);
+  }
+});
+
+test("extreme spacing stays bounded and reports proportional density limiting", () => {
+  const dense = createLattice({
+    columns: 32,
+    rows: 32,
+    layoutAngle: 45,
+    stagger: 0.5,
+    spacingX: 0.5,
+    spacingY: 0.5,
+  });
+  assert.ok(dense.densityLimited);
+  assert.ok(dense.count <= 2048);
+  for (const spacingX of [0.5, 1, 4])
+    for (const spacingY of [0.5, 1, 4]) {
+      const lattice = createLattice({
+        columns: 32,
+        rows: 1,
+        layoutAngle: -67.25,
+        stagger: 1,
+        spacingX,
+        spacingY,
+      });
+      assert.ok(lattice.count > 0 && lattice.count <= 2048);
+      assert.ok(
+        [...lattice.positions].every(
+          (value) => Number.isFinite(value) && value >= 0 && value < 1,
+        ),
+      );
+    }
 });

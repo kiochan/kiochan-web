@@ -273,7 +273,7 @@ export class TextureRenderer {
     const at = (name: string) => gl.getUniformLocation(this.program, name);
     const aspect = source.width / source.height;
     gl.bindTexture(gl.TEXTURE_2D, source.texture);
-    const key = `${layer.columns}/${layer.rows}/${layer.layoutAngle}/${layer.stagger}`;
+    const key = `${layer.columns}/${layer.rows}/${layer.layoutAngle}/${layer.stagger}/${layer.spacingX}/${layer.spacingY}`;
     let lattice = this.lattices.get(layer.id);
     if (!lattice || lattice.key !== key) {
       lattice = { key, value: createLattice(layer) };

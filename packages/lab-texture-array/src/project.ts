@@ -6,6 +6,8 @@ export type Layer = {
   visible: boolean;
   columns: number;
   rows: number;
+  spacingX: number;
+  spacingY: number;
   size: number;
   rotation: number;
   layoutAngle: number;
@@ -18,14 +20,14 @@ export type Layer = {
 export type Frame = { label: string; size: number; layers: Layer[] };
 export type Project = {
   format: "kiochan-texture-array";
-  version: 3;
+  version: 4;
   assets: Asset[];
   history: Frame[];
   cursor: number;
 };
 export const emptyProject = (): Project => ({
   format: "kiochan-texture-array",
-  version: 3,
+  version: 4,
   assets: [],
   history: [{ label: "New project", size: 1024, layers: [] }],
   cursor: 0,
@@ -37,6 +39,8 @@ export function newLayer(asset: string): Layer {
     visible: true,
     columns: 4,
     rows: 4,
+    spacingX: 1,
+    spacingY: 1,
     size: 0.18,
     rotation: 0,
     layoutAngle: 0,
@@ -86,7 +90,7 @@ export function parseProject(text: string): Project {
   const root = record(JSON.parse(text));
   if (
     root.format !== "kiochan-texture-array" ||
-    ![1, 2, 3].includes(root.version as number)
+    ![1, 2, 3, 4].includes(root.version as number)
   )
     throw new Error("Unsupported texture project.");
   if (!Array.isArray(root.assets) || root.assets.length > 12)
@@ -131,6 +135,16 @@ export function parseProject(text: string): Project {
         visible: l.visible,
         columns: number(l.columns, 1, 32, true),
         rows: number(l.rows, 1, 32, true),
+        spacingX: number(
+          l.spacingX === undefined && root.version !== 4 ? 1 : l.spacingX,
+          0.5,
+          4,
+        ),
+        spacingY: number(
+          l.spacingY === undefined && root.version !== 4 ? 1 : l.spacingY,
+          0.5,
+          4,
+        ),
         size: number(l.size, 0.01, 0.7),
         rotation: number(l.rotation, -180, 180),
         layoutAngle: number(
@@ -154,7 +168,7 @@ export function parseProject(text: string): Project {
   });
   return {
     format: "kiochan-texture-array",
-    version: 3,
+    version: 4,
     assets,
     history,
     cursor: number(root.cursor, 0, history.length - 1, true),

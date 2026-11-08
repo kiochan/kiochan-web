@@ -58,10 +58,43 @@ test("editing an earlier state replaces redo and bounds retained snapshots", () 
   assert.equal(project.cursor, 99);
   assert.deepEqual(parseProject(JSON.stringify(project)), project);
 });
+
+test("version-one projects upgrade every historical layer without changing original images", () => {
+  const project = fixture();
+  project.version = 1;
+  for (const frame of project.history)
+    for (const layer of frame.layers) {
+      delete layer.layoutAngle;
+      delete layer.sampling;
+    }
+  const upgraded = parseProject(JSON.stringify(project));
+  assert.equal(upgraded.version, 2);
+  assert.equal(upgraded.history[1].layers[0].layoutAngle, 0);
+  assert.equal(upgraded.history[1].layers[0].sampling, "sharp");
+  assert.deepEqual(upgraded.assets, project.assets);
+});
+
+test("fractional positive and negative array angles and sampling modes survive history round trips", () => {
+  let project = fixture();
+  for (const layoutAngle of [-180, -37.25, 0, 45, 89.5, 180]) {
+    project = commit(project, {
+      ...project.history[project.cursor],
+      label: `Array angle ${layoutAngle}`,
+      layers: [
+        {
+          ...project.history[project.cursor].layers[0],
+          layoutAngle,
+          sampling: "pixel",
+        },
+      ],
+    });
+  }
+  assert.deepEqual(parseProject(JSON.stringify(project)), project);
+});
 test("import rejects unsupported formats, external/SVG sources, broken references and unbounded settings", () => {
   const mutations = [
     (p) => {
-      p.version = 2;
+      p.version = 3;
     },
     (p) => {
       p.assets[0].data = "https://example.com/image.png";
@@ -80,6 +113,18 @@ test("import rejects unsupported formats, external/SVG sources, broken reference
     },
     (p) => {
       p.history[1].layers[0].size = 1;
+    },
+    (p) => {
+      p.history[1].layers[0].layoutAngle = 181;
+    },
+    (p) => {
+      p.history[1].layers[0].layoutAngle = null;
+    },
+    (p) => {
+      delete p.history[1].layers[0].layoutAngle;
+    },
+    (p) => {
+      p.history[1].layers[0].sampling = "unknown";
     },
     (p) => {
       p.history[1].layers[0].opacity = null;

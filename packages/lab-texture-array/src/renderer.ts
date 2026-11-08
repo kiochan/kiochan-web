@@ -6,6 +6,7 @@ uniform vec2 counts;
 uniform vec2 dimensions;
 uniform vec2 offset;
 uniform float angle;
+uniform float layoutAngle;
 uniform float stagger;
 out vec2 uv;
 void main() {
@@ -17,6 +18,8 @@ void main() {
   float row = floor(float(item) / counts.x);
   vec2 center = (vec2(mod(float(item), counts.x), row) + .5) / counts;
   center.x += mod(row, 2.) * stagger / counts.x;
+  vec2 relative = center - .5;
+  center = mat2(cos(layoutAngle), sin(layoutAngle), -sin(layoutAngle), cos(layoutAngle)) * relative + .5;
   center = fract(center + offset);
   vec2 p = (uv - .5) * dimensions;
   p = mat2(cos(angle), sin(angle), -sin(angle), cos(angle)) * p;
@@ -27,12 +30,42 @@ const fragment = `#version 300 es
 precision highp float;
 uniform sampler2D image;
 uniform float opacity;
+uniform bool pixelMode;
 in vec2 uv;
 out vec4 color;
+float cubic(float x) {
+  x = abs(x);
+  if (x <= 1.) return (1.5 * x - 2.5) * x * x + 1.;
+  if (x < 2.) return ((-.5 * x + 2.5) * x - 4.) * x + 2.;
+  return 0.;
+}
+vec4 sharpSample(ivec2 size) {
+  vec2 at = uv * vec2(size) - .5;
+  ivec2 base = ivec2(floor(at));
+  vec2 fraction = fract(at);
+  vec4 result = vec4(0.);
+  for (int y = -1; y <= 2; y++) {
+    for (int x = -1; x <= 2; x++) {
+      vec4 value = texelFetch(image, clamp(base + ivec2(x, y), ivec2(0), size - 1), 0);
+      result += value * cubic(float(x) - fraction.x) * cubic(float(y) - fraction.y);
+    }
+  }
+  return result;
+}
 void main() {
-  vec4 c = texture(image, uv);
-  float a = c.a * opacity;
-  color = vec4(c.rgb * a, a);
+  ivec2 size = textureSize(image, 0);
+  vec2 dx = dFdx(uv), dy = dFdy(uv);
+  float footprint = max(length(dx * vec2(size)), length(dy * vec2(size)));
+  vec4 c;
+  if (pixelMode) c = texelFetch(image, clamp(ivec2(floor(uv * vec2(size))), ivec2(0), size - 1), 0);
+  else {
+    c = textureGrad(image, uv, dx, dy);
+    if (footprint < 1.25) c = mix(sharpSample(size), c, smoothstep(.75, 1.25, footprint));
+  }
+  // Filter premultiplied samples, then bound cubic overshoot at alpha edges.
+  c = clamp(c, 0., 1.);
+  c.rgb = min(c.rgb, vec3(c.a));
+  color = c * opacity;
 }`;
 const screenVertex = `#version 300 es
 out vec2 uv;
@@ -60,6 +93,7 @@ export class TextureRenderer {
     { texture: WebGLTexture; width: number; height: number }
   >();
   private resolution = 0;
+  private anisotropy: EXT_texture_filter_anisotropic | null;
   constructor(private canvas: HTMLCanvasElement) {
     const gl = canvas.getContext("webgl2", {
       alpha: true,
@@ -72,6 +106,7 @@ export class TextureRenderer {
         "WebGL2 is unavailable. Enable hardware acceleration or use a WebGL2-capable browser.",
       );
     this.gl = gl;
+    this.anisotropy = gl.getExtension("EXT_texture_filter_anisotropic");
     this.program = this.link(vertex, fragment);
     this.screen = this.link(screenVertex, screenFragment);
     const target = gl.createTexture();
@@ -81,7 +116,11 @@ export class TextureRenderer {
     this.target = target;
     this.framebuffer = framebuffer;
     gl.bindTexture(gl.TEXTURE_2D, target);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(
+      gl.TEXTURE_2D,
+      gl.TEXTURE_MIN_FILTER,
+      gl.LINEAR_MIPMAP_LINEAR,
+    );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -122,7 +161,7 @@ export class TextureRenderer {
     const texture = gl.createTexture();
     if (!texture) throw new Error("Unable to allocate image texture.");
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    // ImageBitmap uploads use the bitmap's premultiplied-alpha decode option.
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -132,6 +171,16 @@ export class TextureRenderer {
       gl.LINEAR_MIPMAP_LINEAR,
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    if (this.anisotropy) {
+      gl.texParameterf(
+        gl.TEXTURE_2D,
+        this.anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,
+        Math.min(
+          8,
+          gl.getParameter(this.anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT),
+        ),
+      );
+    }
     gl.generateMipmap(gl.TEXTURE_2D);
     const previous = this.textures.get(id);
     if (previous) gl.deleteTexture(previous.texture);
@@ -209,6 +258,7 @@ export class TextureRenderer {
     // biome-ignore lint/correctness/useHookAtTopLevel: WebGL useProgram is not a React hook.
     gl.useProgram(this.screen);
     gl.bindTexture(gl.TEXTURE_2D, this.target);
+    gl.generateMipmap(gl.TEXTURE_2D);
     gl.uniform1f(gl.getUniformLocation(this.screen, "repeats"), repeats);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     if (gl.getError() !== gl.NO_ERROR)
@@ -231,6 +281,8 @@ export class TextureRenderer {
     );
     gl.uniform2f(at("offset"), layer.x, layer.y);
     gl.uniform1f(at("angle"), (layer.rotation * Math.PI) / 180);
+    gl.uniform1f(at("layoutAngle"), (layer.layoutAngle * Math.PI) / 180);
+    gl.uniform1i(at("pixelMode"), layer.sampling === "pixel" ? 1 : 0);
     gl.uniform1f(at("stagger"), layer.stagger);
     gl.uniform1f(at("opacity"), layer.opacity);
     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, layer.columns * layer.rows * 9);

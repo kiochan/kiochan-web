@@ -26,7 +26,7 @@ function download(blob: Blob, name: string) {
 async function decode(asset: Asset) {
   const blob = await (await fetch(asset.data)).blob();
   const image = await createImageBitmap(blob, {
-    premultiplyAlpha: "none",
+    premultiplyAlpha: "premultiply",
     imageOrientation: "from-image",
   });
   if (
@@ -291,6 +291,7 @@ export function TextureArray() {
       | "rows"
       | "size"
       | "rotation"
+      | "layoutAngle"
       | "x"
       | "y"
       | "stagger"
@@ -698,17 +699,44 @@ export function TextureArray() {
                 {field("columns", "Columns", 1, 32, 1)}
                 {field("rows", "Rows", 1, 32, 1)}
                 {field("size", "Size (% of tile)", 1, 70, 0.5, 100)}
-                {field("rotation", "Rotation (°)", -180, 180, 1)}
+                {field("rotation", "Image rotation (°)", -180, 180, 0.01)}
+                {field("layoutAngle", "Array angle (°)", -180, 180, 0.01)}
                 {field("x", "Offset X (%)", 0, 100, 0.5, 100)}
                 {field("y", "Offset Y (%)", 0, 100, 0.5, 100)}
                 {field("stagger", "Row stagger (%)", 0, 100, 0.5, 100)}
                 {field("opacity", "Opacity (%)", 0, 100, 1, 100)}
               </div>
+              <label className={styles.field}>
+                <span>Image scaling</span>
+                <select
+                  value={layer.sampling}
+                  onChange={(e) =>
+                    updateLayer(
+                      {
+                        sampling:
+                          e.target.value === "pixel" ? "pixel" : "sharp",
+                      },
+                      "Change image scaling",
+                    )
+                  }
+                >
+                  <option value="sharp">Sharp · Smooth edges</option>
+                  <option value="pixel">Pixel · Hard edges</option>
+                </select>
+              </label>
+              <p className={styles.hint}>
+                Sharp balances detail and smooth edges. Pixel preserves hard
+                pixels and may alias when reduced. Zoom reveals output pixels
+                without extra smoothing.
+              </p>
               <div className={styles.actions}>
                 <button
                   type="button"
                   onClick={() =>
-                    updateLayer({ stagger: 0 }, "Grid array preset")
+                    updateLayer(
+                      { stagger: 0, layoutAngle: 0 },
+                      "Grid array preset",
+                    )
                   }
                 >
                   Grid array
@@ -727,10 +755,23 @@ export function TextureArray() {
                 >
                   Half-drop array
                 </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateLayer({ layoutAngle: 45 }, "Diagonal array preset")
+                  }
+                >
+                  Diagonal 45°
+                </button>
               </div>
               <p className={styles.hint}>
                 Half-drop offsets every other row by half a cell. Even row
                 counts keep a regular rhythm across tile edges.
+              </p>
+              <p className={styles.hint}>
+                Array angle rotates the finite arrangement around the tile
+                center; image rotation stays independent. Wrapped motifs remain
+                seamless, though spacing at the seam can vary with the angle.
               </p>
             </>
           )}

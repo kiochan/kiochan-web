@@ -153,6 +153,174 @@ export const notes = [
   },
 ] as const;
 
+export const textureArrayChinese: Record<string, string> = {
+  "Invalid project JSON. Choose a saved Texture Array project.":
+    "工程 JSON 无效，请选择已保存的 Texture Array 工程文件。",
+  "Unable to decode image. Choose a valid PNG, JPEG, or WebP image.":
+    "无法解码图片，请选择有效的 PNG、JPEG 或 WebP 图片。",
+  "3 × 3 check": "3 × 3 拼接检查",
+  "A layered TIFF needs a composite and at least one layer.":
+    "分层 TIFF 需要合成图和至少一个图层。",
+  "A pattern starts with an image.": "从一张图片开始创作。",
+  "A project supports up to 12 source images.": "每个工程最多支持 12 张原图。",
+  "Add PNG, JPEG, or WebP images above.":
+    "请在上方添加 PNG、JPEG 或 WebP 图片。",
+  "Add images": "添加图片",
+  "Array angle (°)": "阵列角度（°）",
+  "Cancel export": "取消导出",
+  "Change image scaling": "更改图像采样方式",
+  "Change output size": "更改输出尺寸",
+  "Change {setting}": "更改{setting}",
+  "Choose PNG, JPEG, or WebP images of up to 8 MB each.":
+    "请选择 PNG、JPEG 或 WebP 图片，每张不超过 8 MB。",
+  Columns: "列数",
+  "Diagonal 45°": "45° 斜排",
+  "Diagonal array preset": "应用斜排预设",
+  "Drag to pan · Arrow keys to move · Fit to reset":
+    "拖动平移 · 方向键移动 · 点击适应画布复位",
+  Duplicate: "复制",
+  "Duplicate image identifiers.": "原图标识重复。",
+  "Duplicate layer": "复制图层",
+  "Duplicate layer identifiers.": "图层标识重复。",
+  "Edit history": "操作历史",
+  "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. Files stay in this browser tab and are not uploaded. Save before leaving or starting a new project.":
+    "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。文件仅保留在当前浏览器标签页中，不会上传。离开页面或新建工程前请先保存。",
+  "Encoding TIFF layer {current} of {total}…":
+    "正在编码 TIFF 图层 {current}/{total}…",
+  "Export layered TIFF": "导出分层 TIFF",
+  "Finishing layered TIFF…": "正在生成分层 TIFF 文件…",
+  Fit: "适应画布",
+  "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.":
+    "实际中心间距：横向占画布 {x}% · 纵向占画布 {y}%。均匀无缝排列会按可用的周期档位匹配间距。",
+  "GPU context lost during TIFF export. Please try again after recovery.":
+    "TIFF 导出期间 GPU 上下文丢失，请待恢复后重试。",
+  "GPU context lost. Your project is still available to save. Restore the context or reload your saved project.":
+    "GPU 上下文已丢失，工程仍可保存。请等待恢复，或重新载入已保存的工程。",
+  "GPU could not allocate the output canvas. Try a smaller resolution.":
+    "GPU 无法分配输出画布，请尝试较低分辨率。",
+  "GPU rendering failed during TIFF export.": "TIFF 导出期间 GPU 渲染失败。",
+  "GPU rendering failed. Try fewer images or a smaller output.":
+    "GPU 渲染失败，请减少图片数量或降低输出尺寸。",
+  "Grid array": "规则网格",
+  "Grid array preset": "应用网格预设",
+  "Half-drop array": "错行阵列",
+  "Half-drop array preset": "应用错行预设",
+  "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.":
+    "错行阵列将相邻行错开约半个单元，并匹配正方形边缘的无缝周期。",
+  Hide: "隐藏",
+  "Hide layer": "隐藏图层",
+  "Horizontal spacing (%)": "横向间距（%）",
+  "Image exceeds this GPU's {size}px texture limit.":
+    "图片超过此 GPU 的 {size} 像素纹理尺寸限制。",
+  "Image rotation (°)": "图片旋转（°）",
+  "Image scaling": "图像采样",
+  "Images are still loading. Please try again.": "图片仍在加载，请稍后重试。",
+  "Import {count} image(s)": "导入 {count} 张图片",
+  "Invalid TIFF image dimensions or pixels.": "TIFF 图像尺寸或像素数据无效。",
+  "Invalid image sampling mode.": "图像采样模式无效。",
+  "Invalid lattice settings.": "周期网格参数无效。",
+  "Invalid layer source.": "图层原图引用无效。",
+  "Invalid or oversized image source.": "原图数据无效或超过大小限制。",
+  "Invalid output resolution.": "输出分辨率无效。",
+  "Invalid project history.": "工程历史记录无效。",
+  "Invalid project setting.": "工程参数无效。",
+  "Invalid project structure.": "工程文件结构无效。",
+  "Invalid project text.": "工程文本字段无效。",
+  "LAYERS & ARRAY": "图层与阵列",
+  "Later layers draw on top. Size preserves the original aspect ratio.":
+    "靠后的图层显示在上方。调整大小时保留原图宽高比。",
+  "Loading texture editor": "正在加载贴图编辑器",
+  "Local images. Editable arrays. One seamless square.":
+    "本地图片，可编辑阵列，一张无缝正方形贴图。",
+  "Move down": "下移",
+  "Move layer down": "下移图层",
+  "Move layer up": "上移图层",
+  "Move up": "上移",
+  "New project": "新建工程",
+  "No images yet.": "尚未添加图片。",
+  "Offset X (%)": "横向偏移（%）",
+  "Offset Y (%)": "纵向偏移（%）",
+  "Opacity (%)": "不透明度（%）",
+  "Open project": "打开工程",
+  "Output resolution exceeds this GPU's limit.":
+    "输出分辨率超过此 GPU 的限制。",
+  "Output size": "输出尺寸",
+  "Periodic lattice enumeration failed.": "周期网格生成失败。",
+  "Pixel · Hard edges": "像素模式 · 保留硬边缘",
+  "Preparing TIFF composite…": "正在准备 TIFF 合成图…",
+  "Processing local files…": "正在处理本地文件…",
+  "Project exceeds the 70 MB limit.": "工程文件超过 70 MB 限制。",
+  Redo: "重做",
+  Remove: "删除",
+  "Remove layer": "删除图层",
+  "Reset spacing": "重置间距",
+  "Row stagger (%)": "行错位（%）",
+  Rows: "行数",
+  "Save project": "保存工程",
+  "Shader linking failed.": "着色器链接失败。",
+  "Shader compilation failed.": "着色器编译失败。",
+  "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.":
+    "清晰模式兼顾细节与平滑边缘。像素模式保留硬像素边缘，缩小时可能产生锯齿。放大预览直接显示输出像素，不再额外柔化。",
+  "Sharp · Smooth edges": "清晰模式 · 平滑边缘",
+  Show: "显示",
+  "Show layer": "显示图层",
+  "Single tile": "单张贴图",
+  "Size (% of tile)": "大小（占画布 %）",
+  "Something went wrong.": "操作失败，请重试。",
+  "Source images exceed the project's 48 MB binary budget.":
+    "原图总大小超过工程约 48 MB 的限制。",
+  "Source images must be at most 8192px per side and 32 megapixels.":
+    "原图每边最多 8192 像素，总像素数最多 3200 万。",
+  "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.":
+    "间距沿旋转后的阵列两轴调整。100% 使用当前列数和行数的基准间距；数值越大，图案越疏，图片本身大小不变。",
+  "Square seamless texture preview": "正方形无缝贴图预览",
+  "TEXTURE ARRAY / SEAMLESS WORKSPACE": "纹理阵列 / 无缝贴图工作区",
+  "TIFF encoder failed. Try a smaller output size.":
+    "TIFF 编码失败，请尝试较小的输出尺寸。",
+  "TIFF encoder has not started.": "TIFF 编码器尚未启动。",
+  "TIFF encoder returned no file.": "TIFF 编码器未生成文件。",
+  "TIFF exceeds the 1.5 GB export limit. Use a smaller output size.":
+    "TIFF 超过 1.5 GB 导出限制，请减小输出尺寸。",
+  "TIFF export cancelled.": "已取消 TIFF 导出。",
+  "TIFF export requires a browser with CompressionStream support.":
+    "TIFF 导出需要支持 CompressionStream 的浏览器。",
+  "TIFF keeps each rendered layer, its name, transparency, and visibility. Save project keeps original images and editable array settings.":
+    "TIFF 保留各渲染图层、图层名称、透明区域和显示状态。保存工程则保留原图及可继续编辑的阵列参数。",
+  "TIFF supports up to 12 editor layers.": "TIFF 最多支持 12 个编辑器图层。",
+  "Texture Array editor": "纹理阵列编辑器",
+  "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.":
+    "贴图视口：拖动或使用方向键平移，加减键缩放，Home 键复位。",
+  "The density limit is active; both axes are adjusted proportionally.":
+    "已达到密度上限，两轴间距已按比例调整。",
+  "The outline is the finite preview area. 3 × 3 shows nine copies; export always saves one square tile. View movement never changes your design.":
+    "边框内是有限的预览区域。3 × 3 显示九份拼接副本，导出始终保存一张正方形贴图。移动视图不会改变设计。",
+  "Too many layers.": "图层数量超过限制。",
+  "Transparent motifs work especially well.": "使用透明背景图案效果更佳。",
+  "Unable to allocate GPU resources.": "无法分配 GPU 资源。",
+  "Unable to allocate image texture.": "无法分配图片纹理。",
+  "Unable to allocate lattice positions.": "无法分配阵列位置数据。",
+  "Unable to construct a bounded periodic lattice.": "无法生成有界的周期网格。",
+  "Unable to create shader program.": "无法创建着色器程序。",
+  "Unable to create shader.": "无法创建着色器。",
+  "Unable to read TIFF encoder response.": "无法读取 TIFF 编码器响应。",
+  "Unable to read TIFF pixels from the GPU.": "无法从 GPU 读取 TIFF 像素。",
+  "Unable to read image.": "无法读取图片。",
+  Undo: "撤销",
+  "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.":
+    "均匀周期：实际角度 {angle}° · 每张贴图 {count} 个图案。请求的角度和间距会匹配为均匀的正方形周期，因此实际角度与数量可能调整。图片自身旋转独立控制。",
+  "Unsupported texture project.": "不支持此贴图工程格式或版本。",
+  "Up to 12 layers per project. Remove a layer before importing more images.":
+    "每个工程最多 12 个图层，请删除图层后再导入图片。",
+  "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.":
+    "每个工程最多保留 12 张原图，包含撤销所需的原图。新建工程可清空原图。",
+  "Vertical spacing (%)": "纵向间距（%）",
+  "WebGL2 is unavailable. Enable hardware acceleration or use a WebGL2-capable browser.":
+    "WebGL2 不可用，请启用硬件加速或使用支持 WebGL2 的浏览器。",
+  "Zoom in": "放大",
+  "Zoom out": "缩小",
+  "{size} × {size} · Layered TIFF": "{size} × {size} · 分层 TIFF",
+};
+
 export type Note = (typeof notes)[number];
 
 export function readingTime(note: Note) {

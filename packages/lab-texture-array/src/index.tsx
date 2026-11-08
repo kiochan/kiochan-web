@@ -4,6 +4,11 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { exportTiff } from "./export-tiff";
 import { createLattice } from "./layout";
 import {
+  formatTextureText,
+  localizeTextureText,
+  type TextureTranslator,
+} from "./localization";
+import {
   type Asset,
   commit,
   emptyProject,
@@ -42,12 +47,25 @@ async function decode(asset: Asset) {
   }
   return image;
 }
-const errorText = (error: unknown) =>
-  error instanceof Error ? error.message : "Something went wrong.";
+const errorText = (error: unknown) => {
+  if (error instanceof SyntaxError)
+    return "Invalid project JSON. Choose a saved Texture Array project.";
+  if (error instanceof DOMException && error.name === "InvalidStateError")
+    return "Unable to decode image. Choose a valid PNG, JPEG, or WebP image.";
+  return error instanceof Error ? error.message : "Something went wrong.";
+};
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 
-export function TextureArray() {
+const identity: TextureTranslator = (message) => message;
+export function TextureArray({
+  translate = identity,
+}: {
+  translate?: TextureTranslator;
+} = {}) {
+  const t = (message: string) => localizeTextureText(message, translate);
+  const format = (template: string, values: Record<string, string | number>) =>
+    formatTextureText(template, translate, values);
   const [project, setProject] = useState<Project>(emptyProject);
   const [selected, setSelected] = useState("");
   const [repeats, setRepeats] = useState(1);
@@ -309,7 +327,7 @@ export function TextureArray() {
     if (!layer) return null;
     return (
       <label className={styles.field} htmlFor={`${prefix}-${key}`}>
-        <span>{label}</span>
+        <span>{t(label)}</span>
         <input
           id={`${prefix}-${key}`}
           type="number"
@@ -337,14 +355,16 @@ export function TextureArray() {
   return (
     <section
       className={styles.tool}
-      aria-label="Texture Array editor"
+      aria-label={t("Texture Array editor")}
       aria-busy={busy}
     >
       <div className={styles.toolbar}>
         <div>
-          <p className={styles.eyebrow}>TEXTURE ARRAY / SEAMLESS WORKSPACE</p>
+          <p className={styles.eyebrow}>
+            {t("TEXTURE ARRAY / SEAMLESS WORKSPACE")}
+          </p>
           <p className={styles.hint}>
-            Local images. Editable arrays. One seamless square.
+            {t("Local images. Editable arrays. One seamless square.")}
           </p>
         </div>
         <div className={styles.actions}>
@@ -353,14 +373,14 @@ export function TextureArray() {
             disabled={busy}
             onClick={() => upload.current?.click()}
           >
-            Add images
+            {t("Add images")}
           </button>
           <button
             type="button"
             disabled={busy}
             onClick={() => open.current?.click()}
           >
-            Open project
+            {t("Open project")}
           </button>
           <button
             type="button"
@@ -374,14 +394,14 @@ export function TextureArray() {
               )
             }
           >
-            Save project
+            {t("Save project")}
           </button>
           <button
             type="button"
             disabled={busy || !ready || !frame.layers.length}
             onClick={() => void exportLayeredTiff()}
           >
-            Export layered TIFF
+            {t("Export layered TIFF")}
           </button>
         </div>
       </div>
@@ -408,17 +428,17 @@ export function TextureArray() {
       />
       {error && (
         <p className={styles.error} role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       {busy && (
         <p role="status" className={styles.hint}>
-          {exportProgress || "Processing local files…"}
+          {t(exportProgress || "Processing local files…")}
         </p>
       )}
       {exportProgress && (
         <button type="button" onClick={() => exportController.current?.abort()}>
-          Cancel export
+          {t("Cancel export")}
         </button>
       )}
       <div className={styles.workspace}>
@@ -431,7 +451,7 @@ export function TextureArray() {
                 aria-pressed={repeats === 1}
                 onClick={() => setRepeats(1)}
               >
-                Single tile
+                {t("Single tile")}
               </button>
               <button
                 type="button"
@@ -439,13 +459,13 @@ export function TextureArray() {
                 aria-pressed={repeats === 3}
                 onClick={() => setRepeats(3)}
               >
-                3 × 3 check
+                {t("3 × 3 check")}
               </button>
             </div>
             <div className={styles.actions}>
               <button
                 type="button"
-                aria-label="Zoom out"
+                aria-label={t("Zoom out")}
                 onClick={() => setZoom((z) => clamp(z - 0.25, 0.5, 4))}
               >
                 −
@@ -453,7 +473,7 @@ export function TextureArray() {
               <span className={styles.hint}>{Math.round(zoom * 100)}%</span>
               <button
                 type="button"
-                aria-label="Zoom in"
+                aria-label={t("Zoom in")}
                 onClick={() => setZoom((z) => clamp(z + 0.25, 0.5, 4))}
               >
                 +
@@ -465,14 +485,16 @@ export function TextureArray() {
                   setPan({ x: 0, y: 0 });
                 }}
               >
-                Fit
+                {t("Fit")}
               </button>
             </div>
           </div>
           <div
             className={styles.stage}
             role="application"
-            aria-label="Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view."
+            aria-label={t(
+              "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.",
+            )}
             // biome-ignore lint/a11y/noNoninteractiveTabindex: This viewport implements keyboard panning and zoom.
             tabIndex={0}
             onPointerDown={(e) => {
@@ -564,7 +586,7 @@ export function TextureArray() {
                 ref={canvas}
                 width={1024}
                 height={1024}
-                aria-label="Square seamless texture preview"
+                aria-label={t("Square seamless texture preview")}
               />
               {repeats === 3 && (
                 <div className={styles.grid} aria-hidden="true" />
@@ -572,37 +594,37 @@ export function TextureArray() {
             </div>
             {!frame.layers.length && (
               <div className={styles.empty}>
-                <strong>A pattern starts with an image.</strong>
+                <strong>{t("A pattern starts with an image.")}</strong>
                 <p>
-                  Add PNG, JPEG, or WebP images above.
+                  {t("Add PNG, JPEG, or WebP images above.")}
                   <br />
-                  Transparent motifs work especially well.
+                  {t("Transparent motifs work especially well.")}
                 </p>
               </div>
             )}
           </div>
           <div className={styles.status}>
             <span>
-              {frame.size} × {frame.size} · Layered TIFF
+              {format("{size} × {size} · Layered TIFF", { size: frame.size })}
             </span>
-            <span>Drag to pan · Arrow keys to move · Fit to reset</span>
+            <span>{t("Drag to pan · Arrow keys to move · Fit to reset")}</span>
           </div>
           <p className={styles.hint}>
-            The outline is the finite preview area. 3 × 3 shows nine copies;
-            export always saves one square tile. View movement never changes
-            your design.
+            {t(
+              "The outline is the finite preview area. 3 × 3 shows nine copies; export always saves one square tile. View movement never changes your design.",
+            )}
           </p>
           <p className={styles.hint}>
-            TIFF keeps each rendered layer, its name, transparency, and
-            visibility. Save project keeps original images and editable array
-            settings.
+            {t(
+              "TIFF keeps each rendered layer, its name, transparency, and visibility. Save project keeps original images and editable array settings.",
+            )}
           </p>
         </div>
         <fieldset className={styles.inspector} disabled={busy}>
-          <legend className={styles.eyebrow}>LAYERS & ARRAY</legend>
+          <legend className={styles.eyebrow}>{t("LAYERS & ARRAY")}</legend>
           <div className={styles.layers}>
             {!frame.layers.length && (
-              <p className={styles.hint}>No images yet.</p>
+              <p className={styles.hint}>{t("No images yet.")}</p>
             )}
             {frame.layers.map((l, i) => (
               <button
@@ -631,7 +653,7 @@ export function TextureArray() {
                     )
                   }
                 >
-                  {layer.visible ? "Hide" : "Show"}
+                  {t(layer.visible ? "Hide" : "Show")}
                 </button>
                 <button
                   type="button"
@@ -645,7 +667,7 @@ export function TextureArray() {
                     setSelected(copy.id);
                   }}
                 >
-                  Duplicate
+                  {t("Duplicate")}
                 </button>
                 <button
                   type="button"
@@ -656,7 +678,7 @@ export function TextureArray() {
                     }))
                   }
                 >
-                  Remove
+                  {t("Remove")}
                 </button>
               </div>
               <div className={styles.actions}>
@@ -675,7 +697,7 @@ export function TextureArray() {
                     })
                   }
                 >
-                  Move down
+                  {t("Move down")}
                 </button>
                 <button
                   type="button"
@@ -692,12 +714,13 @@ export function TextureArray() {
                     })
                   }
                 >
-                  Move up
+                  {t("Move up")}
                 </button>
               </div>
               <p className={styles.hint}>
-                Later layers draw on top. Size preserves the original aspect
-                ratio.
+                {t(
+                  "Later layers draw on top. Size preserves the original aspect ratio.",
+                )}
               </p>
               <div className={styles.fields}>
                 {field("columns", "Columns", 1, 32, 1)}
@@ -713,9 +736,9 @@ export function TextureArray() {
                 {field("opacity", "Opacity (%)", 0, 100, 1, 100)}
               </div>
               <p className={styles.hint}>
-                Spacing follows the rotated array axes. 100% uses the Columns
-                and Rows baseline; higher values spread motifs apart without
-                resizing the images.
+                {t(
+                  "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.",
+                )}
               </p>
               <button
                 type="button"
@@ -723,10 +746,10 @@ export function TextureArray() {
                   updateLayer({ spacingX: 1, spacingY: 1 }, "Reset spacing")
                 }
               >
-                Reset spacing
+                {t("Reset spacing")}
               </button>
               <label className={styles.field}>
-                <span>Image scaling</span>
+                <span>{t("Image scaling")}</span>
                 <select
                   value={layer.sampling}
                   onChange={(e) =>
@@ -739,14 +762,14 @@ export function TextureArray() {
                     )
                   }
                 >
-                  <option value="sharp">Sharp · Smooth edges</option>
-                  <option value="pixel">Pixel · Hard edges</option>
+                  <option value="sharp">{t("Sharp · Smooth edges")}</option>
+                  <option value="pixel">{t("Pixel · Hard edges")}</option>
                 </select>
               </label>
               <p className={styles.hint}>
-                Sharp balances detail and smooth edges. Pixel preserves hard
-                pixels and may alias when reduced. Zoom reveals output pixels
-                without extra smoothing.
+                {t(
+                  "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.",
+                )}
               </p>
               <div className={styles.actions}>
                 <button
@@ -758,7 +781,7 @@ export function TextureArray() {
                     )
                   }
                 >
-                  Grid array
+                  {t("Grid array")}
                 </button>
                 <button
                   type="button"
@@ -772,7 +795,7 @@ export function TextureArray() {
                     )
                   }
                 >
-                  Half-drop array
+                  {t("Half-drop array")}
                 </button>
                 <button
                   type="button"
@@ -780,33 +803,39 @@ export function TextureArray() {
                     updateLayer({ layoutAngle: 45 }, "Diagonal array preset")
                   }
                 >
-                  Diagonal 45°
+                  {t("Diagonal 45°")}
                 </button>
               </div>
               <p className={styles.hint}>
-                Half-drop shifts neighboring rows by about half a cell. The
-                repeat is fitted to the square edges.
+                {t(
+                  "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.",
+                )}
               </p>
               <p className={styles.hint}>
-                Uniform repeat:{" "}
-                {lattice ? Math.round(lattice.angle * 100) / 100 : 0}° ·{" "}
-                {lattice?.count ?? 0} motifs per tile. The requested angle and
-                spacing are matched to a uniform square repeat, so the actual
-                angle and count may adjust. Image rotation stays independent.
+                {format(
+                  "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.",
+                  {
+                    angle: lattice ? Math.round(lattice.angle * 100) / 100 : 0,
+                    count: lattice?.count ?? 0,
+                  },
+                )}
               </p>
               <p className={styles.hint}>
-                Fitted center spacing: X{" "}
-                {lattice ? Math.round(lattice.spacingX * 10000) / 100 : 0}% · Y{" "}
-                {lattice ? Math.round(lattice.spacingY * 10000) / 100 : 0}% of
-                tile. Uniform seamless repeats use discrete spacing steps.
+                {format(
+                  "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.",
+                  {
+                    x: lattice ? Math.round(lattice.spacingX * 10000) / 100 : 0,
+                    y: lattice ? Math.round(lattice.spacingY * 10000) / 100 : 0,
+                  },
+                )}
                 {lattice?.densityLimited
-                  ? " The density limit is active; both axes are adjusted proportionally."
+                  ? ` ${t("The density limit is active; both axes are adjusted proportionally.")}`
                   : ""}
               </p>
             </>
           )}
           <label className={styles.field}>
-            Output size
+            {t("Output size")}
             <select
               value={frame.size}
               onChange={(e) =>
@@ -832,18 +861,18 @@ export function TextureArray() {
             disabled={busy || project.cursor === 0}
             onClick={() => setProject((p) => ({ ...p, cursor: p.cursor - 1 }))}
           >
-            Undo
+            {t("Undo")}
           </button>
           <button
             type="button"
             disabled={busy || project.cursor === project.history.length - 1}
             onClick={() => setProject((p) => ({ ...p, cursor: p.cursor + 1 }))}
           >
-            Redo
+            {t("Redo")}
           </button>
         </div>
         <label className={styles.field}>
-          Edit history
+          {t("Edit history")}
           <select
             disabled={busy}
             value={project.cursor}
@@ -854,7 +883,7 @@ export function TextureArray() {
             {project.history.map((f, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: History positions are serialized addresses; options have no local state.
               <option key={`${i}-${f.label}`} value={i}>
-                {i + 1}. {f.label}
+                {i + 1}. {t(f.label)}
               </option>
             ))}
           </select>
@@ -868,14 +897,13 @@ export function TextureArray() {
             setError("");
           }}
         >
-          New project
+          {t("New project")}
         </button>
       </div>
       <p className={styles.hint}>
-        Edits keep original image bytes intact. Save project includes sources
-        and up to 100 history states; editing an earlier state replaces its redo
-        branch. Files stay in this browser tab and are not uploaded. Save before
-        leaving or starting a new project.
+        {t(
+          "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. Files stay in this browser tab and are not uploaded. Save before leaving or starting a new project.",
+        )}
       </p>
     </section>
   );

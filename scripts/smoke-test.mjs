@@ -36,9 +36,9 @@ async function verify() {
     ["/releases", "Panel Tools"],
     [
       "/projects/panel-tools",
-      "/projects/kio-color-picker",
       "Photoshop runtime compatibility has not been verified.",
     ],
+    ["/projects/kio-color-picker", "Kio Color Picker"],
     ["/about", "Kiochan"],
     ["/contact", "conversation"],
     ["/sitemap.xml", "https://kiochan.one/projects"],
@@ -82,6 +82,7 @@ async function verify() {
       assert.ok(body.includes("/lab/texture-array"));
       assert.ok(!body.includes("/projects/kiochan-web"));
       assert.ok(body.includes("/projects/panel-tools"));
+      assert.ok(body.includes("/projects/kio-color-picker"));
       assert.ok(!body.includes("/notes"));
       assert.ok(!body.includes("https://kiochan.one/releases"));
     }

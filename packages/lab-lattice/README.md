@@ -14,13 +14,13 @@ A rewritten SVG plaid generator. The legacy Express server, DOM manipulation, ca
 
 ## Use
 
-Adjust repeat, stripe width, crossed stripes, and three colors. Export vector SVG or a 720×440 PNG. Default artwork colors come from packages/theme; user-chosen artwork colors are experiment data, not website UI palette overrides.
+Adjust repeat, stripe width, crossed stripes, and three colors. Auto palette generates analogous, complementary, triadic, or monochrome artwork using seeded HSL hue rotation and separated lightness bands. Colors remain manually editable. Export a seamless square containing 1, 4, 8, or 16 repeats on each axis; pixel dimensions are exact multiples of the repeat, up to 2560×2560. The optional 3×3 preview checks spatial tiling, not an animation loop. Default artwork colors come from packages/theme; user-chosen artwork colors are experiment data, not website UI palette overrides.
 
 Open /lab/lattice using `pnpm dev` at the workspace root. Run `pnpm --filter @kiochan/lab-lattice typecheck` to check this package. Its React peer must be compatible with the host; it does not own Next.js routing or website navigation.
 
 ## Source and verification
 
-src/pattern.ts is a pure SVG generator. Colors are validated before serialization. Object URLs are revoked after downloads. Tests check constraints and injection rejection.
+src/pattern.ts is a pure SVG generator. All-layer SVGs preserve named background, vertical-stripe, horizontal-stripe, and fine-line groups with Inkscape layer metadata. The layer selector previews and exports individual SVG or PNG layers at identical dimensions and alignment; non-background layers retain transparency. Composite in listed order using normal source-over blending. Disabling cross stripes omits the horizontal layer. PNG output is flattened; SVG output preserves vector layers. Colors are validated before serialization. Object URLs are revoked after downloads. src/palette.ts owns the deterministic palette algorithm. Run `node --test scripts/lattice.test.mjs scripts/lab-engines.test.mjs` from the repository root to verify square periodicity, layer isolation/order, input constraints, injection rejection, and palette reproducibility and tonal separation.
 
 The host provides semantic --kio-* CSS tokens. Shared experiment controls and canvas lifecycle live in @kiochan/lab-ui. All controls, comments, and documentation use English.
 

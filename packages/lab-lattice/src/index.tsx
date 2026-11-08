@@ -1,13 +1,25 @@
 "use client";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useEffect, useState } from "react";
-import { patternSvg } from "./pattern";
+import { generatePalette, HARMONIES, type Harmony } from "./palette";
+import {
+  PATTERN_LAYERS,
+  type PatternLayer,
+  patternGeometry,
+  patternSvg,
+} from "./pattern";
+import local from "./styles.module.css";
 
 export function LatticeGenerator() {
   const [repeat, setRepeat] = useState(72);
   const [stripe, setStripe] = useState(18);
   const [cross, setCross] = useState(true);
   const [colors, setColors] = useState<[string, string, string] | null>(null);
+  const [harmony, setHarmony] = useState<Harmony>("analogous");
+  const [tiles, setTiles] = useState(8);
+  const [layer, setLayer] = useState<PatternLayer | "all">("all");
+  const [repeated, setRepeated] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
     const css = getComputedStyle(document.documentElement);
@@ -17,24 +29,31 @@ export function LatticeGenerator() {
       css.getPropertyValue("--kio-pattern-line").trim(),
     ]);
   }, []);
-  const svg = colors ? patternSvg({ repeat, stripe, cross, colors }) : "";
-  function download(content: Blob, filename: string) {
+  const { extent, band } = patternGeometry(repeat, stripe, tiles);
+  const svg = colors
+    ? patternSvg({ repeat, stripe, cross, colors }, { tiles, layer })
+    : "";
+  const imageUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  const filename = `kiochan-lattice-${layer}-${extent}x${extent}`;
+
+  function download(content: Blob, name: string) {
     const url = URL.createObjectURL(content);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = filename;
+    anchor.download = name;
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   async function exportPng() {
+    setExporting(true);
+    setError("");
     try {
-      setError("");
       const image = new Image();
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      image.src = imageUrl;
       await image.decode();
       const canvas = document.createElement("canvas");
-      canvas.width = 720;
-      canvas.height = 440;
+      canvas.width = extent;
+      canvas.height = extent;
       const context = canvas.getContext("2d");
       if (!context) throw new Error("Canvas export is unavailable.");
       context.drawImage(image, 0, 0);
@@ -42,11 +61,18 @@ export function LatticeGenerator() {
         canvas.toBlob(resolve, "image/png"),
       );
       if (!blob) throw new Error("Could not create the PNG.");
-      download(blob, "kiochan-lattice.png");
+      download(blob, `${filename}.png`);
     } catch {
       setError("PNG export failed. Try downloading the SVG instead.");
+    } finally {
+      setExporting(false);
     }
   }
+  function autoPalette() {
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    setColors(generatePalette(seed, harmony));
+  }
+
   return (
     <div className={styles.panel}>
       <div className={styles.toolbar}>
@@ -61,12 +87,12 @@ export function LatticeGenerator() {
           />
         </label>
         <label className={styles.field}>
-          Stripe: {stripe}px
+          Stripe: {band}px
           <input
             type="range"
             min={2}
-            max={36}
-            value={stripe}
+            max={Math.min(36, repeat / 2)}
+            value={band}
             onChange={(e) => setStripe(Number(e.target.value))}
           />
         </label>
@@ -74,7 +100,10 @@ export function LatticeGenerator() {
           <input
             type="checkbox"
             checked={cross}
-            onChange={(e) => setCross(e.target.checked)}
+            onChange={(e) => {
+              setCross(e.target.checked);
+              if (!e.target.checked && layer === "horizontal") setLayer("all");
+            }}
           />{" "}
           Cross stripes
         </label>
@@ -96,41 +125,120 @@ export function LatticeGenerator() {
             />
           </label>
         ))}
+        <label className={styles.field}>
+          Color harmony
+          <select
+            value={harmony}
+            onChange={(e) => setHarmony(e.target.value as Harmony)}
+          >
+            {HARMONIES.map((item) => (
+              <option value={item} key={item}>
+                {item[0].toUpperCase() + item.slice(1)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          className={styles.button}
+          onClick={autoPalette}
+          disabled={!colors}
+        >
+          Auto palette
+        </button>
+      </div>
+      <div className={styles.toolbar}>
+        <label className={styles.field}>
+          Square tile
+          <select
+            value={tiles}
+            onChange={(e) => setTiles(Number(e.target.value))}
+          >
+            {[1, 4, 8, 16].map((count) => (
+              <option value={count} key={count}>
+                {count} × {count} repeats · {repeat * count} × {repeat * count}
+                px
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          Preview / export layer
+          <select
+            value={layer}
+            onChange={(e) => setLayer(e.target.value as PatternLayer | "all")}
+          >
+            <option value="all">All layers</option>
+            {PATTERN_LAYERS.map(({ id, label }) => (
+              <option
+                value={id}
+                key={id}
+                disabled={id === "horizontal" && !cross}
+              >
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={repeated}
+            onChange={(e) => setRepeated(e.target.checked)}
+          />{" "}
+          Preview 3 × 3 tiles
+        </label>
       </div>
       <div className={styles.body}>
         {svg ? (
-          <img
-            className={styles.preview}
-            width={720}
-            height={440}
-            src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`}
-            alt="Live preview of your repeating plaid pattern"
-          />
+          <div className={local.artboard}>
+            <div
+              className={local.artwork}
+              role="img"
+              aria-label={`${repeated ? "Three by three seamless repeat" : "Square tile"} preview: ${layer === "all" ? "all layers" : PATTERN_LAYERS.find((item) => item.id === layer)?.label}`}
+              style={{
+                backgroundImage: `url("${imageUrl}")`,
+                backgroundSize: repeated
+                  ? "33.333333% 33.333333%"
+                  : "100% 100%",
+              }}
+            />
+          </div>
         ) : (
           <p>Preparing your pattern…</p>
         )}
       </div>
+      <p className={styles.status}>
+        {extent} × {extent}px seamless square. The 3 × 3 preview repeats this
+        tile; downloads always contain one square. Select an individual layer to
+        download it separately. Stripe and fine-line PNGs have transparent
+        backgrounds. All-layer SVGs retain named, editable layers.
+      </p>
       <div className={styles.controls}>
         <button
           type="button"
-          disabled={!svg}
+          disabled={!svg || exporting}
           className={styles.button}
           onClick={() =>
             download(
               new Blob([svg], { type: "image/svg+xml" }),
-              "kiochan-lattice.svg",
+              `${filename}.svg`,
             )
           }
         >
-          Download SVG
+          {layer === "all" ? "Download layered SVG" : "Download layer SVG"}
         </button>
         <button
           type="button"
-          disabled={!svg}
+          disabled={!svg || exporting}
           className={styles.button}
           onClick={exportPng}
         >
-          Download PNG
+          {exporting
+            ? "Exporting PNG…"
+            : layer === "all"
+              ? "Download square PNG"
+              : "Download layer PNG"}
         </button>
       </div>
       {error && (

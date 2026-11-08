@@ -13,11 +13,11 @@ Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, and Texture Array each
 
 Texture Array is an original WebGL2 instanced-array editor for local images. It exports a square layered TIFF with a transparent composite, previews a finite 3 × 3 repeat, and preserves source images plus bounded undo history in downloadable projects. Canvas pan and zoom are bounded view transforms. No animation loop, backend, or uploaded reference artwork is included.
 
-Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidFun port. Lattice generates SVG directly and credits its upstream design. Breakout and Snake expose the actual engine source in static HTML. Cubism includes a local manifest inspector and an adapter-based viewer boundary; model rendering is not enabled without an authorized SDK adapter and model assets. No original Cubism resources are copied.
+Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidFun port. Lattice generates seamless square SVG/PNG tiles, exports named SVG layers or individual transparent layers, and generates harmonic palettes algorithmically; it credits its upstream design. Breakout and Snake expose the actual engine source in static HTML. Cubism includes a local manifest inspector and an adapter-based viewer boundary; model rendering is not enabled without an authorized SDK adapter and model assets. No original Cubism resources are copied.
 
 Each package exports a lightweight ./preview entry for its server-rendered SVG card artwork. This entry must not import the experiment runtime, engine, SDK, model, or asset loader. Shared preview motion styles live in lab-ui. The website owns card playback state: mouse hover and keyboard focus start a preview, while a separate 44px button supports explicit play/pause on touch devices. Buttons are siblings of project links, never nested inside them. Offscreen cards, hidden documents, and reduced-motion preference pause playback. Cubism previews illustrate manifest inspection only.
 
-Run `node --test scripts/lab-engines.test.mjs` for engine, pattern, and manifest checks, then the standard lint/type/build and production smoke checks. Every added lab package manifest must also be copied in the Docker dependency stage.
+Run `node --test scripts/lab-engines.test.mjs scripts/lattice.test.mjs` for engine, pattern, palette, and manifest checks, then the standard lint/type/build and production smoke checks. Every added lab package manifest must also be copied in the Docker dependency stage.
 
 ## Small React experiments
 

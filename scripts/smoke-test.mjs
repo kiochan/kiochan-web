@@ -27,7 +27,7 @@ async function verify() {
   const routes = [
     ["/lab", "Small ideas. Open tabs"],
     ["/lab/liquid", "Start simulation"],
-    ["/lab/lattice", "Download SVG"],
+    ["/lab/lattice", "Download layered SVG"],
     ["/lab/texture-array", "Texture Array"],
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],

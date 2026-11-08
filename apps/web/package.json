@@ -16,6 +16,7 @@
     "@kiochan/lab-lattice": "workspace:*",
     "@kiochan/lab-liquid": "workspace:*",
     "@kiochan/lab-snake": "workspace:*",
+    "@kiochan/lab-texture-array": "workspace:*",
     "@kiochan/theme": "workspace:*",
     "@radix-ui/react-slot": "1.5.0",
     "class-variance-authority": "0.7.1",

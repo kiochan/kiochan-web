@@ -16,6 +16,7 @@ COPY packages/lab-lattice/package.json packages/lab-lattice/package.json
 COPY packages/lab-cubism/package.json packages/lab-cubism/package.json
 COPY packages/lab-breakout/package.json packages/lab-breakout/package.json
 COPY packages/lab-snake/package.json packages/lab-snake/package.json
+COPY packages/lab-texture-array/package.json packages/lab-texture-array/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder

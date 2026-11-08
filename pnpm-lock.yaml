@@ -35,6 +35,9 @@ importers:
       '@kiochan/lab-snake':
         specifier: workspace:*
         version: link:../../packages/lab-snake
+      '@kiochan/lab-texture-array':
+        specifier: workspace:*
+        version: link:../../packages/lab-texture-array
       '@kiochan/theme':
         specifier: workspace:*
         version: link:../../packages/theme
@@ -181,6 +184,22 @@ importers:
         version: 5.9.3
 
   packages/lab-snake:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-texture-array:
     dependencies:
       '@kiochan/lab-ui':
         specifier: workspace:*

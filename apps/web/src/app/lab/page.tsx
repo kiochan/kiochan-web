@@ -3,6 +3,7 @@ import { CubismPreview } from "@kiochan/lab-cubism/preview";
 import { LatticePreview } from "@kiochan/lab-lattice/preview";
 import { LiquidPreview } from "@kiochan/lab-liquid/preview";
 import { SnakePreview } from "@kiochan/lab-snake/preview";
+import { TextureArrayPreview } from "@kiochan/lab-texture-array/preview";
 import type { Metadata } from "next";
 import { LabCard } from "@/components/lab-card";
 import { Localized } from "@/components/language-provider";
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/lab" },
 };
 const previews = {
+  "texture-array": TextureArrayPreview,
   liquid: LiquidPreview,
   lattice: LatticePreview,
   cubism: CubismPreview,

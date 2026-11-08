@@ -28,6 +28,7 @@ async function verify() {
     ["/lab", "Small ideas. Open tabs"],
     ["/lab/liquid", "Start simulation"],
     ["/lab/lattice", "Download SVG"],
+    ["/lab/texture-array", "Texture Array"],
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
@@ -77,16 +78,18 @@ async function verify() {
       );
     }
     if (path === "/sitemap.xml") {
+      assert.ok(body.includes("/lab/texture-array"));
       assert.ok(!body.includes("/projects/kiochan-web"));
       assert.ok(body.includes("/projects/panel-tools"));
       assert.ok(!body.includes("/notes"));
       assert.ok(!body.includes("https://kiochan.one/releases"));
     }
     if (path === "/lab") {
-      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 5);
+      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 6);
       for (const name of [
         "Liquid Playground",
         "Lattice Generator",
+        "Texture Array",
         "Cubism Workbench",
         "Breakout",
         "Quick Snake",

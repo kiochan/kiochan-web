@@ -9,7 +9,9 @@
 
 ## Current collection
 
-Liquid, Lattice, Cubism Workbench, Breakout, and Quick Snake each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, and Texture Array each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+
+Texture Array is an original WebGL2 instanced-array editor for local images. It exports a square layered TIFF with a transparent composite, previews a finite 3 × 3 repeat, and preserves source images plus bounded undo history in downloadable projects. Canvas pan and zoom are bounded view transforms. No animation loop, backend, or uploaded reference artwork is included.
 
 Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidFun port. Lattice generates SVG directly and credits its upstream design. Breakout and Snake expose the actual engine source in static HTML. Cubism includes a local manifest inspector and an adapter-based viewer boundary; model rendering is not enabled without an authorized SDK adapter and model assets. No original Cubism resources are copied.
 

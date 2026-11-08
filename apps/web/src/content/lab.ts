@@ -1,5 +1,15 @@
 export const experiments = [
   {
+    slug: "texture-array",
+    name: "Texture Array",
+    category: "Creative tools",
+    description:
+      "Build seamless square textures from local images with GPU arrays, a movable canvas, and editable project history.",
+    stack: "React · WebGL2",
+    packageName: "lab-texture-array",
+    original: null,
+  },
+  {
     slug: "liquid",
     name: "Liquid Playground",
     category: "Simulation",

@@ -1261,6 +1261,12 @@ export const translations: Record<
     ja: "制作ツール",
     de: "Kreativwerkzeuge",
   },
+  "Build seamless square textures from local images with GPU arrays, a movable canvas, and editable project history.":
+    {
+      zh: "使用本地图片、GPU 阵列、可移动画布和可编辑工程历史，制作无缝正方形贴图。",
+      ja: "ローカル画像、GPU 配列、移動できるキャンバス、編集履歴を使って、シームレスな正方形テクスチャを作成できます。",
+      de: "Nahtlose quadratische Texturen aus lokalen Bildern mit GPU-Arrays, verschiebbarer Zeichenfläche und bearbeitbarem Projektverlauf erstellen.",
+    },
   Games: {
     zh: "游戏",
     ja: "ゲーム",

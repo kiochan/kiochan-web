@@ -18,14 +18,14 @@ export type Layer = {
 export type Frame = { label: string; size: number; layers: Layer[] };
 export type Project = {
   format: "kiochan-texture-array";
-  version: 2;
+  version: 3;
   assets: Asset[];
   history: Frame[];
   cursor: number;
 };
 export const emptyProject = (): Project => ({
   format: "kiochan-texture-array",
-  version: 2,
+  version: 3,
   assets: [],
   history: [{ label: "New project", size: 1024, layers: [] }],
   cursor: 0,
@@ -86,7 +86,7 @@ export function parseProject(text: string): Project {
   const root = record(JSON.parse(text));
   if (
     root.format !== "kiochan-texture-array" ||
-    ![1, 2].includes(root.version as number)
+    ![1, 2, 3].includes(root.version as number)
   )
     throw new Error("Unsupported texture project.");
   if (!Array.isArray(root.assets) || root.assets.length > 12)
@@ -154,7 +154,7 @@ export function parseProject(text: string): Project {
   });
   return {
     format: "kiochan-texture-array",
-    version: 2,
+    version: 3,
     assets,
     history,
     cursor: number(root.cursor, 0, history.length - 1, true),

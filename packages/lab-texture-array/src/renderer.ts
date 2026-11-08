@@ -1,26 +1,18 @@
+import { createLattice, type Lattice } from "./layout";
 import type { Frame, Layer } from "./project";
 
 const vertex = `#version 300 es
 precision highp float;
-uniform vec2 counts;
+layout(location = 0) in vec2 latticeCenter;
 uniform vec2 dimensions;
 uniform vec2 offset;
 uniform float angle;
-uniform float layoutAngle;
-uniform float stagger;
 out vec2 uv;
 void main() {
   vec2 corners[6] = vec2[6](vec2(0,0),vec2(1,0),vec2(0,1),vec2(0,1),vec2(1,0),vec2(1,1));
   uv = corners[gl_VertexID];
-  int copies = int(counts.x * counts.y);
-  int item = gl_InstanceID % copies;
-  int wrap = gl_InstanceID / copies;
-  float row = floor(float(item) / counts.x);
-  vec2 center = (vec2(mod(float(item), counts.x), row) + .5) / counts;
-  center.x += mod(row, 2.) * stagger / counts.x;
-  vec2 relative = center - .5;
-  center = mat2(cos(layoutAngle), sin(layoutAngle), -sin(layoutAngle), cos(layoutAngle)) * relative + .5;
-  center = fract(center + offset);
+  int wrap = gl_InstanceID % 9;
+  vec2 center = fract(latticeCenter + offset);
   vec2 p = (uv - .5) * dimensions;
   p = mat2(cos(angle), sin(angle), -sin(angle), cos(angle)) * p;
   p += center + vec2(float(wrap % 3) - 1., float(wrap / 3) - 1.);
@@ -93,6 +85,8 @@ export class TextureRenderer {
     { texture: WebGLTexture; width: number; height: number }
   >();
   private resolution = 0;
+  private centers: WebGLBuffer;
+  private lattices = new Map<string, { key: string; value: Lattice }>();
   private anisotropy: EXT_texture_filter_anisotropic | null;
   constructor(private canvas: HTMLCanvasElement) {
     const gl = canvas.getContext("webgl2", {
@@ -106,6 +100,9 @@ export class TextureRenderer {
         "WebGL2 is unavailable. Enable hardware acceleration or use a WebGL2-capable browser.",
       );
     this.gl = gl;
+    const centers = gl.createBuffer();
+    if (!centers) throw new Error("Unable to allocate lattice positions.");
+    this.centers = centers;
     this.anisotropy = gl.getExtension("EXT_texture_filter_anisotropic");
     this.program = this.link(vertex, fragment);
     this.screen = this.link(screenVertex, screenFragment);
@@ -247,6 +244,9 @@ export class TextureRenderer {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     // biome-ignore lint/correctness/useHookAtTopLevel: WebGL useProgram is not a React hook.
     gl.useProgram(this.program);
+    const ids = new Set(frame.layers.map((layer) => layer.id));
+    for (const id of this.lattices.keys())
+      if (!ids.has(id)) this.lattices.delete(id);
     for (const layer of frame.layers) if (layer.visible) this.drawLayer(layer);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (!present) {
@@ -273,7 +273,17 @@ export class TextureRenderer {
     const at = (name: string) => gl.getUniformLocation(this.program, name);
     const aspect = source.width / source.height;
     gl.bindTexture(gl.TEXTURE_2D, source.texture);
-    gl.uniform2f(at("counts"), layer.columns, layer.rows);
+    const key = `${layer.columns}/${layer.rows}/${layer.layoutAngle}/${layer.stagger}`;
+    let lattice = this.lattices.get(layer.id);
+    if (!lattice || lattice.key !== key) {
+      lattice = { key, value: createLattice(layer) };
+      this.lattices.set(layer.id, lattice);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.centers);
+    gl.bufferData(gl.ARRAY_BUFFER, lattice.value.positions, gl.STREAM_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribDivisor(0, 9);
     gl.uniform2f(
       at("dimensions"),
       layer.size * Math.min(1, aspect),
@@ -281,11 +291,9 @@ export class TextureRenderer {
     );
     gl.uniform2f(at("offset"), layer.x, layer.y);
     gl.uniform1f(at("angle"), (layer.rotation * Math.PI) / 180);
-    gl.uniform1f(at("layoutAngle"), (layer.layoutAngle * Math.PI) / 180);
     gl.uniform1i(at("pixelMode"), layer.sampling === "pixel" ? 1 : 0);
-    gl.uniform1f(at("stagger"), layer.stagger);
     gl.uniform1f(at("opacity"), layer.opacity);
-    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, layer.columns * layer.rows * 9);
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, lattice.value.count * 9);
   }
   readTile(): Uint8Array<ArrayBuffer> {
     const gl = this.gl;
@@ -331,5 +339,7 @@ export class TextureRenderer {
     gl.deleteFramebuffer(this.framebuffer);
     gl.deleteProgram(this.program);
     gl.deleteProgram(this.screen);
+    gl.deleteBuffer(this.centers);
+    this.lattices.clear();
   }
 }

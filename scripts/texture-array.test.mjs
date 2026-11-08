@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createLattice } from "../packages/lab-texture-array/src/layout.ts";
 import {
   commit,
   emptyProject,
@@ -14,7 +15,7 @@ const source = {
 };
 function fixture() {
   const project = emptyProject();
-  project.assets = [source];
+  project.assets = [{ ...source }];
   return commit(project, {
     label: "Import image",
     size: 1024,
@@ -68,7 +69,7 @@ test("version-one projects upgrade every historical layer without changing origi
       delete layer.sampling;
     }
   const upgraded = parseProject(JSON.stringify(project));
-  assert.equal(upgraded.version, 2);
+  assert.equal(upgraded.version, 3);
   assert.equal(upgraded.history[1].layers[0].layoutAngle, 0);
   assert.equal(upgraded.history[1].layers[0].sampling, "sharp");
   assert.deepEqual(upgraded.assets, project.assets);
@@ -94,7 +95,7 @@ test("fractional positive and negative array angles and sampling modes survive h
 test("import rejects unsupported formats, external/SVG sources, broken references and unbounded settings", () => {
   const mutations = [
     (p) => {
-      p.version = 3;
+      p.version = 4;
     },
     (p) => {
       p.assets[0].data = "https://example.com/image.png";
@@ -147,4 +148,99 @@ test("import rejects unsupported formats, external/SVG sources, broken reference
     mutate(project);
     assert.throws(() => parseProject(JSON.stringify(project)));
   }
+});
+
+test("periodic diagonal lattices cover corners and have no large empty regions", () => {
+  for (const layoutAngle of [
+    -180, -75, -45, -15, 0, 15, 30, 37.25, 45, 60, 89.5, 135, 180,
+  ]) {
+    const lattice = createLattice({
+      columns: 4,
+      rows: 4,
+      layoutAngle,
+      stagger: 0,
+    });
+    assert.ok(
+      lattice.count >= 12 && lattice.count <= 20,
+      `Bounded density at ${layoutAngle}`,
+    );
+    let largestGap = 0;
+    for (let y = 0; y <= 32; y++)
+      for (let x = 0; x <= 32; x++) {
+        let distance = Infinity;
+        for (let i = 0; i < lattice.count; i++) {
+          const dx = Math.abs(x / 32 - lattice.positions[i * 2]);
+          const dy = Math.abs(y / 32 - lattice.positions[i * 2 + 1]);
+          distance = Math.min(
+            distance,
+            Math.hypot(Math.min(dx, 1 - dx), Math.min(dy, 1 - dy)),
+          );
+        }
+        largestGap = Math.max(largestGap, distance);
+      }
+    assert.ok(
+      largestGap < 0.2,
+      `Oversized empty region at ${layoutAngle}: ${largestGap}`,
+    );
+  }
+  const diagonal = createLattice({
+    columns: 4,
+    rows: 4,
+    layoutAngle: 45,
+    stagger: 0,
+  });
+  assert.equal(diagonal.angle, 45);
+  assert.equal(diagonal.count, 18);
+});
+
+test("lattice basis neighbors stay equally spaced across both square seams", () => {
+  for (const [columns, rows, layoutAngle, stagger] of [
+    [4, 4, 45, 0],
+    [3, 7, 37.25, 0.5],
+    [1, 32, -66, 1],
+    [32, 1, 76, 0.25],
+    [1, 1, 45, 0],
+    [32, 32, 44.5, 0.5],
+    [4, 4, 0, 0.5],
+  ]) {
+    const lattice = createLattice({ columns, rows, layoutAngle, stagger });
+    const [a, b, c, d] = lattice.frequencies;
+    const det = a * d - b * c;
+    assert.equal(lattice.count, det);
+    assert.ok(det > 0 && det <= 2048);
+    const positions = [];
+    for (let i = 0; i < lattice.count; i++)
+      positions.push([lattice.positions[i * 2], lattice.positions[i * 2 + 1]]);
+    for (const [x, y] of positions.slice(0, 32)) {
+      for (const [dx, dy] of [
+        [d / det, -c / det],
+        [-b / det, a / det],
+        [1, 0],
+        [0, 1],
+      ]) {
+        const nx = (((x + dx) % 1) + 1) % 1,
+          ny = (((y + dy) % 1) + 1) % 1;
+        assert.ok(
+          positions.some(([px, py]) => {
+            const vx = Math.abs(px - nx),
+              vy = Math.abs(py - ny);
+            return (
+              Math.hypot(Math.min(vx, 1 - vx), Math.min(vy, 1 - vy)) < 1e-6
+            );
+          }),
+          "Each translated neighbor must exist, including seam crossings",
+        );
+      }
+    }
+  }
+});
+
+test("version-two projects retain requested angles and source data when upgrading to uniform repeats", () => {
+  const project = fixture();
+  project.version = 2;
+  project.history[1].layers[0].layoutAngle = 37.25;
+  const next = parseProject(JSON.stringify(project));
+  assert.equal(next.version, 3);
+  assert.equal(next.history[1].layers[0].layoutAngle, 37.25);
+  assert.deepEqual(next.assets, project.assets);
 });

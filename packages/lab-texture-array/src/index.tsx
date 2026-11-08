@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { exportTiff } from "./export-tiff";
+import { createLattice } from "./layout";
 import {
   type Asset,
   commit,
@@ -74,6 +75,7 @@ export function TextureArray() {
   const panLimit = Math.max(0.5, (zoom - 1) / 2);
   const layer =
     frame.layers.find((item) => item.id === selected) ?? frame.layers.at(-1);
+  const lattice = useMemo(() => (layer ? createLattice(layer) : null), [layer]);
 
   useEffect(() => {
     setPan((p) => ({
@@ -765,13 +767,15 @@ export function TextureArray() {
                 </button>
               </div>
               <p className={styles.hint}>
-                Half-drop offsets every other row by half a cell. Even row
-                counts keep a regular rhythm across tile edges.
+                Half-drop shifts neighboring rows by about half a cell. The
+                repeat is fitted to the square edges.
               </p>
               <p className={styles.hint}>
-                Array angle rotates the finite arrangement around the tile
-                center; image rotation stays independent. Wrapped motifs remain
-                seamless, though spacing at the seam can vary with the angle.
+                Uniform repeat:{" "}
+                {lattice ? Math.round(lattice.angle * 100) / 100 : 0}° ·{" "}
+                {lattice?.count ?? 0} motifs per tile. The requested angle and
+                spacing are matched to a uniform square repeat, so the actual
+                angle and count may adjust. Image rotation stays independent.
               </p>
             </>
           )}

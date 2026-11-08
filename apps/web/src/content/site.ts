@@ -43,7 +43,30 @@ export const panelTools = {
   ],
 } as const;
 
-export const projectCatalog = [panelTools] as const;
+export const colorPicker = {
+  slug: "kio-color-picker",
+  name: "Kio Color Picker",
+  category: "Photoshop plugin",
+  summary:
+    "A Photoshop color picker with a hue wheel, saturation and brightness diamond, RGB sliders, and linked colors.",
+  repository: "https://github.com/kiochan/kio-color-picker-photoshop",
+  stack: ["Photoshop UXP", "React", "TypeScript"],
+  status: "Experimental",
+  compatibility:
+    "Targets Windows 11 and Photoshop 2026 (27.x) with Adobe UXP WebView Support. Photoshop compatibility is still being tested.",
+  features: [
+    {
+      title: "Color controls",
+      text: "Choose colors using a hue wheel, saturation and brightness diamond, RGB sliders, or HEX input.",
+    },
+    {
+      title: "Foreground and background",
+      text: "Switch between foreground and background swatches and optionally link their colors.",
+    },
+  ],
+} as const;
+
+export const projectCatalog = [panelTools, colorPicker] as const;
 
 export const about = {
   introduction:

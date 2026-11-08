@@ -36,6 +36,7 @@ async function verify() {
     ["/releases", "Panel Tools"],
     [
       "/projects/panel-tools",
+      "/projects/kio-color-picker",
       "Photoshop runtime compatibility has not been verified.",
     ],
     ["/about", "Kiochan"],

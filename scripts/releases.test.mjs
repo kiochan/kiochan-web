@@ -239,3 +239,41 @@ test("retired producer identities and products cannot be republished", async () 
     await rm(temporary, { recursive: true, force: true });
   }
 });
+
+test("color picker publisher cannot replace another product", async () => {
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "kiochan-release-"));
+  const root = path.join(temporary, "mount");
+  const producer = "kiochan/kio-color-picker-photoshop";
+  try {
+    const panel = await fixtureBundle(temporary, "panel");
+    assert.equal(publishFixture(root, panel.bundle, "dev", "panel").status, 0);
+    const picker = await fixtureBundle(temporary, "picker", false, {
+      slug: "kio-color-picker",
+      producer,
+    });
+    assert.equal(
+      publishFixture(root, picker.bundle, "dev", "picker", producer).status,
+      0,
+    );
+    const forged = await fixtureBundle(temporary, "forged-picker", false, {
+      slug: "panel-tools",
+      producer,
+    });
+    assert.notEqual(
+      publishFixture(root, forged.bundle, "dev", "forged-picker", producer)
+        .status,
+      0,
+    );
+    const catalogue = JSON.parse(
+      await readFile(path.join(root, "channels/dev/catalog.json"), "utf8"),
+    );
+    assert.deepEqual(catalogue.products, {
+      "panel-tools": "panel",
+      "kio-color-picker": "picker",
+    });
+  } finally {
+    assert.equal(path.dirname(temporary), path.resolve(os.tmpdir()));
+    assert.ok(path.basename(temporary).startsWith("kiochan-release-"));
+    await rm(temporary, { recursive: true, force: true });
+  }
+});

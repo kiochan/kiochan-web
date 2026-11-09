@@ -34,10 +34,10 @@ export function localizeTextureText(
     return formatTextureText("Import {count} image(s)", translate, {
       count: imported[1],
     });
-  const progress = /^Encoding TIFF layer (\d+) of (\d+)…$/.exec(message);
+  const progress = /^Encoding export layer (\d+) of (\d+)…$/.exec(message);
   if (progress)
     return formatTextureText(
-      "Encoding TIFF layer {current} of {total}…",
+      "Encoding export layer {current} of {total}…",
       translate,
       { current: progress[1], total: progress[2] },
     );

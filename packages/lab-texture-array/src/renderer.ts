@@ -251,7 +251,7 @@ export class TextureRenderer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     if (!present) {
       if (gl.getError() !== gl.NO_ERROR)
-        throw new Error("GPU rendering failed during TIFF export.");
+        throw new Error("GPU rendering failed during image export.");
       return;
     }
     gl.disable(gl.BLEND);
@@ -299,7 +299,7 @@ export class TextureRenderer {
     const gl = this.gl;
     if (gl.isContextLost())
       throw new Error(
-        "GPU context lost during TIFF export. Please try again after recovery.",
+        "GPU context lost during image export. Please try again after recovery.",
       );
     const size = this.resolution;
     const pixels = new Uint8Array(size * size * 4);
@@ -307,7 +307,7 @@ export class TextureRenderer {
     try {
       gl.readPixels(0, 0, size, size, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
       if (gl.getError() !== gl.NO_ERROR)
-        throw new Error("Unable to read TIFF pixels from the GPU.");
+        throw new Error("Unable to read export pixels from the GPU.");
     } finally {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }

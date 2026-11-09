@@ -108,8 +108,8 @@ test("texture translations format live progress and stored history without modif
     "导入 3 张图片",
   );
   assert.equal(
-    localizeTextureText("Encoding TIFF layer 2 of 12…", translate),
-    "正在编码 TIFF 图层 2/12…",
+    localizeTextureText("Encoding export layer 2 of 12…", translate),
+    "正在编码导出图层 2/12…",
   );
   assert.equal(
     localizeTextureText("Change horizontal spacing (%)", translate),
@@ -123,10 +123,10 @@ test("texture translations format live progress and stored history without modif
     "图片超过此 GPU 的 8192 像素纹理尺寸限制。",
   );
   assert.equal(
-    formatTextureText("{size} × {size} · Layered TIFF", translate, {
+    formatTextureText("{size} × {size} · PSD / PNG ZIP", translate, {
       size: 1024,
     }),
-    "1024 × 1024 · 分层 TIFF",
+    "1024 × 1024 · 分层 PSD / PNG ZIP",
   );
   assert.equal(
     localizeTextureText("My custom history label", translate),

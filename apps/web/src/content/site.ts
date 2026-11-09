@@ -205,8 +205,7 @@ export const textureArrayChinese: Record<string, string> = {
   "Unable to decode image. Choose a valid PNG, JPEG, or WebP image.":
     "无法解码图片，请选择有效的 PNG、JPEG 或 WebP 图片。",
   "3 × 3 check": "3 × 3 拼接检查",
-  "A layered TIFF needs a composite and at least one layer.":
-    "分层 TIFF 需要合成图和至少一个图层。",
+  "Export needs at least one layer.": "导出需要至少一个图层。",
   "A pattern starts with an image.": "从一张图片开始创作。",
   "A project supports up to 12 source images.": "每个工程最多支持 12 张原图。",
   "Add PNG, JPEG, or WebP images above.":
@@ -231,20 +230,21 @@ export const textureArrayChinese: Record<string, string> = {
   "Edit history": "操作历史",
   "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. Files stay in this browser tab and are not uploaded. Save before leaving or starting a new project.":
     "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。文件仅保留在当前浏览器标签页中，不会上传。离开页面或新建工程前请先保存。",
-  "Encoding TIFF layer {current} of {total}…":
-    "正在编码 TIFF 图层 {current}/{total}…",
-  "Export layered TIFF": "导出分层 TIFF",
-  "Finishing layered TIFF…": "正在生成分层 TIFF 文件…",
+  "Encoding export layer {current} of {total}…":
+    "正在编码导出图层 {current}/{total}…",
+  "Export layered PSD": "导出分层 PSD",
+  "Export PNG ZIP": "导出 PNG ZIP",
+  "Finishing image export…": "正在生成导出文件…",
   Fit: "适应画布",
   "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.":
     "实际中心间距：横向占画布 {x}% · 纵向占画布 {y}%。均匀无缝排列会按可用的周期档位匹配间距。",
-  "GPU context lost during TIFF export. Please try again after recovery.":
-    "TIFF 导出期间 GPU 上下文丢失，请待恢复后重试。",
+  "GPU context lost during image export. Please try again after recovery.":
+    "图像导出期间 GPU 上下文丢失，请待恢复后重试。",
   "GPU context lost. Your project is still available to save. Restore the context or reload your saved project.":
     "GPU 上下文已丢失，工程仍可保存。请等待恢复，或重新载入已保存的工程。",
   "GPU could not allocate the output canvas. Try a smaller resolution.":
     "GPU 无法分配输出画布，请尝试较低分辨率。",
-  "GPU rendering failed during TIFF export.": "TIFF 导出期间 GPU 渲染失败。",
+  "GPU rendering failed during image export.": "图像导出期间 GPU 渲染失败。",
   "GPU rendering failed. Try fewer images or a smaller output.":
     "GPU 渲染失败，请减少图片数量或降低输出尺寸。",
   "Grid array": "规则网格",
@@ -262,7 +262,7 @@ export const textureArrayChinese: Record<string, string> = {
   "Image scaling": "图像采样",
   "Images are still loading. Please try again.": "图片仍在加载，请稍后重试。",
   "Import {count} image(s)": "导入 {count} 张图片",
-  "Invalid TIFF image dimensions or pixels.": "TIFF 图像尺寸或像素数据无效。",
+  "Invalid export image dimensions or pixels.": "导出图像尺寸或像素数据无效。",
   "Invalid image sampling mode.": "图像采样模式无效。",
   "Invalid lattice settings.": "周期网格参数无效。",
   "Invalid layer source.": "图层原图引用无效。",
@@ -293,7 +293,7 @@ export const textureArrayChinese: Record<string, string> = {
   "Output size": "输出尺寸",
   "Periodic lattice enumeration failed.": "周期网格生成失败。",
   "Pixel · Hard edges": "像素模式 · 保留硬边缘",
-  "Preparing TIFF composite…": "正在准备 TIFF 合成图…",
+  "Preparing export composite…": "正在准备导出合成图…",
   "Processing local files…": "正在处理本地文件…",
   "Project exceeds the 70 MB limit.": "工程文件超过 70 MB 限制。",
   Redo: "重做",
@@ -321,18 +321,16 @@ export const textureArrayChinese: Record<string, string> = {
     "间距沿旋转后的阵列两轴调整。100% 使用当前列数和行数的基准间距；数值越大，图案越疏，图片本身大小不变。",
   "Square seamless texture preview": "正方形无缝贴图预览",
   "TEXTURE ARRAY / SEAMLESS WORKSPACE": "纹理阵列 / 无缝贴图工作区",
-  "TIFF encoder failed. Try a smaller output size.":
-    "TIFF 编码失败，请尝试较小的输出尺寸。",
-  "TIFF encoder has not started.": "TIFF 编码器尚未启动。",
-  "TIFF encoder returned no file.": "TIFF 编码器未生成文件。",
-  "TIFF exceeds the 1.5 GB export limit. Use a smaller output size.":
-    "TIFF 超过 1.5 GB 导出限制，请减小输出尺寸。",
-  "TIFF export cancelled.": "已取消 TIFF 导出。",
-  "TIFF export requires a browser with CompressionStream support.":
-    "TIFF 导出需要支持 CompressionStream 的浏览器。",
-  "TIFF keeps each rendered layer, its name, transparency, and visibility. Save project keeps original images and editable array settings.":
-    "TIFF 保留各渲染图层、图层名称、透明区域和显示状态。保存工程则保留原图及可继续编辑的阵列参数。",
-  "TIFF supports up to 12 editor layers.": "TIFF 最多支持 12 个编辑器图层。",
+  "Image encoder failed. Try a smaller output size.":
+    "图像编码失败，请尝试较小的输出尺寸。",
+  "Export encoder has not started.": "图像编码器尚未启动。",
+  "Image encoder returned no file.": "图像编码器未生成文件。",
+  "Export exceeds the memory limit. Use a smaller output size.":
+    "导出超过内存限制，请减小输出尺寸。",
+  "Image export cancelled.": "已取消图像导出。",
+  "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers use English names. Save project keeps original images and editable array settings.":
+    "PSD 保留图层、透明度和可见性。PNG ZIP 包含各图层的透明 PNG、合成图和可见性清单。导出图层使用英文名称。保存工程可保留原图和可编辑的阵列参数。",
+  "Export supports up to 12 layers.": "导出最多支持 12 个图层。",
   "Texture Array editor": "纹理阵列编辑器",
   "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.":
     "贴图视口：拖动或使用方向键平移，加减键缩放，Home 键复位。",
@@ -348,8 +346,8 @@ export const textureArrayChinese: Record<string, string> = {
   "Unable to construct a bounded periodic lattice.": "无法生成有界的周期网格。",
   "Unable to create shader program.": "无法创建着色器程序。",
   "Unable to create shader.": "无法创建着色器。",
-  "Unable to read TIFF encoder response.": "无法读取 TIFF 编码器响应。",
-  "Unable to read TIFF pixels from the GPU.": "无法从 GPU 读取 TIFF 像素。",
+  "Unable to read image encoder response.": "无法读取图像编码器响应。",
+  "Unable to read export pixels from the GPU.": "无法从 GPU 读取图像像素。",
   "Unable to read image.": "无法读取图片。",
   Undo: "撤销",
   "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.":
@@ -364,7 +362,7 @@ export const textureArrayChinese: Record<string, string> = {
     "WebGL2 不可用，请启用硬件加速或使用支持 WebGL2 的浏览器。",
   "Zoom in": "放大",
   "Zoom out": "缩小",
-  "{size} × {size} · Layered TIFF": "{size} × {size} · 分层 TIFF",
+  "{size} × {size} · PSD / PNG ZIP": "{size} × {size} · 分层 PSD / PNG ZIP",
 };
 
 export type Note = (typeof notes)[number];

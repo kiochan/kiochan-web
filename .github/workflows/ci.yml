@@ -29,7 +29,7 @@ jobs:
       - name: Check translations
         run: node --test scripts/localization.test.mjs
       - name: Check Lab engines
-        run: node --test scripts/lab-engines.test.mjs scripts/lattice.test.mjs scripts/texture-array.test.mjs scripts/texture-array-tiff.test.mjs
+        run: node --test scripts/lab-engines.test.mjs scripts/lattice.test.mjs scripts/texture-array.test.mjs scripts/texture-array-export.test.mjs
       - name: Check runtime release boundaries
         run: node --test scripts/releases.test.mjs
       - name: Build the website

@@ -17,7 +17,10 @@
     "react": ">=19 <20"
   },
   "dependencies": {
-    "@kiochan/lab-ui": "workspace:*"
+    "@kiochan/lab-ui": "workspace:*",
+    "ag-psd": "^34.1.0",
+    "fast-png": "^8.0.0",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@types/react": "19.3.0",

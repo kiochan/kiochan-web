@@ -1,63 +1,66 @@
-import type { Frame, Project } from "./project";
+import type { ExportCommand, ExportReply } from "./export.worker";
+import type { ExportFormat } from "./export-encoder";
+import type { Frame } from "./project";
 import type { TextureRenderer } from "./renderer";
-import type { TiffCommand, TiffReply } from "./tiff.worker";
 
-export async function exportTiff(
+export async function exportImages(
   gpu: TextureRenderer,
   frame: Frame,
-  assets: Project["assets"],
+  format: ExportFormat,
   signal: AbortSignal,
   onProgress: (text: string) => void,
 ) {
-  const worker = new Worker(new URL("./tiff.worker.ts", import.meta.url), {
+  const worker = new Worker(new URL("./export.worker.ts", import.meta.url), {
     type: "module",
   });
   let rejectPending: ((reason: Error) => void) | null = null;
   const abort = () => {
     worker.terminate();
-    rejectPending?.(new Error("TIFF export cancelled."));
+    rejectPending?.(new Error("Image export cancelled."));
   };
   signal.addEventListener("abort", abort, { once: true });
-  function request(message: TiffCommand, transfer: Transferable[] = []) {
-    return new Promise<TiffReply>((resolve, reject) => {
+  function request(message: ExportCommand, transfer: Transferable[] = []) {
+    return new Promise<ExportReply>((resolve, reject) => {
       if (signal.aborted) {
-        reject(new Error("TIFF export cancelled."));
+        reject(new Error("Image export cancelled."));
         return;
       }
       rejectPending = reject;
-      worker.onmessage = (event: MessageEvent<TiffReply>) => {
+      worker.onmessage = (event: MessageEvent<ExportReply>) => {
         rejectPending = null;
         if (event.data.error) reject(new Error(event.data.error));
         else resolve(event.data);
       };
       worker.onerror = () => {
         rejectPending = null;
-        reject(new Error("TIFF encoder failed. Try a smaller output size."));
+        reject(new Error("Image encoder failed. Try a smaller output size."));
       };
       worker.onmessageerror = () => {
         rejectPending = null;
-        reject(new Error("Unable to read TIFF encoder response."));
+        reject(new Error("Unable to read image encoder response."));
       };
       worker.postMessage(message, transfer);
     });
   }
   try {
-    onProgress("Preparing TIFF composite…");
+    onProgress("Preparing export composite…");
     gpu.render(frame, 1, false);
     const composite = gpu.readTile();
-    await request({ type: "start", size: frame.size, rgba: composite }, [
-      composite.buffer,
-    ]);
+    await request(
+      { type: "start", format, size: frame.size, rgba: composite },
+      [composite.buffer],
+    );
     for (const [index, layer] of frame.layers.entries()) {
-      if (signal.aborted) throw new Error("TIFF export cancelled.");
-      onProgress(`Encoding TIFF layer ${index + 1} of ${frame.layers.length}…`);
+      if (signal.aborted) throw new Error("Image export cancelled.");
+      onProgress(
+        `Encoding export layer ${index + 1} of ${frame.layers.length}…`,
+      );
       gpu.render({ ...frame, layers: [{ ...layer, visible: true }] }, 1, false);
       const rgba = gpu.readTile();
       await request(
         {
           type: "layer",
           layer: {
-            name: assets.find((a) => a.id === layer.asset)?.name ?? "Layer",
             visible: layer.visible,
             rgba,
           },
@@ -65,9 +68,9 @@ export async function exportTiff(
         [rgba.buffer],
       );
     }
-    onProgress("Finishing layered TIFF…");
+    onProgress("Finishing image export…");
     const result = await request({ type: "finish" });
-    if (!result.blob) throw new Error("TIFF encoder returned no file.");
+    if (!result.blob) throw new Error("Image encoder returned no file.");
     return result.blob;
   } finally {
     signal.removeEventListener("abort", abort);

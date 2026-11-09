@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { exportTiff } from "./export-tiff";
+import type { ExportFormat } from "./export-encoder";
+import { exportImages } from "./export-images";
 import { createLattice } from "./layout";
 import {
   formatTextureText,
@@ -272,7 +273,7 @@ export function TextureArray({
       if (mounted.current) setBusy(false);
     }
   }
-  async function exportLayeredTiff() {
+  async function exportLayers(format: ExportFormat) {
     const gpu = renderer.current;
     if (!gpu || !canvas.current) return;
     setBusy(true);
@@ -282,14 +283,15 @@ export function TextureArray({
     try {
       if (project.assets.some((a) => !gpu.has(a.id)))
         throw new Error("Images are still loading. Please try again.");
-      const blob = await exportTiff(
+      const blob = await exportImages(
         gpu,
         frame,
-        project.assets,
+        format,
         controller.signal,
         setExportProgress,
       );
-      if (mounted.current) download(blob, `texture-array-${frame.size}.tif`);
+      if (mounted.current)
+        download(blob, `texture-array-${frame.size}.${format}`);
     } catch (error) {
       if (mounted.current) setError(errorText(error));
     } finally {
@@ -399,9 +401,16 @@ export function TextureArray({
           <button
             type="button"
             disabled={busy || !ready || !frame.layers.length}
-            onClick={() => void exportLayeredTiff()}
+            onClick={() => void exportLayers("psd")}
           >
-            {t("Export layered TIFF")}
+            {t("Export layered PSD")}
+          </button>
+          <button
+            type="button"
+            disabled={busy || !ready || !frame.layers.length}
+            onClick={() => void exportLayers("zip")}
+          >
+            {t("Export PNG ZIP")}
           </button>
         </div>
       </div>
@@ -605,7 +614,7 @@ export function TextureArray({
           </div>
           <div className={styles.status}>
             <span>
-              {format("{size} × {size} · Layered TIFF", { size: frame.size })}
+              {format("{size} × {size} · PSD / PNG ZIP", { size: frame.size })}
             </span>
             <span>{t("Drag to pan · Arrow keys to move · Fit to reset")}</span>
           </div>
@@ -616,7 +625,7 @@ export function TextureArray({
           </p>
           <p className={styles.hint}>
             {t(
-              "TIFF keeps each rendered layer, its name, transparency, and visibility. Save project keeps original images and editable array settings.",
+              "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers use English names. Save project keeps original images and editable array settings.",
             )}
           </p>
         </div>

@@ -66,7 +66,30 @@ export const colorPicker = {
   ],
 } as const;
 
-export const projectCatalog = [panelTools, colorPicker] as const;
+export const runActions = {
+  slug: "run-actions",
+  name: "Run Actions CEP",
+  category: "Photoshop plugin",
+  summary:
+    "Queue Photoshop actions and run them on document layers from a dockable CEP panel.",
+  repository: "https://github.com/kiochan/photoshop-run-actions",
+  stack: ["Photoshop CEP", "JavaScript", "ExtendScript"],
+  status: "Legacy CEP",
+  compatibility:
+    "Targets Photoshop CC 2019 and later versions that still support CEP. The unsigned ZIP requires CEP debug mode; host compatibility must be verified.",
+  features: [
+    {
+      title: "Action queue",
+      text: "Read loaded action sets, queue actions, and run them in sequence.",
+    },
+    {
+      title: "Layer processing",
+      text: "Process all layers or selected layers, with an optional history snapshot.",
+    },
+  ],
+} as const;
+
+export const projectCatalog = [panelTools, colorPicker, runActions] as const;
 
 export const about = {
   introduction:

@@ -277,3 +277,41 @@ test("color picker publisher cannot replace another product", async () => {
     await rm(temporary, { recursive: true, force: true });
   }
 });
+
+test("Run Actions publisher is confined to its own product", async () => {
+  const temporary = await mkdtemp(path.join(os.tmpdir(), "kiochan-release-"));
+  const root = path.join(temporary, "mount");
+  const producer = "kiochan/photoshop-run-actions";
+  try {
+    const panel = await fixtureBundle(temporary, "panel");
+    assert.equal(publishFixture(root, panel.bundle, "dev", "panel").status, 0);
+    const actions = await fixtureBundle(temporary, "actions", false, {
+      slug: "run-actions",
+      producer,
+    });
+    assert.equal(
+      publishFixture(root, actions.bundle, "dev", "actions", producer).status,
+      0,
+    );
+    const forged = await fixtureBundle(temporary, "forged-actions", false, {
+      slug: "panel-tools",
+      producer,
+    });
+    assert.notEqual(
+      publishFixture(root, forged.bundle, "dev", "forged-actions", producer)
+        .status,
+      0,
+    );
+    const catalogue = JSON.parse(
+      await readFile(path.join(root, "channels/dev/catalog.json"), "utf8"),
+    );
+    assert.deepEqual(catalogue.products, {
+      "panel-tools": "panel",
+      "run-actions": "actions",
+    });
+  } finally {
+    assert.equal(path.dirname(temporary), path.resolve(os.tmpdir()));
+    assert.ok(path.basename(temporary).startsWith("kiochan-release-"));
+    await rm(temporary, { recursive: true, force: true });
+  }
+});

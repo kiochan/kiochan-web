@@ -39,6 +39,7 @@ async function verify() {
       "Photoshop runtime compatibility has not been verified.",
     ],
     ["/projects/kio-color-picker", "Kio Color Picker"],
+    ["/projects/run-actions", "Run Actions CEP"],
     ["/about", "Kiochan"],
     ["/contact", "conversation"],
     ["/sitemap.xml", "https://kiochan.one/projects"],
@@ -83,6 +84,7 @@ async function verify() {
       assert.ok(!body.includes("/projects/kiochan-web"));
       assert.ok(body.includes("/projects/panel-tools"));
       assert.ok(body.includes("/projects/kio-color-picker"));
+      assert.ok(body.includes("/projects/run-actions"));
       assert.ok(!body.includes("/notes"));
       assert.ok(!body.includes("https://kiochan.one/releases"));
     }

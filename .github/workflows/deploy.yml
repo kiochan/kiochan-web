@@ -92,7 +92,7 @@ jobs:
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
             infrastructure/releases/publish.py infrastructure/releases/receive.py infrastructure/releases/setup.py \
-            infrastructure/releases/publishers/photoshop-panel-tools.pub infrastructure/releases/publishers/kio-color-picker.pub \
+            infrastructure/releases/publishers/photoshop-panel-tools.pub infrastructure/releases/publishers/kio-color-picker.pub infrastructure/releases/publishers/run-actions.pub \
             "deploy@$PROD_HOST:/opt/kiochan-web/releases/"
           ssh -T -i "$RUNNER_TEMP/kiochan-ssh/id_ed25519" \
             -o BatchMode=yes -o StrictHostKeyChecking=yes \
@@ -104,6 +104,11 @@ jobs:
             -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
             "deploy@$PROD_HOST" \
             'python3 /opt/kiochan-web/releases/setup.py --key /opt/kiochan-web/releases/kio-color-picker.pub --repository kiochan/kio-color-picker-photoshop'
+          ssh -T -i "$RUNNER_TEMP/kiochan-ssh/id_ed25519" \
+            -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$RUNNER_TEMP/kiochan-ssh/known_hosts" \
+            "deploy@$PROD_HOST" \
+            'python3 /opt/kiochan-web/releases/setup.py --key /opt/kiochan-web/releases/run-actions.pub --repository kiochan/photoshop-run-actions'
       - name: Deploy the exact published commit
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

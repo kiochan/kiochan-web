@@ -83,6 +83,8 @@ CI additionally mounts an isolated runtime directory into the already-built prod
 
 ## Restricted producer identity
 
+The `kiochan/photoshop-run-actions` publisher is restricted to `run-actions`, with a dedicated key and separate dev and prod channels. Its unsigned CEP ZIP requires debug mode; the ZIP is not a signed ZXP. Host behavior is not verified by CI.
+
 The `kiochan/kio-color-picker-photoshop` producer is scoped to `kio-color-picker`. Its website workflow is prepared in the separately checked out plugin repository. Its dedicated Ed25519 public key is tracked in `infrastructure/releases/publishers/kio-color-picker.pub`; its private half belongs only in that repository's `RELEASE_SSH_KEY` Actions secret. Website deployment provisions the public key with `setup.py --key <public-key-file> --repository kiochan/kio-color-picker-photoshop`. The private key must never enter either repository. A successful main build publishes dev; stable version tags publish prod, while prerelease tags publish dev. Packages contain a verified Adobe CCX inside a ZIP; Photoshop host behavior remains separately tested.
 
 Provision the active public key with `setup.py --key <public-key-file> --repository kiochan/photoshop-panel-tools`. This replaces only that key's forced-command entry, preserving unrelated SSH access. Website deployment reprovisions only this active publisher. Never re-enable the retired producer or reconstruct withdrawn catalogue entries from source templates.

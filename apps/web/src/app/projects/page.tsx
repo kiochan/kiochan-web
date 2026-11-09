@@ -4,7 +4,7 @@ import { FeaturedProject } from "@/components/featured-project";
 import { Localized } from "@/components/language-provider";
 import { ArrowIcon, ContactInvitation } from "@/components/site-shell";
 import { MaterialIcon } from "@/components/ui/material-icon";
-import { colorPicker, profile } from "@/content/site";
+import { colorPicker, profile, runActions } from "@/content/site";
 
 import { listReleaseGroups } from "@/lib/releases/server";
 
@@ -33,29 +33,37 @@ export default async function ProjectsPage() {
         </p>
         <div className="mt-12">
           <FeaturedProject />
-          <article className="mt-6 rounded-2xl border border-edge bg-surface p-7 sm:p-10">
-            <h2 className="text-3xl font-medium tracking-tight">
-              <Link
-                href="/projects/kio-color-picker"
-                prefetch={false}
-                className="text-link"
-              >
-                {colorPicker.name}
-              </Link>
-            </h2>
-            <p className="mt-5 max-w-2xl leading-8 text-ink-muted">
-              <Localized text={colorPicker.summary} />
-            </p>
-            <Link
-              href="/projects/kio-color-picker"
-              prefetch={false}
-              className="mt-7 inline-flex items-center gap-3 text-sm text-brand text-link"
+          {[colorPicker, runActions].map((project) => (
+            <article
+              key={project.slug}
+              className="mt-6 rounded-2xl border border-edge bg-surface p-7 sm:p-10"
             >
-              <Localized text="View project" /> <ArrowIcon />
-            </Link>
-          </article>
+              <h2 className="text-3xl font-medium tracking-tight">
+                <Link
+                  href={`/projects/${project.slug}`}
+                  prefetch={false}
+                  className="text-link"
+                >
+                  {project.name}
+                </Link>
+              </h2>
+              <p className="mt-5 max-w-2xl leading-8 text-ink-muted">
+                <Localized text={project.summary} />
+              </p>
+              <Link
+                href={`/projects/${project.slug}`}
+                prefetch={false}
+                className="mt-7 inline-flex items-center gap-3 text-sm text-brand text-link"
+              >
+                <Localized text="View project" /> <ArrowIcon />
+              </Link>
+            </article>
+          ))}
           {groups
-            .filter(({ slug }) => slug !== colorPicker.slug)
+            .filter(
+              ({ slug }) =>
+                slug !== colorPicker.slug && slug !== runActions.slug,
+            )
             .map(({ slug, releases }) =>
               slug === "panel-tools" ? (
                 <div key={slug} className="mt-4 flex flex-wrap gap-3">

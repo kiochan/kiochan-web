@@ -19,6 +19,7 @@ PACKAGE = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9._-]*\.zip\Z")
 PRODUCER_PRODUCTS = {
     "kiochan/photoshop-panel-tools": {"panel-tools"},
     "kiochan/kio-color-picker-photoshop": {"kio-color-picker"},
+    "kiochan/photoshop-run-actions": {"run-actions"},
 }
 MAX_BUNDLE = 536870912
 

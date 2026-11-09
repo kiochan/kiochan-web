@@ -64,7 +64,18 @@ export class LayeredTiffWriter {
   }
   async setComposite(rgba: Uint8Array<ArrayBuffer>) {
     validatePixels(this.size, rgba);
-    this.composite = await deflate(rgba);
+    // TIFF associated alpha uses premultiplied RGB. Photoshop layer channels
+    // remain straight alpha, so never modify the caller's readback buffer.
+    const associated = new Uint8Array(rgba.length);
+    for (let pixel = 0; pixel < rgba.length; pixel += 4) {
+      const alpha = rgba[pixel + 3];
+      for (let channel = 0; channel < 3; channel++)
+        associated[pixel + channel] = Math.round(
+          (rgba[pixel + channel] * alpha) / 255,
+        );
+      associated[pixel + 3] = alpha;
+    }
+    this.composite = await deflate(associated);
   }
   async addLayer(layer: TiffLayer) {
     validatePixels(this.size, layer.rgba);
@@ -141,10 +152,11 @@ export class LayeredTiffWriter {
       ),
     ]);
     // One RGBA IFD provides a transparent composite to baseline TIFF readers.
-    const count = 14;
+    const count = 17;
     const ifdEnd = 8 + 2 + count * 12 + 4;
     const bitsOffset = ifdEnd;
-    const sourceOffset = bitsOffset + 8;
+    const resolutionOffset = bitsOffset + 8;
+    const sourceOffset = resolutionOffset + 16;
     const pixelsOffset = sourceOffset + source.size + (source.size % 2);
     if (pixelsOffset + this.composite.size > 1_500_000_000)
       throw new Error(
@@ -175,14 +187,18 @@ export class LayeredTiffWriter {
     tag(277, 3, 1, 4);
     tag(278, 4, 1, this.size);
     tag(279, 4, 1, this.composite.size);
+    tag(282, 5, 1, resolutionOffset);
+    tag(283, 5, 1, resolutionOffset + 8);
     tag(284, 3, 1, 1);
+    tag(296, 3, 1, 2);
     tag(317, 3, 1, 1);
-    tag(338, 3, 1, 2);
+    tag(338, 3, 1, 1);
     tag(37724, 7, source.size, sourceOffset);
     return new Blob(
       [
         header,
         join([u16(8), u16(8), u16(8), u16(8)]),
+        join([u32(72), u32(1), u32(72), u32(1)]),
         source,
         new Uint8Array(source.size % 2),
         this.composite,

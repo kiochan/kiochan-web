@@ -29,12 +29,26 @@ function decode(bytes) {
     0,
     "One IFD, not multi-page TIFF",
   );
+  for (const id of [282, 283]) {
+    const tag = tags.get(id);
+    assert.equal(tag?.type, 5, "Required TIFF resolution is a RATIONAL");
+    assert.equal(tag.length, 1);
+    assert.equal(b.readUInt32BE(tag.value), 72);
+    assert.equal(b.readUInt32BE(tag.value + 4), 1);
+  }
+  assert.equal(tags.get(296)?.value, 2, "Resolution is in inches");
   const strip = tags.get(273).value;
   const composite = inflateSync(b.subarray(strip, strip + tags.get(279).value));
   const tag = tags.get(37724);
   const source = b.subarray(tag.value, tag.value + tag.length);
   const signature = Buffer.from("Adobe Photoshop Document Data Block\0");
   assert.ok(source.subarray(0, signature.length).equals(signature));
+  assert.equal(
+    source.toString("ascii", signature.length, signature.length + 8),
+    "8BIMMTrn",
+    "Photoshop TIFF merged transparency marker must precede layer data",
+  );
+  assert.equal(source.readUInt32BE(signature.length + 8), 0);
   let layerData;
   for (let offset = signature.length; offset < source.length; ) {
     assert.equal(source.toString("ascii", offset, offset + 4), "8BIM");
@@ -159,9 +173,16 @@ test("layered TIFF preserves top-down pixels, alpha, Unicode names, hidden layer
   const result = decode(bytes);
   assert.equal(result.tags.get(256).value, 2);
   assert.equal(result.tags.get(258).length, 4);
-  assert.equal(result.tags.get(338).value, 2, "Straight alpha");
+  assert.equal(
+    result.tags.get(338).value,
+    1,
+    "Associated TIFF composite alpha",
+  );
   assert.equal(result.tags.get(37724).type, 7);
-  assert.deepEqual([...result.composite], [...bottom]);
+  assert.deepEqual(
+    [...result.composite],
+    [255, 0, 0, 255, 0, 128, 0, 128, 0, 0, 0, 0, 1, 2, 3, 64],
+  );
   assert.deepEqual(
     result.layers.map((l) => [l.name, l.visible]),
     [

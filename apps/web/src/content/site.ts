@@ -210,6 +210,15 @@ export const textureArrayChinese: Record<string, string> = {
   "A project supports up to 12 source images.": "每个工程最多支持 12 张原图。",
   "Add PNG, JPEG, or WebP images above.":
     "请在上方添加 PNG、JPEG 或 WebP 图片。",
+  "Replace image": "替换图片",
+  "Drop one image to replace a layer. Drop multiple images outside the layer list to add them.":
+    "替换图层时请拖入一张图片。批量添加请将多张图片拖到图层列表以外的编辑区域。",
+  "Drop one image to replace this layer. Its name and settings stay unchanged.":
+    "松开以替换此图层的图片，保留图层名称和参数。",
+  "Drop images anywhere in the editor to add layers. Drop one image onto a layer to replace it.":
+    "将图片拖入编辑区域可批量添加图层；将单张图片拖到指定图层上可替换图片。",
+  "Layer name": "图层名称",
+  "Rename layer": "重命名图层",
   "Add images": "添加图片",
   "Array angle (°)": "阵列角度（°）",
   "Cancel export": "取消导出",

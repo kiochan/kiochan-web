@@ -61,6 +61,7 @@ export async function exportImages(
         {
           type: "layer",
           layer: {
+            name: layer.name,
             visible: layer.visible,
             rgba,
           },

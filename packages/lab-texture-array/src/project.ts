@@ -2,6 +2,7 @@ export type Asset = { id: string; name: string; data: string };
 export type Sampling = "sharp" | "pixel";
 export type Layer = {
   id: string;
+  name?: string;
   asset: string;
   visible: boolean;
   columns: number;
@@ -57,6 +58,33 @@ export function commit(project: Project, frame: Frame): Project {
     frame,
   ].slice(-100);
   return { ...project, history, cursor: history.length - 1 };
+}
+export function replaceLayerImage(
+  project: Project,
+  layerId: string,
+  asset: Asset,
+): Project {
+  const frame = project.history[project.cursor];
+  if (!frame.layers.some((layer) => layer.id === layerId)) return project;
+  return commit(
+    { ...project, assets: [...project.assets, asset] },
+    {
+      ...frame,
+      label: "Replace image",
+      layers: frame.layers.map((layer) =>
+        layer.id === layerId
+          ? {
+              ...layer,
+              name:
+                layer.name ??
+                project.assets.find((source) => source.id === layer.asset)
+                  ?.name,
+              asset: asset.id,
+            }
+          : layer,
+      ),
+    },
+  );
 }
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -131,6 +159,7 @@ export function parseProject(text: string): Project {
         throw new Error("Invalid image sampling mode.");
       return {
         id: string(l.id),
+        ...(l.name === undefined ? {} : { name: string(l.name) }),
         asset,
         visible: l.visible,
         columns: number(l.columns, 1, 32, true),

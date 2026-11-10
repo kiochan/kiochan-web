@@ -4,6 +4,7 @@ import { strToU8, zipSync } from "fflate";
 
 export type ExportFormat = "psd" | "zip";
 export type ExportLayer = {
+  name?: string;
   visible: boolean;
   rgba: Uint8Array<ArrayBuffer>;
 };
@@ -74,8 +75,9 @@ export class ExportEncoder {
     this.validate(layer.rgba);
     if (this.layers.length >= 12)
       throw new Error("Export supports up to 12 layers.");
-    const name = exportLayerName(this.layers.length);
-    const file = `${name.replace(" ", "-")}.png`;
+    const fallback = exportLayerName(this.layers.length);
+    const name = layer.name?.trim().slice(0, 200) || fallback;
+    const file = `${fallback.replace(" ", "-")}.png`;
     if (this.format === "psd") {
       this.checkLimit(layer.rgba.byteLength);
       const child: Layer = {

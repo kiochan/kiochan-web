@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type DragEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ExportFormat } from "./export-encoder";
 import { exportImages } from "./export-images";
 import { createLattice } from "./layout";
@@ -9,6 +16,7 @@ import {
   localizeTextureText,
   type TextureTranslator,
 } from "./localization";
+import { NumberField } from "./number-field";
 import {
   type Asset,
   commit,
@@ -18,6 +26,7 @@ import {
   newLayer,
   type Project,
   parseProject,
+  replaceLayerImage,
 } from "./project";
 import { TextureRenderer } from "./renderer";
 import styles from "./texture-array.module.css";
@@ -75,6 +84,8 @@ export function TextureArray({
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const importing = useRef(false);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [exportProgress, setExportProgress] = useState("");
   const exportController = useRef<AbortController | null>(null);
   const [generation, setGeneration] = useState(0);
@@ -87,6 +98,8 @@ export function TextureArray({
     panY: number;
   } | null>(null);
   const upload = useRef<HTMLInputElement>(null);
+  const replace = useRef<HTMLInputElement>(null);
+  const replaceTarget = useRef("");
   const open = useRef<HTMLInputElement>(null);
   const mounted = useRef(true);
   const prefix = useId();
@@ -94,6 +107,11 @@ export function TextureArray({
   const panLimit = Math.max(0.5, (zoom - 1) / 2);
   const layer =
     frame.layers.find((item) => item.id === selected) ?? frame.layers.at(-1);
+  const layerName = layer
+    ? (layer.name ??
+      project.assets.find((asset) => asset.id === layer.asset)?.name ??
+      "")
+    : "";
   const lattice = useMemo(() => (layer ? createLattice(layer) : null), [layer]);
 
   useEffect(() => {
@@ -189,21 +207,27 @@ export function TextureArray({
       ),
     }));
   }
-  async function addImages(files: FileList | null) {
-    if (!files?.length) return;
+  async function addImages(files: FileList | null, replacementId?: string) {
+    if (!files?.length || busy || importing.current) return;
+    const incoming = Array.from(files);
+    importing.current = true;
     setBusy(true);
     setError("");
     try {
-      if (frame.layers.length + files.length > 12)
+      if (replacementId && incoming.length !== 1)
+        throw new Error(
+          "Drop one image to replace a layer. Drop multiple images outside the layer list to add them.",
+        );
+      if (!replacementId && frame.layers.length + incoming.length > 12)
         throw new Error(
           "Up to 12 layers per project. Remove a layer before importing more images.",
         );
-      if (project.assets.length + files.length > 12)
+      if (project.assets.length + incoming.length > 12)
         throw new Error(
           "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.",
         );
       const additions: Asset[] = [];
-      for (const file of Array.from(files)) {
+      for (const file of incoming) {
         if (
           !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
           file.size > 8_000_000
@@ -234,21 +258,31 @@ export function TextureArray({
       const layers = additions.map((a) => newLayer(a.id));
       if (!mounted.current) return;
       setProject((p) =>
-        commit(
-          { ...p, assets },
-          {
-            ...p.history[p.cursor],
-            label: `Import ${layers.length} image(s)`,
-            layers: [...p.history[p.cursor].layers, ...layers],
-          },
-        ),
+        replacementId
+          ? replaceLayerImage(p, replacementId, additions[0])
+          : commit(
+              { ...p, assets },
+              {
+                ...p.history[p.cursor],
+                label: `Import ${layers.length} image(s)`,
+                layers: [...p.history[p.cursor].layers, ...layers],
+              },
+            ),
       );
-      setSelected(layers[0].id);
+      setSelected(replacementId ?? layers[0].id);
     } catch (error) {
       if (mounted.current) setError(errorText(error));
     } finally {
+      importing.current = false;
       if (mounted.current) setBusy(false);
     }
+  }
+  function fileDropTarget(event: DragEvent<HTMLElement>) {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-layer-drop]")
+        : null;
+    return target?.dataset.layerDrop;
   }
   async function openProject(file?: File) {
     if (!file) return;
@@ -328,30 +362,21 @@ export function TextureArray({
   ) {
     if (!layer) return null;
     return (
-      <label className={styles.field} htmlFor={`${prefix}-${key}`}>
-        <span>{t(label)}</span>
-        <input
-          id={`${prefix}-${key}`}
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={Math.round(layer[key] * factor * 100) / 100}
-          onChange={(event) => {
-            if (event.target.value === "") return;
-            const value = event.target.valueAsNumber;
-            if (Number.isFinite(value))
-              updateLayer(
-                {
-                  [key]:
-                    clamp(step === 1 ? Math.round(value) : value, min, max) /
-                    factor,
-                },
-                `Change ${label.toLowerCase()}`,
-              );
-          }}
-        />
-      </label>
+      <NumberField
+        key={`${layer.id}-${key}`}
+        id={`${prefix}-${key}`}
+        label={t(label)}
+        min={min}
+        max={max}
+        step={step}
+        value={Math.round(layer[key] * factor * 100) / 100}
+        onChange={(value) =>
+          updateLayer(
+            { [key]: value / factor },
+            `Change ${label.toLowerCase()}`,
+          )
+        }
+      />
     );
   }
   return (
@@ -359,6 +384,34 @@ export function TextureArray({
       className={styles.tool}
       aria-label={t("Texture Array editor")}
       aria-busy={busy}
+      data-file-drop={dropTarget === "add" ? "true" : undefined}
+      onDragOverCapture={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect =
+          busy || importing.current ? "none" : "copy";
+        setDropTarget(
+          busy || importing.current ? null : (fileDropTarget(event) ?? "add"),
+        );
+      }}
+      onDragLeaveCapture={(event) => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          setDropTarget(null);
+      }}
+      onDropCapture={(event) => {
+        if (
+          !event.dataTransfer.types.includes("Files") &&
+          !event.dataTransfer.files.length
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        setDropTarget(null);
+        void addImages(event.dataTransfer.files, fileDropTarget(event));
+      }}
     >
       <div className={styles.toolbar}>
         <div>
@@ -414,6 +467,13 @@ export function TextureArray({
           </button>
         </div>
       </div>
+      <p className={styles.hint} role="status">
+        {t(
+          dropTarget && dropTarget !== "add"
+            ? "Drop one image to replace this layer. Its name and settings stay unchanged."
+            : "Drop images anywhere in the editor to add layers. Drop one image onto a layer to replace it.",
+        )}
+      </p>
       <input
         hidden
         ref={upload}
@@ -423,6 +483,16 @@ export function TextureArray({
         onChange={(e) => {
           void addImages(e.target.files);
           e.target.value = "";
+        }}
+      />
+      <input
+        hidden
+        ref={replace}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(event) => {
+          void addImages(event.target.files, replaceTarget.current);
+          event.target.value = "";
         }}
       />
       <input
@@ -639,12 +709,14 @@ export function TextureArray({
               <button
                 type="button"
                 key={l.id}
+                data-layer-drop={l.id}
+                data-file-drop={dropTarget === l.id ? "true" : undefined}
                 aria-pressed={layer?.id === l.id}
                 onClick={() => setSelected(l.id)}
               >
                 <span>{String(i + 1).padStart(2, "0")}</span>
                 <span className={styles.layerName}>
-                  {project.assets.find((a) => a.id === l.asset)?.name}
+                  {l.name ?? project.assets.find((a) => a.id === l.asset)?.name}
                 </span>
                 <span>{l.visible ? "●" : "○"}</span>
               </button>
@@ -652,6 +724,29 @@ export function TextureArray({
           </div>
           {layer && (
             <>
+              <label className={styles.field}>
+                <span>{t("Layer name")}</span>
+                <input
+                  key={`${layer.id}-${layerName}`}
+                  type="text"
+                  maxLength={200}
+                  defaultValue={layerName}
+                  onBlur={(event) => {
+                    const name = event.target.value.trim();
+                    if (name && name !== layerName)
+                      updateLayer({ name }, "Rename layer");
+                    else event.target.value = layerName;
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur();
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      event.currentTarget.value = layerName;
+                      event.currentTarget.blur();
+                    }
+                  }}
+                />
+              </label>
               <div className={styles.actions}>
                 <button
                   type="button"
@@ -663,6 +758,15 @@ export function TextureArray({
                   }
                 >
                   {t(layer.visible ? "Hide" : "Show")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    replaceTarget.current = layer.id;
+                    replace.current?.click();
+                  }}
+                >
+                  {t("Replace image")}
                 </button>
                 <button
                   type="button"

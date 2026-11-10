@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { ExportEncoder } from "../packages/lab-texture-array/src/export-encoder.ts";
 
 const require = createRequire(
@@ -9,7 +10,9 @@ const require = createRequire(
 );
 const { initializeCanvas, readPsd } = require("ag-psd");
 const { unzipSync, strFromU8 } = require("fflate");
-const { decode } = await import(require.resolve("fast-png"));
+const { decode } = await import(
+  pathToFileURL(require.resolve("fast-png")).href
+);
 initializeCanvas(
   () => {
     throw new Error("Canvas must not be needed for export");
@@ -117,5 +120,37 @@ test("exports reject invalid buffers, empty stacks and excess layers", () => {
     assert.throws(() =>
       encoder.addLayer({ visible: true, rgba: bottom.slice() }),
     );
+  }
+});
+
+test("custom names survive PSD and ZIP export with safe, unique numbered filenames", async () => {
+  const names = ["../Custom motif", "../Custom motif"];
+  for (const format of ["psd", "zip"]) {
+    const encoder = new ExportEncoder(format, 2, bottom.slice());
+    for (const name of names)
+      encoder.addLayer({ name, visible: true, rgba: top.slice() });
+    const bytes = new Uint8Array(await encoder.finish().arrayBuffer());
+    if (format === "psd") {
+      assert.deepEqual(
+        readPsd(bytes, {
+          useImageData: true,
+          skipThumbnail: true,
+        }).children.map((layer) => layer.name),
+        names,
+      );
+    } else {
+      const files = unzipSync(bytes);
+      const manifest = JSON.parse(strFromU8(files["Layers.json"]));
+      assert.deepEqual(
+        manifest.layers.map((layer) => layer.name),
+        names,
+      );
+      assert.deepEqual(
+        manifest.layers.map((layer) => layer.file),
+        ["Layer-01.png", "Layer-02.png"],
+      );
+      assert.ok(files["Layer-01.png"] && files["Layer-02.png"]);
+      assert.equal(Object.keys(files).length, 4);
+    }
   }
 });

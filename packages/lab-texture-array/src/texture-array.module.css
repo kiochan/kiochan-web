@@ -61,6 +61,12 @@
   opacity: 0.45;
   cursor: default;
 }
+.tool[data-file-drop="true"],
+.layers button[data-file-drop="true"] {
+  outline: 2px dashed var(--kio-color-brand);
+  outline-offset: 3px;
+  background: var(--kio-color-surface-muted);
+}
 .tool :focus-visible {
   outline: 2px solid var(--kio-color-focus);
   outline-offset: 3px;
@@ -199,6 +205,12 @@
 .field select {
   min-width: 0;
   width: 100%;
+}
+.field .slider {
+  padding: 0;
+  border: 0;
+  accent-color: var(--kio-color-brand);
+  cursor: pointer;
 }
 .history {
   border-top: 1px solid var(--kio-color-border);

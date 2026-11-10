@@ -6,6 +6,7 @@ import {
   emptyProject,
   newLayer,
   parseProject,
+  replaceLayerImage,
 } from "../packages/lab-texture-array/src/project.ts";
 
 const source = {
@@ -358,4 +359,79 @@ test("extreme spacing stays bounded and reports proportional density limiting", 
         ),
       );
     }
+});
+
+test("replacing a selected image preserves its settings, duplicates, history and saved sources", () => {
+  let project = fixture();
+  const original = {
+    ...project.history[1].layers[0],
+    name: "Custom motif",
+    rotation: -32.75,
+    spacingX: 1.75,
+    opacity: 0.45,
+    visible: false,
+  };
+  const duplicate = { ...original, id: "duplicate" };
+  project = commit(project, {
+    ...project.history[1],
+    label: "Configure layers",
+    layers: [original, duplicate],
+  });
+  const replacement = {
+    ...source,
+    id: "replacement",
+    name: "replacement.webp",
+    data: "data:image/webp;base64,BBBB",
+  };
+  const next = replaceLayerImage(project, original.id, replacement);
+  const layers = next.history[next.cursor].layers;
+  assert.deepEqual(layers[0], { ...original, asset: replacement.id });
+  assert.deepEqual(layers[1], duplicate);
+  assert.deepEqual(next.history[next.cursor - 1].layers[0], original);
+  assert.deepEqual(project.assets, [source]);
+  assert.deepEqual(next.assets, [source, replacement]);
+  assert.deepEqual(parseProject(JSON.stringify(next)), next);
+  const undone = { ...next, cursor: next.cursor - 1 };
+  const branched = replaceLayerImage(undone, duplicate.id, {
+    ...replacement,
+    id: "branch",
+  });
+  assert.equal(branched.history.length, next.history.length);
+  assert.equal(branched.history[branched.cursor].layers[0].asset, source.id);
+  assert.equal(branched.history[branched.cursor].layers[1].asset, "branch");
+  assert.equal(replaceLayerImage(project, "missing", replacement), project);
+});
+
+test("layer names round-trip through history while unnamed projects remain compatible", () => {
+  const project = fixture();
+  assert.equal(
+    parseProject(JSON.stringify(project)).history[1].layers[0].name,
+    undefined,
+  );
+  const layer = project.history[1].layers[0];
+  const renamed = commit(project, {
+    ...project.history[1],
+    label: "Rename layer",
+    layers: [{ ...layer, name: "Foreground petals" }],
+  });
+  assert.equal(renamed.history[renamed.cursor - 1].layers[0].name, undefined);
+  assert.deepEqual(parseProject(JSON.stringify(renamed)), renamed);
+  for (const name of ["", "x".repeat(201), 42, null]) {
+    const invalid = structuredClone(renamed);
+    invalid.history[invalid.cursor].layers[0].name = name;
+    assert.throws(() => parseProject(JSON.stringify(invalid)));
+  }
+});
+
+test("replacing an unnamed layer preserves its displayed source name", () => {
+  const project = fixture();
+  const layer = project.history[project.cursor].layers[0];
+  const next = replaceLayerImage(project, layer.id, {
+    ...source,
+    id: "new-source",
+    name: "new-file.png",
+  });
+  assert.equal(next.history[next.cursor].layers[0].name, source.name);
+  assert.equal(project.history[project.cursor].layers[0].name, undefined);
+  assert.deepEqual(parseProject(JSON.stringify(next)), next);
 });

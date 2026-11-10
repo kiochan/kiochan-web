@@ -19,8 +19,13 @@ function Links() {
         <Link
           key={item.href}
           href={item.href}
-          aria-current={pathname === item.href ? "page" : undefined}
-          className={`block rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-surface-muted ${pathname === item.href ? "bg-surface-muted font-medium text-brand" : "text-ink-muted"}`}
+          aria-current={
+            pathname === item.href ||
+            (item.href !== "/lab" && pathname.startsWith(`${item.href}/`))
+              ? "page"
+              : undefined
+          }
+          className={`block rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-surface-muted ${pathname === item.href || (item.href !== "/lab" && pathname.startsWith(`${item.href}/`)) ? "bg-surface-muted font-medium text-brand" : "text-ink-muted"}`}
         >
           <Localized text={item.name} />
         </Link>

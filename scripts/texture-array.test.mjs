@@ -5,10 +5,14 @@ import {
   commit,
   copyLayerParameters,
   emptyProject,
+  hasMixedLayerParameters,
   newLayer,
   parseProject,
   pasteLayerParameters,
+  projectStorageKey,
   replaceLayerImage,
+  restoreStoredProject,
+  storeProject,
 } from "../packages/lab-texture-array/src/project.ts";
 
 const source = {
@@ -146,7 +150,7 @@ test("import rejects unsupported formats, external/SVG sources, broken reference
       p.history[1].layers[0].opacity = null;
     },
     (p) => {
-      p.history[1].size = 777;
+      p.history[1].size = 4097;
     },
     (p) => {
       p.cursor = 100;
@@ -517,4 +521,105 @@ test("parameter copy is a snapshot and paste preserves target identity, source, 
     parameters,
   );
   assert.equal(branched.history.length, next.history.length);
+});
+
+test("custom integer square output sizes survive save, undo and redo", () => {
+  let project = fixture();
+  for (const size of [1, 127, 777, 1500, 3001, 4096]) {
+    project = commit(project, {
+      ...project.history[project.cursor],
+      label: "Change output size",
+      size,
+    });
+    assert.deepEqual(parseProject(JSON.stringify(project)), project);
+  }
+  const previous = { ...project, cursor: project.cursor - 1 };
+  assert.equal(
+    parseProject(JSON.stringify(previous)).history[previous.cursor].size,
+    3001,
+  );
+  for (const size of [0, -1, 4097, 512.5, null]) {
+    const invalid = structuredClone(project);
+    invalid.history[invalid.cursor].size = size;
+    assert.throws(() => parseProject(JSON.stringify(invalid)));
+  }
+});
+
+test("mixed parameter detection ignores source/name/visibility and synchronization is one undoable action", () => {
+  const first = { ...newLayer("a"), name: "First", x: 0.25 };
+  const second = {
+    ...first,
+    id: "second",
+    asset: "b",
+    name: "Second",
+    visible: false,
+  };
+  assert.equal(hasMixedLayerParameters([]), false);
+  assert.equal(hasMixedLayerParameters([first]), false);
+  assert.equal(hasMixedLayerParameters([first, second]), false);
+  const different = { ...second, size: 0.3, rows: 7 };
+  assert.equal(hasMixedLayerParameters([first, different]), true);
+  const project = commit(
+    {
+      ...emptyProject(),
+      assets: [
+        { ...source, id: "a" },
+        { ...source, id: "b" },
+      ],
+    },
+    { label: "Mixed", size: 777, layers: [first, different] },
+  );
+  const synced = pasteLayerParameters(
+    project,
+    [first.id, different.id],
+    copyLayerParameters(first),
+  );
+  assert.equal(
+    hasMixedLayerParameters(synced.history[synced.cursor].layers),
+    false,
+  );
+  assert.equal(synced.history.length, project.history.length + 1);
+  assert.deepEqual(synced.history[synced.cursor - 1].layers, [
+    first,
+    different,
+  ]);
+  assert.deepEqual(synced.history[synced.cursor].layers[1], {
+    ...different,
+    ...copyLayerParameters(first),
+  });
+});
+
+test("browser storage round-trips sources, custom size, history and cursor without touching unrelated keys", () => {
+  const entries = new Map([["unrelated", "keep"]]);
+  const storage = {
+    getItem: (key) => entries.get(key) ?? null,
+    setItem: (key, value) => entries.set(key, value),
+  };
+  assert.equal(restoreStoredProject(storage), null);
+  const initial = fixture();
+  const project = commit(initial, {
+    ...initial.history[initial.cursor],
+    label: "Custom size",
+    size: 777,
+  });
+  project.cursor = 1;
+  storeProject(storage, project);
+  assert.deepEqual(restoreStoredProject(storage), project);
+  assert.equal(entries.get("unrelated"), "keep");
+  entries.set(projectStorageKey, "corrupt data");
+  assert.throws(() => restoreStoredProject(storage));
+  assert.equal(entries.get(projectStorageKey), "corrupt data");
+  assert.throws(
+    () =>
+      storeProject(
+        {
+          ...storage,
+          setItem: () => {
+            throw new Error("quota");
+          },
+        },
+        project,
+      ),
+    /quota/,
+  );
 });

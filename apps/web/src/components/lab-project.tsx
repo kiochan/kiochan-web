@@ -23,10 +23,12 @@ export function LabProject({
   slug,
   children,
   source,
+  compact = false,
 }: {
   slug: string;
   children: ReactNode;
   source?: string;
+  compact?: boolean;
 }) {
   const project = experiments.find((item) => item.slug === slug);
   if (!project) throw new Error("Unknown lab project");
@@ -59,14 +61,26 @@ export function LabProject({
       <script type="application/ld+json">
         {JSON.stringify(breadcrumb).replaceAll("<", "\\u003c")}
       </script>
-      <p className="eyebrow">
+      <p className={compact ? "sr-only" : "eyebrow"}>
         <Localized text={project.category} /> / Kiochan Lab
       </p>
-      <h1 className="mt-4 text-4xl font-medium tracking-tight sm:text-5xl">
+      <h1
+        className={
+          compact
+            ? "mb-4 text-xl font-medium tracking-tight"
+            : "mt-4 text-4xl font-medium tracking-tight sm:text-5xl"
+        }
+      >
         {project.name}
         <span className="text-brand">.</span>
       </h1>
-      <p className="mt-5 mb-9 max-w-2xl text-base leading-8 text-ink-muted">
+      <p
+        className={
+          compact
+            ? "sr-only"
+            : "mt-5 mb-9 max-w-2xl text-base leading-8 text-ink-muted"
+        }
+      >
         <Localized text={project.description} />
       </p>
       {children}

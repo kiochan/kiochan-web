@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { ExportFormat } from "./export-encoder";
 import { exportImages } from "./export-images";
+import { Icon } from "./icon";
 import { PsdImportClient } from "./import-psd";
 import { createLattice } from "./layout";
 import {
@@ -18,12 +19,14 @@ import {
   type TextureTranslator,
 } from "./localization";
 import { NumberField } from "./number-field";
+import { OutputSize } from "./output-size";
 import {
   type Asset,
   commit,
   copyLayerParameters,
   emptyProject,
   type Frame,
+  hasMixedLayerParameters,
   type Layer,
   type LayerParameters,
   newLayer,
@@ -36,6 +39,7 @@ import type { PsdLayerChoice } from "./psd-import";
 import { PsdLayerPicker } from "./psd-layer-picker";
 import { TextureRenderer } from "./renderer";
 import styles from "./texture-array.module.css";
+import { useProjectStorage } from "./use-project-storage";
 
 function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);
@@ -76,14 +80,18 @@ const clamp = (n: number, min: number, max: number) =>
 const identity: TextureTranslator = (message) => message;
 export function TextureArray({
   translate = identity,
+  workspace = false,
 }: {
   translate?: TextureTranslator;
+  workspace?: boolean;
 } = {}) {
   const t = (message: string) => localizeTextureText(message, translate);
   const format = (template: string, values: Record<string, string | number>) =>
     formatTextureText(template, translate, values);
   const [project, setProject] = useState<Project>(emptyProject);
   const [selected, setSelected] = useState("");
+  const [checkedLayers, setCheckedLayers] = useState<string[]>([]);
+  const persistence = useProjectStorage(project, setProject);
   const [copiedParameters, setCopiedParameters] = useState<{
     name: string;
     parameters: LayerParameters;
@@ -93,7 +101,8 @@ export function TextureArray({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [processing, setBusy] = useState(false);
+  const busy = processing || !persistence.hydrated;
   const importing = useRef(false);
   const psdClient = useRef<PsdImportClient | null>(null);
   const psdUpload = useRef<HTMLInputElement>(null);
@@ -128,7 +137,21 @@ export function TextureArray({
       project.assets.find((asset) => asset.id === layer.asset)?.name ??
       "")
     : "";
-  const lattice = useMemo(() => (layer ? createLattice(layer) : null), [layer]);
+  const checked = frame.layers.filter((item) =>
+    checkedLayers.includes(item.id),
+  );
+  const parameterLayers = checked.length ? checked : layer ? [layer] : [];
+  const parameterLayer = parameterLayers[0];
+  const mixedParameters = hasMixedLayerParameters(parameterLayers);
+  const parameterName = parameterLayer
+    ? (parameterLayer.name ??
+      project.assets.find((asset) => asset.id === parameterLayer.asset)?.name ??
+      "")
+    : "";
+  const lattice = useMemo(
+    () => (parameterLayer ? createLattice(parameterLayer) : null),
+    [parameterLayer],
+  );
 
   useEffect(() => {
     setPan((p) => ({
@@ -225,6 +248,16 @@ export function TextureArray({
       ),
     }));
   }
+  function updateParameters(change: Partial<LayerParameters>, label: string) {
+    if (mixedParameters) return;
+    const ids = new Set(parameterLayers.map((item) => item.id));
+    edit(label, (current) => ({
+      ...current,
+      layers: current.layers.map((item) =>
+        ids.has(item.id) ? { ...item, ...change } : item,
+      ),
+    }));
+  }
   async function addImages(files: FileList | null, replacementId?: string) {
     if (!files?.length || busy || importing.current || psdSelection) return;
     const incoming = Array.from(files);
@@ -316,6 +349,7 @@ export function TextureArray({
           ),
     );
     setSelected(replacementId ?? layers[0].id);
+    setCheckedLayers([]);
   }
   function cancelPsd() {
     const client = psdClient.current;
@@ -418,7 +452,9 @@ export function TextureArray({
       }
       if (!mounted.current) return;
       setProject(next);
+      persistence.saveNow(next, true);
       setSelected("");
+      setCheckedLayers([]);
       setPan({ x: 0, y: 0 });
       setZoom(1);
     } catch (error) {
@@ -480,18 +516,18 @@ export function TextureArray({
     step: number,
     factor = 1,
   ) {
-    if (!layer) return null;
+    if (!parameterLayer) return null;
     return (
       <NumberField
-        key={`${layer.id}-${key}`}
+        key={`${parameterLayers.map((item) => item.id).join("-")}-${key}`}
         id={`${prefix}-${key}`}
         label={t(label)}
         min={min}
         max={max}
         step={step}
-        value={Math.round(layer[key] * factor * 100) / 100}
+        value={Math.round(parameterLayer[key] * factor * 100) / 100}
         onChange={(value) =>
-          updateLayer(
+          updateParameters(
             { [key]: value / factor },
             `Change ${label.toLowerCase()}`,
           )
@@ -501,7 +537,7 @@ export function TextureArray({
   }
   return (
     <section
-      className={styles.tool}
+      className={`${styles.tool} ${workspace ? styles.workspaceMode : ""}`}
       aria-label={t("Texture Array editor")}
       aria-busy={busy}
       data-file-drop={dropTarget === "add" ? "true" : undefined}
@@ -545,11 +581,22 @@ export function TextureArray({
           </p>
         </div>
         <div className={styles.actions}>
+          <a
+            className={styles.workspaceLink}
+            href={workspace ? "/lab/texture-array" : "/lab/texture-array/app"}
+            onClick={(event) => {
+              if (busy || !persistence.saveNow()) event.preventDefault();
+            }}
+          >
+            <Icon name="fit" />
+            {t(workspace ? "Back to overview" : "Open workspace")}
+          </a>
           <button
             type="button"
             disabled={busy}
             onClick={() => upload.current?.click()}
           >
+            <Icon name="add" />
             {t("Add images")}
           </button>
           <button
@@ -557,6 +604,7 @@ export function TextureArray({
             disabled={busy}
             onClick={() => psdUpload.current?.click()}
           >
+            <Icon name="layers" />
             {t("Import PSD")}
           </button>
           <button
@@ -564,6 +612,7 @@ export function TextureArray({
             disabled={busy}
             onClick={() => open.current?.click()}
           >
+            <Icon name="folder" />
             {t("Open project")}
           </button>
           <button
@@ -578,6 +627,7 @@ export function TextureArray({
               )
             }
           >
+            <Icon name="save" />
             {t("Save project")}
           </button>
           <button
@@ -585,6 +635,7 @@ export function TextureArray({
             disabled={busy || !ready || !frame.layers.length}
             onClick={() => void exportLayers("psd")}
           >
+            <Icon name="download" />
             {t("Export layered PSD")}
           </button>
           <button
@@ -592,9 +643,36 @@ export function TextureArray({
             disabled={busy || !ready || !frame.layers.length}
             onClick={() => void exportLayers("zip")}
           >
+            <Icon name="download" />
             {t("Export PNG ZIP")}
           </button>
         </div>
+      </div>
+      <div className={styles.saveStatus} role="status">
+        <Icon name="save" />
+        <span>
+          {t(
+            persistence.status === "saved"
+              ? "Saved in this browser"
+              : persistence.status === "pending"
+                ? "Saving project…"
+                : persistence.status === "loading"
+                  ? "Restoring saved project…"
+                  : persistence.status === "blocked"
+                    ? "The saved project could not be restored. Open a project, start a new one, or replace the saved copy."
+                    : "Browser storage is unavailable or full. Download Save project to keep your work. Workspace navigation is paused until saving succeeds.",
+          )}
+        </span>
+        {(persistence.status === "blocked" ||
+          persistence.status === "error") && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => persistence.saveNow(project, true)}
+          >
+            {t("Replace saved copy")}
+          </button>
+        )}
       </div>
       <p className={styles.hint} role="status">
         {t(
@@ -622,6 +700,7 @@ export function TextureArray({
       )}
       {busy && psdClient.current && !psdSelection && (
         <button type="button" onClick={cancelPsd}>
+          <Icon name="close" />
           {t("Cancel PSD import")}
         </button>
       )}
@@ -673,16 +752,29 @@ export function TextureArray({
       )}
       {busy && (
         <p role="status" className={styles.hint}>
-          {t(exportProgress || "Processing local files…")}
+          {t(
+            !persistence.hydrated
+              ? "Restoring saved project…"
+              : exportProgress || "Processing local files…",
+          )}
         </p>
       )}
       {exportProgress && (
         <button type="button" onClick={() => exportController.current?.abort()}>
+          <Icon name="close" />
           {t("Cancel export")}
         </button>
       )}
       <div className={styles.workspace}>
         <div className={styles.stageColumn}>
+          <OutputSize
+            value={frame.size}
+            disabled={busy}
+            translate={t}
+            onChange={(size) =>
+              edit("Change output size", (current) => ({ ...current, size }))
+            }
+          />
           <div className={styles.viewbar}>
             <div className={styles.actions}>
               <button
@@ -725,6 +817,7 @@ export function TextureArray({
                   setPan({ x: 0, y: 0 });
                 }}
               >
+                <Icon name="fit" />
                 {t("Fit")}
               </button>
             </div>
@@ -856,35 +949,174 @@ export function TextureArray({
           </p>
           <p className={styles.hint}>
             {t(
-              "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers use English names. Save project keeps original images and editable array settings.",
+              "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers keep custom names. Save project keeps original images and editable array settings.",
             )}
           </p>
         </div>
         <fieldset className={styles.inspector} disabled={busy}>
           <legend className={styles.eyebrow}>{t("LAYERS & ARRAY")}</legend>
-          <div className={styles.layers}>
-            {!frame.layers.length && (
-              <p className={styles.hint}>{t("No images yet.")}</p>
-            )}
-            {frame.layers.map((l, i) => (
+          <section className={styles.layerPanel} aria-label={t("Layers")}>
+            <div className={styles.panelHeading}>
+              <h2>
+                <Icon name="layers" />
+                {t("Layers")}
+              </h2>
+              <span className={styles.layerCount}>
+                {frame.layers.length} / 12
+              </span>
               <button
                 type="button"
-                key={l.id}
-                data-layer-drop={l.id}
-                data-file-drop={dropTarget === l.id ? "true" : undefined}
-                aria-pressed={layer?.id === l.id}
-                onClick={() => setSelected(l.id)}
+                className={styles.iconButton}
+                title={t("Add images")}
+                aria-label={t("Add images")}
+                disabled={busy || frame.layers.length >= 12}
+                onClick={() => upload.current?.click()}
               >
-                <span>{String(i + 1).padStart(2, "0")}</span>
-                <span className={styles.layerName}>
-                  {l.name ?? project.assets.find((a) => a.id === l.asset)?.name}
-                </span>
-                <span>{l.visible ? "●" : "○"}</span>
+                <Icon name="add" />
               </button>
-            ))}
-          </div>
+            </div>
+            <p className={styles.hint}>
+              {t(
+                "Select a layer to edit. Drop one image on a row to replace it.",
+              )}
+            </p>
+            <div className={styles.selectionTools}>
+              <button
+                type="button"
+                disabled={!frame.layers.length}
+                onClick={() =>
+                  setCheckedLayers(frame.layers.map((item) => item.id))
+                }
+              >
+                <Icon name="all" />
+                {t("Select all layers")}
+              </button>
+              <button
+                type="button"
+                disabled={!checked.length}
+                onClick={() => setCheckedLayers([])}
+              >
+                {t("Clear selection")}
+              </button>
+              <span>
+                {format("{count} checked", { count: checked.length })}
+              </span>
+            </div>
+            <div className={styles.layers}>
+              {!frame.layers.length && (
+                <p className={styles.layerEmpty}>
+                  <Icon name="image" />
+                  {t("No images yet.")}
+                </p>
+              )}
+              {frame.layers.map((item, index) => {
+                const asset = project.assets.find(
+                  (source) => source.id === item.asset,
+                );
+                const name = item.name ?? asset?.name ?? "";
+                return (
+                  <div
+                    key={item.id}
+                    className={styles.layerRow}
+                    data-layer-drop={item.id}
+                    data-selected={layer?.id === item.id}
+                    data-file-drop={dropTarget === item.id ? "true" : undefined}
+                    data-hidden={!item.visible}
+                  >
+                    <label className={styles.layerCheckLabel}>
+                      <input
+                        type="checkbox"
+                        className={styles.layerCheck}
+                        checked={checkedLayers.includes(item.id)}
+                        aria-label={format("Select {name}", { name })}
+                        onChange={(event) => {
+                          const isChecked = event.target.checked;
+                          setCheckedLayers((current) =>
+                            isChecked
+                              ? [...current, item.id]
+                              : current.filter((id) => id !== item.id),
+                          );
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.layerSelect}
+                      aria-pressed={layer?.id === item.id}
+                      onClick={() => {
+                        setSelected(item.id);
+                        setCheckedLayers([]);
+                      }}
+                    >
+                      <span className={styles.layerThumbnail}>
+                        {asset && (
+                          <img
+                            src={asset.data}
+                            alt=""
+                            width={40}
+                            height={40}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        )}
+                      </span>
+                      <span className={styles.layerInfo}>
+                        <span className={styles.layerName}>{name}</span>
+                        <small>
+                          {format("Layer {number}", {
+                            number: String(index + 1).padStart(2, "0"),
+                          })}
+                        </small>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.iconButton}
+                      title={format(
+                        item.visible ? "Hide {name}" : "Show {name}",
+                        { name },
+                      )}
+                      aria-label={format(
+                        item.visible ? "Hide {name}" : "Show {name}",
+                        { name },
+                      )}
+                      aria-pressed={item.visible}
+                      onClick={() =>
+                        edit(
+                          item.visible ? "Hide layer" : "Show layer",
+                          (current) => ({
+                            ...current,
+                            layers: current.layers.map((candidate) =>
+                              candidate.id === item.id
+                                ? { ...candidate, visible: !candidate.visible }
+                                : candidate,
+                            ),
+                          }),
+                        )
+                      }
+                    >
+                      <Icon name={item.visible ? "eye" : "hidden"} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
           {layer && (
-            <>
+            <div className={styles.selectedPanel}>
+              <div className={styles.panelHeading}>
+                <h2>
+                  <Icon name="image" />
+                  {t("Layer settings")}
+                </h2>
+              </div>
+              {checked.length > 0 && (
+                <p className={styles.hint}>
+                  {t(
+                    "Image actions affect the active layer. Parameters affect checked layers.",
+                  )}
+                </p>
+              )}
               <label className={styles.field}>
                 <span>{t("Layer name")}</span>
                 <input
@@ -908,18 +1140,7 @@ export function TextureArray({
                   }}
                 />
               </label>
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateLayer(
-                      { visible: !layer.visible },
-                      layer.visible ? "Hide layer" : "Show layer",
-                    )
-                  }
-                >
-                  {t(layer.visible ? "Hide" : "Show")}
-                </button>
+              <div className={styles.layerActions}>
                 <button
                   type="button"
                   onClick={() => {
@@ -927,6 +1148,7 @@ export function TextureArray({
                     replace.current?.click();
                   }}
                 >
+                  <Icon name="replace" />
                   {t("Replace image")}
                 </button>
                 <button
@@ -941,10 +1163,12 @@ export function TextureArray({
                     setSelected(copy.id);
                   }}
                 >
+                  <Icon name="duplicate" />
                   {t("Duplicate")}
                 </button>
                 <button
                   type="button"
+                  className={styles.dangerButton}
                   onClick={() =>
                     edit("Remove layer", (f) => ({
                       ...f,
@@ -952,42 +1176,48 @@ export function TextureArray({
                     }))
                   }
                 >
+                  <Icon name="trash" />
                   {t("Remove")}
                 </button>
               </div>
-              <div className={styles.actions}>
+              <div className={styles.groupLabel}>
+                {t("Parameter clipboard")}
+              </div>
+              <div className={styles.parameterActions}>
                 <button
                   type="button"
                   onClick={() =>
                     setCopiedParameters({
-                      name: layerName,
-                      parameters: copyLayerParameters(layer),
+                      name: parameterName,
+                      parameters: copyLayerParameters(parameterLayer),
                     })
                   }
                 >
+                  <Icon name="copy" />
                   {t("Copy parameters")}
                 </button>
                 <button
                   type="button"
-                  disabled={!copiedParameters}
+                  disabled={!copiedParameters || mixedParameters}
                   onClick={() => {
-                    if (copiedParameters)
+                    if (copiedParameters && !mixedParameters)
                       setProject((current) =>
                         pasteLayerParameters(
                           current,
-                          [layer.id],
+                          parameterLayers.map((item) => item.id),
                           copiedParameters.parameters,
                         ),
                       );
                   }}
                 >
+                  <Icon name="paste" />
                   {t("Paste parameters")}
                 </button>
                 <button
                   type="button"
-                  disabled={!copiedParameters}
+                  disabled={!copiedParameters || mixedParameters}
                   onClick={() => {
-                    if (copiedParameters)
+                    if (copiedParameters && !mixedParameters)
                       setProject((current) =>
                         pasteLayerParameters(
                           current,
@@ -999,6 +1229,7 @@ export function TextureArray({
                       );
                   }}
                 >
+                  <Icon name="all" />
                   {t("Paste to all layers")}
                 </button>
               </div>
@@ -1030,6 +1261,7 @@ export function TextureArray({
                     })
                   }
                 >
+                  <Icon name="down" />
                   {t("Move down")}
                 </button>
                 <button
@@ -1047,6 +1279,7 @@ export function TextureArray({
                     })
                   }
                 >
+                  <Icon name="up" />
                   {t("Move up")}
                 </button>
               </div>
@@ -1055,136 +1288,186 @@ export function TextureArray({
                   "Later layers draw on top. Size preserves the original aspect ratio.",
                 )}
               </p>
-              <div className={styles.fields}>
-                {field("columns", "Columns", 1, 32, 1)}
-                {field("rows", "Rows", 1, 32, 1)}
-                {field("spacingX", "Horizontal spacing (%)", 50, 400, 1, 100)}
-                {field("spacingY", "Vertical spacing (%)", 50, 400, 1, 100)}
-                {field("size", "Size (% of tile)", 1, 70, 0.5, 100)}
-                {field("rotation", "Image rotation (°)", -180, 180, 0.01)}
-                {field("layoutAngle", "Array angle (°)", -180, 180, 0.01)}
-                {field("x", "Offset X (%)", 0, 100, 0.5, 100)}
-                {field("y", "Offset Y (%)", 0, 100, 0.5, 100)}
-                {field("stagger", "Row stagger (%)", 0, 100, 0.5, 100)}
-                {field("opacity", "Opacity (%)", 0, 100, 1, 100)}
-              </div>
-              <p className={styles.hint}>
-                {t(
-                  "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.",
+              <details className={styles.parameterPanel} open>
+                <summary>{t("Array parameters")}</summary>
+                <p className={styles.hint}>
+                  {format("Editing {count} layer(s)", {
+                    count: parameterLayers.length,
+                  })}
+                </p>
+                {mixedParameters && (
+                  <div className={styles.mixedNotice} role="status">
+                    <p>
+                      {format(
+                        "Selected layers have different parameters. Confirm to synchronize them with the first checked layer: {name}.",
+                        { name: parameterName },
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProject((current) =>
+                          pasteLayerParameters(
+                            current,
+                            parameterLayers.map((item) => item.id),
+                            copyLayerParameters(parameterLayer),
+                          ),
+                        )
+                      }
+                    >
+                      <Icon name="all" />
+                      {t("Confirm and sync selected layers")}
+                    </button>
+                  </div>
                 )}
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  updateLayer({ spacingX: 1, spacingY: 1 }, "Reset spacing")
-                }
-              >
-                {t("Reset spacing")}
-              </button>
-              <label className={styles.field}>
-                <span>{t("Image scaling")}</span>
-                <select
-                  value={layer.sampling}
-                  onChange={(e) =>
-                    updateLayer(
+                <fieldset
+                  className={styles.parameterControls}
+                  disabled={mixedParameters}
+                >
+                  <legend className={styles.srOnly}>
+                    {t("Selected layer parameters")}
+                  </legend>
+
+                  <div className={styles.fields}>
+                    {field("columns", "Columns", 1, 32, 1)}
+                    {field("rows", "Rows", 1, 32, 1)}
+                    {field(
+                      "spacingX",
+                      "Horizontal spacing (%)",
+                      50,
+                      400,
+                      1,
+                      100,
+                    )}
+                    {field("spacingY", "Vertical spacing (%)", 50, 400, 1, 100)}
+                    {field("size", "Size (% of tile)", 1, 70, 0.5, 100)}
+                    {field("rotation", "Image rotation (°)", -180, 180, 0.01)}
+                    {field("layoutAngle", "Array angle (°)", -180, 180, 0.01)}
+                    {field("x", "Offset X (%)", 0, 100, 0.5, 100)}
+                    {field("y", "Offset Y (%)", 0, 100, 0.5, 100)}
+                    {field("stagger", "Row stagger (%)", 0, 100, 0.5, 100)}
+                    {field("opacity", "Opacity (%)", 0, 100, 1, 100)}
+                  </div>
+                  <p className={styles.hint}>
+                    {t(
+                      "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.",
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateParameters(
+                        { spacingX: 1, spacingY: 1 },
+                        "Reset spacing",
+                      )
+                    }
+                  >
+                    <Icon name="reset" />
+                    {t("Reset spacing")}
+                  </button>
+                  <label className={styles.field}>
+                    <span>{t("Image scaling")}</span>
+                    <select
+                      value={parameterLayer.sampling}
+                      onChange={(e) =>
+                        updateParameters(
+                          {
+                            sampling:
+                              e.target.value === "pixel" ? "pixel" : "sharp",
+                          },
+                          "Change image scaling",
+                        )
+                      }
+                    >
+                      <option value="sharp">{t("Sharp · Smooth edges")}</option>
+                      <option value="pixel">{t("Pixel · Hard edges")}</option>
+                    </select>
+                  </label>
+                  <p className={styles.hint}>
+                    {t(
+                      "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.",
+                    )}
+                  </p>
+                  <div className={styles.actions}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateParameters(
+                          { stagger: 0, layoutAngle: 0 },
+                          "Grid array preset",
+                        )
+                      }
+                    >
+                      <Icon name="grid" />
+                      {t("Grid array")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateParameters(
+                          {
+                            stagger: 0.5,
+                            rows: Math.min(
+                              32,
+                              parameterLayer.rows + (parameterLayer.rows % 2),
+                            ),
+                          },
+                          "Half-drop array preset",
+                        )
+                      }
+                    >
+                      <Icon name="layers" />
+                      {t("Half-drop array")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateParameters(
+                          { layoutAngle: 45 },
+                          "Diagonal array preset",
+                        )
+                      }
+                    >
+                      <Icon name="image" />
+                      {t("Diagonal 45°")}
+                    </button>
+                  </div>
+                  <p className={styles.hint}>
+                    {t(
+                      "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.",
+                    )}
+                  </p>
+                  <p className={styles.hint}>
+                    {format(
+                      "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.",
                       {
-                        sampling:
-                          e.target.value === "pixel" ? "pixel" : "sharp",
+                        angle: lattice
+                          ? Math.round(lattice.angle * 100) / 100
+                          : 0,
+                        count: lattice?.count ?? 0,
                       },
-                      "Change image scaling",
-                    )
-                  }
-                >
-                  <option value="sharp">{t("Sharp · Smooth edges")}</option>
-                  <option value="pixel">{t("Pixel · Hard edges")}</option>
-                </select>
-              </label>
-              <p className={styles.hint}>
-                {t(
-                  "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.",
-                )}
-              </p>
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateLayer(
-                      { stagger: 0, layoutAngle: 0 },
-                      "Grid array preset",
-                    )
-                  }
-                >
-                  {t("Grid array")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateLayer(
+                    )}
+                  </p>
+                  <p className={styles.hint}>
+                    {format(
+                      "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.",
                       {
-                        stagger: 0.5,
-                        rows: Math.min(32, layer.rows + (layer.rows % 2)),
+                        x: lattice
+                          ? Math.round(lattice.spacingX * 10000) / 100
+                          : 0,
+                        y: lattice
+                          ? Math.round(lattice.spacingY * 10000) / 100
+                          : 0,
                       },
-                      "Half-drop array preset",
-                    )
-                  }
-                >
-                  {t("Half-drop array")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateLayer({ layoutAngle: 45 }, "Diagonal array preset")
-                  }
-                >
-                  {t("Diagonal 45°")}
-                </button>
-              </div>
-              <p className={styles.hint}>
-                {t(
-                  "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.",
-                )}
-              </p>
-              <p className={styles.hint}>
-                {format(
-                  "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.",
-                  {
-                    angle: lattice ? Math.round(lattice.angle * 100) / 100 : 0,
-                    count: lattice?.count ?? 0,
-                  },
-                )}
-              </p>
-              <p className={styles.hint}>
-                {format(
-                  "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.",
-                  {
-                    x: lattice ? Math.round(lattice.spacingX * 10000) / 100 : 0,
-                    y: lattice ? Math.round(lattice.spacingY * 10000) / 100 : 0,
-                  },
-                )}
-                {lattice?.densityLimited
-                  ? ` ${t("The density limit is active; both axes are adjusted proportionally.")}`
-                  : ""}
-              </p>
-            </>
+                    )}
+                    {lattice?.densityLimited
+                      ? ` ${t("The density limit is active; both axes are adjusted proportionally.")}`
+                      : ""}
+                  </p>
+                </fieldset>
+              </details>
+            </div>
           )}
-          <label className={styles.field}>
-            {t("Output size")}
-            <select
-              value={frame.size}
-              onChange={(e) =>
-                edit("Change output size", (f) => ({
-                  ...f,
-                  size: Number(e.target.value),
-                }))
-              }
-            >
-              {[256, 512, 1024, 2048, 4096].map((size) => (
-                <option key={size} value={size}>
-                  {size} × {size}
-                </option>
-              ))}
-            </select>
-          </label>
         </fieldset>
       </div>
       <div className={styles.history}>
@@ -1194,6 +1477,7 @@ export function TextureArray({
             disabled={busy || project.cursor === 0}
             onClick={() => setProject((p) => ({ ...p, cursor: p.cursor - 1 }))}
           >
+            <Icon name="undo" />
             {t("Undo")}
           </button>
           <button
@@ -1201,6 +1485,7 @@ export function TextureArray({
             disabled={busy || project.cursor === project.history.length - 1}
             onClick={() => setProject((p) => ({ ...p, cursor: p.cursor + 1 }))}
           >
+            <Icon name="redo" />
             {t("Redo")}
           </button>
         </div>
@@ -1225,17 +1510,21 @@ export function TextureArray({
           type="button"
           disabled={busy}
           onClick={() => {
-            setProject(emptyProject());
+            const next = emptyProject();
+            setProject(next);
+            persistence.saveNow(next, true);
             setSelected("");
+            setCheckedLayers([]);
             setError("");
           }}
         >
+          <Icon name="add" />
           {t("New project")}
         </button>
       </div>
       <p className={styles.hint}>
         {t(
-          "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. Files stay in this browser tab and are not uploaded. Save before leaving or starting a new project.",
+          "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. The project autosaves in this browser and is not uploaded. Download Save project for a portable backup.",
         )}
       </p>
     </section>

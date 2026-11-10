@@ -29,6 +29,7 @@ async function verify() {
     ["/lab/liquid", "Start simulation"],
     ["/lab/lattice", "Download layered SVG"],
     ["/lab/texture-array", "Texture Array"],
+    ["/lab/texture-array/app", "Texture Array"],
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
@@ -81,6 +82,7 @@ async function verify() {
     }
     if (path === "/sitemap.xml") {
       assert.ok(body.includes("/lab/texture-array"));
+      assert.ok(body.includes("/lab/texture-array/app"));
       assert.ok(!body.includes("/projects/kiochan-web"));
       assert.ok(body.includes("/projects/panel-tools"));
       assert.ok(body.includes("/projects/kio-color-picker"));

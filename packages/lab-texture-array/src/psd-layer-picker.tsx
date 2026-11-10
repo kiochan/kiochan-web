@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { Icon } from "./icon";
 import type { TextureTranslator } from "./localization";
 import type { PsdLayerChoice } from "./psd-import";
 import styles from "./texture-array.module.css";
@@ -73,9 +74,11 @@ export function PsdLayerPicker({
             )
           }
         >
+          <Icon name="all" />
           {t("Select available")}
         </button>
         <button type="button" disabled={busy} onClick={() => setSelected([])}>
+          <Icon name="close" />
           {t("Clear selection")}
         </button>
         <span>
@@ -118,9 +121,11 @@ export function PsdLayerPicker({
           disabled={busy || !selected.length}
           onClick={() => onImport(selected)}
         >
+          <Icon name="download" />
           {t("Import selected layers")}
         </button>
         <button type="button" onClick={onCancel}>
+          <Icon name="close" />
           {t("Cancel PSD import")}
         </button>
       </div>

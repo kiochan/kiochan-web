@@ -26,9 +26,16 @@ const Experiment = dynamic(
     loading: TextureLoading,
   },
 );
-export default function TextureArrayRuntime() {
+export default function TextureArrayRuntime({
+  workspace = false,
+}: {
+  workspace?: boolean;
+}) {
   const { language } = useLanguage();
   return (
-    <Experiment translate={language === "zh" ? translateChinese : undefined} />
+    <Experiment
+      workspace={workspace}
+      translate={language === "zh" ? translateChinese : undefined}
+    />
   );
 }

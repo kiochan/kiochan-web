@@ -211,6 +211,40 @@ export const textureArrayChinese: Record<string, string> = {
   "Add PNG, JPEG, or WebP images above.":
     "请在上方添加 PNG、JPEG 或 WebP 图片。",
   "Replace image": "替换图片",
+  "Open workspace": "打开工作区",
+  "Back to overview": "返回介绍页",
+  "Saved in this browser": "已保存到此浏览器",
+  "Saving project…": "正在保存工程…",
+  "Restoring saved project…": "正在恢复已保存的工程…",
+  "The saved project could not be restored. Open a project, start a new one, or replace the saved copy.":
+    "无法恢复浏览器中保存的工程，请打开工程、新建工程或替换保存的副本。",
+  "Browser storage is unavailable or full. Download Save project to keep your work. Workspace navigation is paused until saving succeeds.":
+    "浏览器存储不可用或已满，请点击保存工程下载备份。保存成功前不会跳转到工作区，以免丢失修改。",
+  "Replace saved copy": "替换浏览器中的副本",
+  "Select all layers": "勾选全部图层",
+  "{count} checked": "已勾选 {count} 层",
+  "Select {name}": "勾选 {name}",
+  "Editing {count} layer(s)": "正在调整 {count} 个图层",
+  "Selected layers have different parameters. Confirm to synchronize them with the first checked layer: {name}.":
+    "所选图层的参数不一致。确认后将按照列表中第一个勾选图层 {name} 的参数同步。",
+  "Confirm and sync selected layers": "确认并同步所选图层",
+  "Selected layer parameters": "所选图层参数",
+  "Image actions affect the active layer. Parameters affect checked layers.":
+    "图片操作仅影响当前图层；参数调整影响勾选的图层。",
+  Layers: "图层",
+  "Layer settings": "图层设置",
+  "Parameter clipboard": "参数剪贴板",
+  "Array parameters": "排列参数",
+  "Select a layer to edit. Drop one image on a row to replace it.":
+    "选中图层后编辑参数，或将单张图片拖到对应行来替换图片。",
+  "Layer {number}": "图层 {number}",
+  "Hide {name}": "隐藏 {name}",
+  "Show {name}": "显示 {name}",
+  "Export size": "导出尺寸",
+  "Square side (px)": "正方形边长（像素）",
+  "Pixels · PSD / PNG ZIP": "像素 · PSD / PNG ZIP",
+  "Choose any whole-number side from 1 to 4096 px. Width and height stay equal.":
+    "可输入 1 至 4096 的任意整数，宽高保持一致。",
   "Copy parameters": "复制参数",
   "Paste parameters": "粘贴参数",
   "Paste to all layers": "粘贴到全部图层",
@@ -276,8 +310,8 @@ export const textureArrayChinese: Record<string, string> = {
   "Duplicate layer": "复制图层",
   "Duplicate layer identifiers.": "图层标识重复。",
   "Edit history": "操作历史",
-  "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. Files stay in this browser tab and are not uploaded. Save before leaving or starting a new project.":
-    "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。文件仅保留在当前浏览器标签页中，不会上传。离开页面或新建工程前请先保存。",
+  "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. The project autosaves in this browser and is not uploaded. Download Save project for a portable backup.":
+    "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。工程会自动保存到此浏览器，不会上传。请下载保存工程文件作为可携带的备份。",
   "Encoding export layer {current} of {total}…":
     "正在编码导出图层 {current}/{total}…",
   "Export layered PSD": "导出分层 PSD",
@@ -376,8 +410,8 @@ export const textureArrayChinese: Record<string, string> = {
   "Export exceeds the memory limit. Use a smaller output size.":
     "导出超过内存限制，请减小输出尺寸。",
   "Image export cancelled.": "已取消图像导出。",
-  "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers use English names. Save project keeps original images and editable array settings.":
-    "PSD 保留图层、透明度和可见性。PNG ZIP 包含各图层的透明 PNG、合成图和可见性清单。导出图层使用英文名称。保存工程可保留原图和可编辑的阵列参数。",
+  "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers keep custom names. Save project keeps original images and editable array settings.":
+    "PSD 保留图层、透明度和可见性。PNG ZIP 包含各图层的透明 PNG、合成图和可见性清单。导出图层保留自定义名称。保存工程可保留原图和可编辑的阵列参数。",
   "Export supports up to 12 layers.": "导出最多支持 12 个图层。",
   "Texture Array editor": "纹理阵列编辑器",
   "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.":

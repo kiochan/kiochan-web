@@ -154,3 +154,37 @@ test("custom names survive PSD and ZIP export with safe, unique numbered filenam
     }
   }
 });
+
+test("PSD and PNG ZIP export exact custom square dimensions including odd sides", async () => {
+  for (const size of [1, 3, 127, 777]) {
+    const rgba = new Uint8Array(size * size * 4);
+    rgba.set([220, 100, 40, 128], rgba.length - 4);
+    for (const format of ["psd", "zip"]) {
+      const encoder = new ExportEncoder(format, size, rgba.slice());
+      encoder.addLayer({
+        name: "Custom size",
+        visible: true,
+        rgba: rgba.slice(),
+      });
+      const bytes = new Uint8Array(await encoder.finish().arrayBuffer());
+      if (format === "psd") {
+        const psd = readPsd(bytes, { useImageData: true, skipThumbnail: true });
+        assert.equal(psd.width, size);
+        assert.equal(psd.height, size);
+        assert.deepEqual(
+          [...psd.children[0].imageData.data.slice(-4)],
+          [220, 100, 40, 128],
+        );
+      } else {
+        const files = unzipSync(bytes);
+        const manifest = JSON.parse(strFromU8(files["Layers.json"]));
+        assert.equal(manifest.width, size);
+        assert.equal(manifest.height, size);
+        const png = decode(files["Layer-01.png"]);
+        assert.equal(png.width, size);
+        assert.equal(png.height, size);
+        assert.deepEqual([...png.data.slice(-4)], [220, 100, 40, 128]);
+      }
+    }
+  }
+});

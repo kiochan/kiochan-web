@@ -39,6 +39,27 @@ export function copyLayerParameters(layer: LayerParameters): LayerParameters {
     parameterKeys.map((key) => [key, layer[key]]),
   ) as LayerParameters;
 }
+export function hasMixedLayerParameters(layers: readonly Layer[]): boolean {
+  const first = layers[0];
+  return (
+    !!first &&
+    layers.some((layer) =>
+      parameterKeys.some((key) => layer[key] !== first[key]),
+    )
+  );
+}
+export const projectStorageKey = "kiochan-texture-array-project";
+export type ProjectStorage = {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+};
+export function restoreStoredProject(storage: ProjectStorage): Project | null {
+  const saved = storage.getItem(projectStorageKey);
+  return saved === null ? null : parseProject(saved);
+}
+export function storeProject(storage: ProjectStorage, project: Project): void {
+  storage.setItem(projectStorageKey, JSON.stringify(project));
+}
 export function pasteLayerParameters(
   project: Project,
   targetIds: readonly string[],
@@ -232,9 +253,7 @@ export function parseProject(text: string): Project {
     });
     if (new Set(layers.map((l) => l.id)).size !== layers.length)
       throw new Error("Duplicate layer identifiers.");
-    const size = number(f.size, 256, 4096, true);
-    if (![256, 512, 1024, 2048, 4096].includes(size))
-      throw new Error("Invalid output resolution.");
+    const size = number(f.size, 1, 4096, true);
     return { label: string(f.label), size, layers };
   });
   return {

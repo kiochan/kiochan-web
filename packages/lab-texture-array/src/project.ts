@@ -19,6 +19,48 @@ export type Layer = {
   opacity: number;
 };
 export type Frame = { label: string; size: number; layers: Layer[] };
+const parameterKeys = [
+  "columns",
+  "rows",
+  "spacingX",
+  "spacingY",
+  "size",
+  "rotation",
+  "layoutAngle",
+  "sampling",
+  "x",
+  "y",
+  "stagger",
+  "opacity",
+] as const satisfies readonly (keyof Layer)[];
+export type LayerParameters = Pick<Layer, (typeof parameterKeys)[number]>;
+export function copyLayerParameters(layer: LayerParameters): LayerParameters {
+  return Object.fromEntries(
+    parameterKeys.map((key) => [key, layer[key]]),
+  ) as LayerParameters;
+}
+export function pasteLayerParameters(
+  project: Project,
+  targetIds: readonly string[],
+  parameters: LayerParameters,
+): Project {
+  const targets = new Set(targetIds);
+  const frame = project.history[project.cursor];
+  const snapshot = copyLayerParameters(parameters);
+  let changed = false;
+  const layers = frame.layers.map((layer) => {
+    if (
+      !targets.has(layer.id) ||
+      !parameterKeys.some((key) => layer[key] !== snapshot[key])
+    )
+      return layer;
+    changed = true;
+    return { ...layer, ...snapshot };
+  });
+  return changed
+    ? commit(project, { ...frame, label: "Paste layer parameters", layers })
+    : project;
+}
 export type Project = {
   format: "kiochan-texture-array";
   version: 4;

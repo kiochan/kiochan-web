@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { ExportFormat } from "./export-encoder";
 import { exportImages } from "./export-images";
+import { PsdImportClient } from "./import-psd";
 import { createLattice } from "./layout";
 import {
   formatTextureText,
@@ -20,14 +21,19 @@ import { NumberField } from "./number-field";
 import {
   type Asset,
   commit,
+  copyLayerParameters,
   emptyProject,
   type Frame,
   type Layer,
+  type LayerParameters,
   newLayer,
   type Project,
   parseProject,
+  pasteLayerParameters,
   replaceLayerImage,
 } from "./project";
+import type { PsdLayerChoice } from "./psd-import";
+import { PsdLayerPicker } from "./psd-layer-picker";
 import { TextureRenderer } from "./renderer";
 import styles from "./texture-array.module.css";
 
@@ -78,6 +84,10 @@ export function TextureArray({
     formatTextureText(template, translate, values);
   const [project, setProject] = useState<Project>(emptyProject);
   const [selected, setSelected] = useState("");
+  const [copiedParameters, setCopiedParameters] = useState<{
+    name: string;
+    parameters: LayerParameters;
+  } | null>(null);
   const [repeats, setRepeats] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -85,6 +95,12 @@ export function TextureArray({
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const importing = useRef(false);
+  const psdClient = useRef<PsdImportClient | null>(null);
+  const psdUpload = useRef<HTMLInputElement>(null);
+  const [psdSelection, setPsdSelection] = useState<{
+    layers: PsdLayerChoice[];
+    replacementId?: string;
+  } | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [exportProgress, setExportProgress] = useState("");
   const exportController = useRef<AbortController | null>(null);
@@ -145,6 +161,8 @@ export function TextureArray({
     return () => {
       mounted.current = false;
       exportController.current?.abort();
+      psdClient.current?.dispose();
+      psdClient.current = null;
       element.removeEventListener("webglcontextlost", lost);
       element.removeEventListener("webglcontextrestored", restored);
       renderer.current?.dispose();
@@ -208,8 +226,12 @@ export function TextureArray({
     }));
   }
   async function addImages(files: FileList | null, replacementId?: string) {
-    if (!files?.length || busy || importing.current) return;
+    if (!files?.length || busy || importing.current || psdSelection) return;
     const incoming = Array.from(files);
+    if (incoming.length === 1 && /\.psd$/i.test(incoming[0].name)) {
+      await openPsd(incoming[0], replacementId);
+      return;
+    }
     importing.current = true;
     setBusy(true);
     setError("");
@@ -250,31 +272,129 @@ export function TextureArray({
         bitmap.close();
         additions.push(asset);
       }
-      const assets = [...project.assets, ...additions];
-      if (assets.reduce((sum, a) => sum + a.data.length, 0) > 64_000_000)
-        throw new Error(
-          "Source images exceed the project's 48 MB binary budget.",
-        );
-      const layers = additions.map((a) => newLayer(a.id));
-      if (!mounted.current) return;
-      setProject((p) =>
-        replacementId
-          ? replaceLayerImage(p, replacementId, additions[0])
-          : commit(
-              { ...p, assets },
-              {
-                ...p.history[p.cursor],
-                label: `Import ${layers.length} image(s)`,
-                layers: [...p.history[p.cursor].layers, ...layers],
-              },
-            ),
-      );
-      setSelected(replacementId ?? layers[0].id);
+      if (mounted.current) applyAssets(additions, replacementId);
     } catch (error) {
       if (mounted.current) setError(errorText(error));
     } finally {
       importing.current = false;
       if (mounted.current) setBusy(false);
+    }
+  }
+  function applyAssets(
+    additions: Asset[],
+    replacementId?: string,
+    fromPsd = false,
+  ) {
+    if (!additions.length) return;
+    if (!replacementId && frame.layers.length + additions.length > 12)
+      throw new Error(
+        "Up to 12 layers per project. Remove a layer before importing more images.",
+      );
+    const assets = [...project.assets, ...additions];
+    if (assets.length > 12)
+      throw new Error(
+        "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.",
+      );
+    if (assets.reduce((sum, asset) => sum + asset.data.length, 0) > 64_000_000)
+      throw new Error(
+        "Source images exceed the project's 48 MB binary budget.",
+      );
+    const layers = additions.map((asset) => ({
+      ...newLayer(asset.id),
+      ...(fromPsd ? { name: asset.name } : {}),
+    }));
+    setProject((current) =>
+      replacementId
+        ? replaceLayerImage(current, replacementId, additions[0])
+        : commit(
+            { ...current, assets },
+            {
+              ...current.history[current.cursor],
+              label: `Import ${layers.length} image(s)`,
+              layers: [...current.history[current.cursor].layers, ...layers],
+            },
+          ),
+    );
+    setSelected(replacementId ?? layers[0].id);
+  }
+  function cancelPsd() {
+    const client = psdClient.current;
+    psdClient.current = null;
+    client?.dispose();
+    setPsdSelection(null);
+    importing.current = false;
+    setBusy(false);
+    setError("");
+  }
+  async function openPsd(file?: File, replacementId?: string) {
+    if (!file || busy || importing.current || psdSelection) return;
+    importing.current = true;
+    setBusy(true);
+    setError("");
+    let client: PsdImportClient | null = null;
+    try {
+      if (file.size > 70_000_000)
+        throw new Error("Choose a PSD file of up to 70 MB.");
+      if (project.assets.length >= 12)
+        throw new Error(
+          "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.",
+        );
+      if (!replacementId && frame.layers.length >= 12)
+        throw new Error(
+          "Up to 12 layers per project. Remove a layer before importing more images.",
+        );
+      client = new PsdImportClient();
+      psdClient.current = client;
+      const buffer = await file.arrayBuffer();
+      if (!mounted.current || psdClient.current !== client) return;
+      const reply = await client.request({ type: "open", buffer });
+      if (mounted.current && psdClient.current === client && reply.layers)
+        setPsdSelection({ layers: reply.layers, replacementId });
+    } catch (error) {
+      if (mounted.current && (!client || psdClient.current === client)) {
+        setError(errorText(error));
+        client?.dispose();
+        psdClient.current = null;
+      }
+    } finally {
+      if (
+        mounted.current &&
+        (!client || psdClient.current === client || psdClient.current === null)
+      ) {
+        importing.current = false;
+        setBusy(false);
+      }
+    }
+  }
+  async function importPsdLayers(ids: number[]) {
+    const client = psdClient.current;
+    if (!client || !psdSelection || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const reply = await client.request({ type: "select", ids });
+      if (!reply.assets) throw new Error("Unable to read PSD layers.");
+      for (const asset of reply.assets) {
+        const bitmap = await decode(asset);
+        bitmap.close();
+      }
+      if (!mounted.current || psdClient.current !== client) return;
+      applyAssets(reply.assets, psdSelection.replacementId, true);
+      cancelPsd();
+    } catch (error) {
+      if (mounted.current && psdClient.current === client) {
+        setError(errorText(error));
+        if (client.closed) {
+          psdClient.current = null;
+          setPsdSelection(null);
+        }
+      }
+    } finally {
+      if (
+        mounted.current &&
+        (psdClient.current === client || psdClient.current === null)
+      )
+        setBusy(false);
     }
   }
   function fileDropTarget(event: DragEvent<HTMLElement>) {
@@ -389,9 +509,11 @@ export function TextureArray({
         if (!event.dataTransfer.types.includes("Files")) return;
         event.preventDefault();
         event.dataTransfer.dropEffect =
-          busy || importing.current ? "none" : "copy";
+          busy || importing.current || psdSelection ? "none" : "copy";
         setDropTarget(
-          busy || importing.current ? null : (fileDropTarget(event) ?? "add"),
+          busy || importing.current || psdSelection
+            ? null
+            : (fileDropTarget(event) ?? "add"),
         );
       }}
       onDragLeaveCapture={(event) => {
@@ -429,6 +551,13 @@ export function TextureArray({
             onClick={() => upload.current?.click()}
           >
             {t("Add images")}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => psdUpload.current?.click()}
+          >
+            {t("Import PSD")}
           </button>
           <button
             type="button"
@@ -474,6 +603,38 @@ export function TextureArray({
             : "Drop images anywhere in the editor to add layers. Drop one image onto a layer to replace it.",
         )}
       </p>
+      {psdSelection && (
+        <PsdLayerPicker
+          layers={psdSelection.layers}
+          limit={Math.max(
+            0,
+            Math.min(
+              12 - project.assets.length,
+              psdSelection.replacementId ? 1 : 12 - frame.layers.length,
+            ),
+          )}
+          busy={busy}
+          error={error}
+          translate={t}
+          onImport={(ids) => void importPsdLayers(ids)}
+          onCancel={cancelPsd}
+        />
+      )}
+      {busy && psdClient.current && !psdSelection && (
+        <button type="button" onClick={cancelPsd}>
+          {t("Cancel PSD import")}
+        </button>
+      )}
+      <input
+        hidden
+        ref={psdUpload}
+        type="file"
+        accept=".psd,image/vnd.adobe.photoshop"
+        onChange={(event) => {
+          void openPsd(event.target.files?.[0]);
+          event.target.value = "";
+        }}
+      />
       <input
         hidden
         ref={upload}
@@ -794,6 +955,65 @@ export function TextureArray({
                   {t("Remove")}
                 </button>
               </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCopiedParameters({
+                      name: layerName,
+                      parameters: copyLayerParameters(layer),
+                    })
+                  }
+                >
+                  {t("Copy parameters")}
+                </button>
+                <button
+                  type="button"
+                  disabled={!copiedParameters}
+                  onClick={() => {
+                    if (copiedParameters)
+                      setProject((current) =>
+                        pasteLayerParameters(
+                          current,
+                          [layer.id],
+                          copiedParameters.parameters,
+                        ),
+                      );
+                  }}
+                >
+                  {t("Paste parameters")}
+                </button>
+                <button
+                  type="button"
+                  disabled={!copiedParameters}
+                  onClick={() => {
+                    if (copiedParameters)
+                      setProject((current) =>
+                        pasteLayerParameters(
+                          current,
+                          current.history[current.cursor].layers.map(
+                            (item) => item.id,
+                          ),
+                          copiedParameters.parameters,
+                        ),
+                      );
+                  }}
+                >
+                  {t("Paste to all layers")}
+                </button>
+              </div>
+              {copiedParameters && (
+                <p className={styles.hint} role="status">
+                  {format("Parameters copied from {name}.", {
+                    name: copiedParameters.name,
+                  })}
+                </p>
+              )}
+              <p className={styles.hint}>
+                {t(
+                  "Copy array settings, size, angles, offsets, opacity, and image scaling. Paste keeps each layer's image, name, visibility, and order.",
+                )}
+              </p>
               <div className={styles.actions}>
                 <button
                   type="button"

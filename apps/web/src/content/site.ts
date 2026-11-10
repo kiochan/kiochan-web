@@ -211,6 +211,45 @@ export const textureArrayChinese: Record<string, string> = {
   "Add PNG, JPEG, or WebP images above.":
     "请在上方添加 PNG、JPEG 或 WebP 图片。",
   "Replace image": "替换图片",
+  "Copy parameters": "复制参数",
+  "Paste parameters": "粘贴参数",
+  "Paste to all layers": "粘贴到全部图层",
+  "Paste layer parameters": "粘贴图层参数",
+  "Parameters copied from {name}.": "已复制图层 {name} 的参数。",
+  "Copy array settings, size, angles, offsets, opacity, and image scaling. Paste keeps each layer's image, name, visibility, and order.":
+    "复制排列、大小、角度、偏移、透明度和缩放采样设置。粘贴时保留各图层的图片、名称、可见性和顺序。",
+  "Import PSD": "导入 PSD",
+  "Choose PSD layers": "选择 PSD 图层",
+  "Selected layers become independent images. PSD group compositing, masks, effects, blend modes, and document positions are not reproduced.":
+    "所选图层将作为独立图片导入，不重现 PSD 组的合成效果、蒙版、特效、混合模式和文档中的位置。",
+  "Hidden layers can also be selected. Imported layers start visible.":
+    "也可以选择隐藏图层，导入后图层默认可见。",
+  "Select available": "选择可导入图层",
+  "Clear selection": "清空选择",
+  Hidden: "已隐藏",
+  "No importable pixels": "没有可导入的像素",
+  "Import selected layers": "导入所选图层",
+  "Cancel PSD import": "取消导入 PSD",
+  "Choose a PSD file of up to 70 MB.": "请选择不超过 70 MB 的 PSD 文件。",
+  "Choose a valid PSD file. PSB is not supported.":
+    "请选择有效的 PSD 文件，暂不支持 PSB。",
+  "PSD import supports 8-bit RGB documents only.":
+    "PSD 导入仅支持 8 位 RGB 文档。",
+  "PSD dimensions must be at most 8192px per side and 32 megapixels.":
+    "PSD 每边最多 8192 像素，总像素不超过 3200 万。",
+  "PSD import supports up to 256 layers and 32 nested groups.":
+    "PSD 最多支持 256 个图层和 32 层嵌套组。",
+  "This PSD has no importable pixel layers.": "此 PSD 中没有可导入的像素图层。",
+  "Select between 1 and 12 PSD layers.": "请选择 1 至 12 个 PSD 图层。",
+  "A selected PSD layer cannot be imported.": "所选 PSD 图层无法导入。",
+  "Unable to decode a selected PSD layer.": "无法解码所选 PSD 图层。",
+  "A selected PSD layer exceeds the 8 MB image limit.":
+    "所选 PSD 图层转换后超过单张图片 8 MB 的限制。",
+  "Open a PSD before selecting layers.": "请先打开 PSD 文件再选择图层。",
+  "Unable to read PSD layers.": "无法读取 PSD 图层。",
+  "PSD import timed out. Choose a smaller file.":
+    "PSD 导入超时，请选择更小的文件。",
+  "PSD import cancelled.": "PSD 导入已取消。",
   "Drop one image to replace a layer. Drop multiple images outside the layer list to add them.":
     "替换图层时请拖入一张图片。批量添加请将多张图片拖到图层列表以外的编辑区域。",
   "Drop one image to replace this layer. Its name and settings stay unchanged.":

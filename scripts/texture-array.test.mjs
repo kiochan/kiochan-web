@@ -3,9 +3,11 @@ import test from "node:test";
 import { createLattice } from "../packages/lab-texture-array/src/layout.ts";
 import {
   commit,
+  copyLayerParameters,
   emptyProject,
   newLayer,
   parseProject,
+  pasteLayerParameters,
   replaceLayerImage,
 } from "../packages/lab-texture-array/src/project.ts";
 
@@ -434,4 +436,85 @@ test("replacing an unnamed layer preserves its displayed source name", () => {
   assert.equal(next.history[next.cursor].layers[0].name, source.name);
   assert.equal(project.history[project.cursor].layers[0].name, undefined);
   assert.deepEqual(parseProject(JSON.stringify(next)), next);
+});
+
+test("parameter copy is a snapshot and paste preserves target identity, source, name, visibility and order", () => {
+  let project = fixture();
+  const sourceLayer = {
+    ...project.history[1].layers[0],
+    name: "Source",
+    columns: 7,
+    rows: 3,
+    spacingX: 1.75,
+    spacingY: 0.8,
+    size: 0.23,
+    rotation: -32.75,
+    layoutAngle: 45,
+    sampling: "pixel",
+    x: 0.2,
+    y: 0.3,
+    stagger: 0.5,
+    opacity: 0.45,
+  };
+  const target = {
+    ...newLayer("target-image"),
+    name: "Target",
+    visible: false,
+  };
+  project = commit(
+    {
+      ...project,
+      assets: [...project.assets, { ...source, id: "target-image" }],
+    },
+    {
+      ...project.history[1],
+      label: "Configure layers",
+      layers: [sourceLayer, target],
+    },
+  );
+  const parameters = copyLayerParameters(sourceLayer);
+  assert.deepEqual(
+    Object.keys(parameters).sort(),
+    [
+      "columns",
+      "rows",
+      "spacingX",
+      "spacingY",
+      "size",
+      "rotation",
+      "layoutAngle",
+      "sampling",
+      "x",
+      "y",
+      "stagger",
+      "opacity",
+    ].sort(),
+  );
+  sourceLayer.columns = 9;
+  assert.equal(parameters.columns, 7);
+  const next = pasteLayerParameters(project, [target.id], parameters);
+  assert.equal(next.history.length, project.history.length + 1);
+  assert.deepEqual(next.history[next.cursor].layers, [
+    sourceLayer,
+    { ...target, ...parameters },
+  ]);
+  assert.equal(next.assets, project.assets);
+  assert.deepEqual(next.history[next.cursor - 1].layers[1], target);
+  assert.deepEqual(parseProject(JSON.stringify(next)), next);
+  assert.equal(pasteLayerParameters(next, [target.id], parameters), next);
+  assert.equal(pasteLayerParameters(project, ["missing"], parameters), project);
+  const all = pasteLayerParameters(
+    project,
+    [sourceLayer.id, target.id],
+    parameters,
+  );
+  assert.equal(all.history.length, project.history.length + 1);
+  for (const layer of all.history[all.cursor].layers)
+    assert.deepEqual(copyLayerParameters(layer), parameters);
+  const branched = pasteLayerParameters(
+    { ...next, cursor: project.cursor },
+    [sourceLayer.id, target.id],
+    parameters,
+  );
+  assert.equal(branched.history.length, next.history.length);
 });

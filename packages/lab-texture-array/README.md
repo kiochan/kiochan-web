@@ -1,6 +1,6 @@
 # Texture Array
 
-An original, local-first seamless texture editor maintained in `packages/lab-texture-array`. Open it at `/lab/texture-array`; the host owns navigation, theme, metadata, and the Lab sidebar. The focused `/lab/texture-array/app` workspace reuses the same editor/runtime and browser-local project as the overview route, with a compact heading, wider working area, and independently scrollable desktop inspector. Shared website navigation and Lab sidebar remain present. No external motif assets or user reference images ship with the package.
+An original, local-first seamless texture editor maintained in `packages/lab-texture-array`. Open it at `/lab/texture-array`; the host owns navigation, theme, metadata, and the Lab sidebar. The focused `/lab/texture-array/app` workspace reuses the same editor/runtime and browser-local project as the overview route, with a compact heading and wider working area. On both routes, the preview, view controls, and status stick below the website header while scrolling desktop parameters; the square canvas fits the viewport height. Output size sits above the preview/inspector grid, and parameters use normal page scrolling. Narrow screens and windows shorter than 640px keep normal document flow. Shared website navigation and Lab sidebar remain present. No external motif assets or user reference images ship with the package.
 
 ## Editing
 

@@ -90,6 +90,9 @@
 .stageColumn {
   min-width: 0;
 }
+.previewPanel {
+  background: var(--kio-color-surface);
+}
 .viewbar {
   gap: 0.5rem;
   padding-bottom: 0.75rem;
@@ -552,16 +555,27 @@
     align-items: start;
   }
   .workspaceMode .inspector {
-    position: sticky;
-    top: 6rem;
-    max-height: calc(100dvh - 7rem);
-    overflow: auto;
-    scrollbar-gutter: stable;
     padding: 0.2rem 0.35rem 0.6rem;
   }
-  .workspaceMode .stage {
-    width: min(100%, calc(100dvh - 31rem));
+}
+
+@media (min-width: 1051px) and (min-height: 640px) {
+  .stageColumn {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    z-index: 1;
+    background: var(--kio-color-surface);
+  }
+  .previewPanel {
+    padding-block: 0.5rem;
+  }
+  .stage {
+    width: min(100%, calc(100dvh - 24rem));
     margin-inline: auto;
+  }
+  .workspaceMode .stage {
+    width: min(100%, calc(100dvh - 16rem));
   }
 }
 

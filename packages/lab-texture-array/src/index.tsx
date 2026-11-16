@@ -765,182 +765,188 @@ export function TextureArray({
           {t("Cancel export")}
         </button>
       )}
+      <OutputSize
+        value={frame.size}
+        disabled={busy}
+        translate={t}
+        onChange={(size) =>
+          edit("Change output size", (current) => ({ ...current, size }))
+        }
+      />
       <div className={styles.workspace}>
         <div className={styles.stageColumn}>
-          <OutputSize
-            value={frame.size}
-            disabled={busy}
-            translate={t}
-            onChange={(size) =>
-              edit("Change output size", (current) => ({ ...current, size }))
-            }
-          />
-          <div className={styles.viewbar}>
-            <div className={styles.actions}>
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={repeats === 1}
-                onClick={() => setRepeats(1)}
-              >
-                {t("Single tile")}
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={repeats === 3}
-                onClick={() => setRepeats(3)}
-              >
-                {t("3 × 3 check")}
-              </button>
+          <div className={styles.previewPanel}>
+            <div className={styles.viewbar}>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  disabled={busy}
+                  aria-pressed={repeats === 1}
+                  onClick={() => setRepeats(1)}
+                >
+                  {t("Single tile")}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  aria-pressed={repeats === 3}
+                  onClick={() => setRepeats(3)}
+                >
+                  {t("3 × 3 check")}
+                </button>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  aria-label={t("Zoom out")}
+                  onClick={() => setZoom((z) => clamp(z - 0.25, 0.5, 4))}
+                >
+                  −
+                </button>
+                <span className={styles.hint}>{Math.round(zoom * 100)}%</span>
+                <button
+                  type="button"
+                  aria-label={t("Zoom in")}
+                  onClick={() => setZoom((z) => clamp(z + 0.25, 0.5, 4))}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setZoom(1);
+                    setPan({ x: 0, y: 0 });
+                  }}
+                >
+                  <Icon name="fit" />
+                  {t("Fit")}
+                </button>
+              </div>
             </div>
-            <div className={styles.actions}>
-              <button
-                type="button"
-                aria-label={t("Zoom out")}
-                onClick={() => setZoom((z) => clamp(z - 0.25, 0.5, 4))}
-              >
-                −
-              </button>
-              <span className={styles.hint}>{Math.round(zoom * 100)}%</span>
-              <button
-                type="button"
-                aria-label={t("Zoom in")}
-                onClick={() => setZoom((z) => clamp(z + 0.25, 0.5, 4))}
-              >
-                +
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setZoom(1);
-                  setPan({ x: 0, y: 0 });
-                }}
-              >
-                <Icon name="fit" />
-                {t("Fit")}
-              </button>
-            </div>
-          </div>
-          <div
-            className={styles.stage}
-            role="application"
-            aria-label={t(
-              "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.",
-            )}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: This viewport implements keyboard panning and zoom.
-            tabIndex={0}
-            onPointerDown={(e) => {
-              if (e.button !== 0) return;
-              e.currentTarget.focus({ preventScroll: true });
-              e.currentTarget.setPointerCapture(e.pointerId);
-              drag.current = {
-                x: e.clientX,
-                y: e.clientY,
-                panX: pan.x,
-                panY: pan.y,
-              };
-            }}
-            onPointerMove={(e) => {
-              const start = drag.current;
-              if (!start) return;
-              const rect = e.currentTarget.getBoundingClientRect();
-              setPan({
-                x: clamp(
-                  start.panX + (e.clientX - start.x) / rect.width,
-                  -panLimit,
-                  panLimit,
-                ),
-                y: clamp(
-                  start.panY + (e.clientY - start.y) / rect.height,
-                  -panLimit,
-                  panLimit,
-                ),
-              });
-            }}
-            onPointerUp={() => {
-              drag.current = null;
-            }}
-            onPointerCancel={() => {
-              drag.current = null;
-            }}
-            onLostPointerCapture={() => {
-              drag.current = null;
-            }}
-            onKeyDown={(e) => {
-              if (
-                ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
-                  e.key,
-                )
-              ) {
-                e.preventDefault();
-                setPan((p) => ({
+            <div
+              className={styles.stage}
+              role="application"
+              aria-label={t(
+                "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.",
+              )}
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: This viewport implements keyboard panning and zoom.
+              tabIndex={0}
+              onPointerDown={(e) => {
+                if (e.button !== 0) return;
+                e.currentTarget.focus({ preventScroll: true });
+                e.currentTarget.setPointerCapture(e.pointerId);
+                drag.current = {
+                  x: e.clientX,
+                  y: e.clientY,
+                  panX: pan.x,
+                  panY: pan.y,
+                };
+              }}
+              onPointerMove={(e) => {
+                const start = drag.current;
+                if (!start) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                setPan({
                   x: clamp(
-                    p.x +
-                      (e.key === "ArrowLeft"
-                        ? -0.05
-                        : e.key === "ArrowRight"
-                          ? 0.05
-                          : 0),
+                    start.panX + (e.clientX - start.x) / rect.width,
                     -panLimit,
                     panLimit,
                   ),
                   y: clamp(
-                    p.y +
-                      (e.key === "ArrowUp"
-                        ? -0.05
-                        : e.key === "ArrowDown"
-                          ? 0.05
-                          : 0),
+                    start.panY + (e.clientY - start.y) / rect.height,
                     -panLimit,
                     panLimit,
                   ),
-                }));
-              } else if (e.key === "+" || e.key === "=") {
-                e.preventDefault();
-                setZoom((z) => clamp(z + 0.25, 0.5, 4));
-              } else if (e.key === "-") {
-                e.preventDefault();
-                setZoom((z) => clamp(z - 0.25, 0.5, 4));
-              } else if (e.key === "Home") {
-                e.preventDefault();
-                setPan({ x: 0, y: 0 });
-                setZoom(1);
-              }
-            }}
-          >
-            <div
-              className={styles.tile}
-              style={{
-                transform: `translate(${pan.x * 100}%, ${pan.y * 100}%) scale(${zoom})`,
+                });
+              }}
+              onPointerUp={() => {
+                drag.current = null;
+              }}
+              onPointerCancel={() => {
+                drag.current = null;
+              }}
+              onLostPointerCapture={() => {
+                drag.current = null;
+              }}
+              onKeyDown={(e) => {
+                if (
+                  ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(
+                    e.key,
+                  )
+                ) {
+                  e.preventDefault();
+                  setPan((p) => ({
+                    x: clamp(
+                      p.x +
+                        (e.key === "ArrowLeft"
+                          ? -0.05
+                          : e.key === "ArrowRight"
+                            ? 0.05
+                            : 0),
+                      -panLimit,
+                      panLimit,
+                    ),
+                    y: clamp(
+                      p.y +
+                        (e.key === "ArrowUp"
+                          ? -0.05
+                          : e.key === "ArrowDown"
+                            ? 0.05
+                            : 0),
+                      -panLimit,
+                      panLimit,
+                    ),
+                  }));
+                } else if (e.key === "+" || e.key === "=") {
+                  e.preventDefault();
+                  setZoom((z) => clamp(z + 0.25, 0.5, 4));
+                } else if (e.key === "-") {
+                  e.preventDefault();
+                  setZoom((z) => clamp(z - 0.25, 0.5, 4));
+                } else if (e.key === "Home") {
+                  e.preventDefault();
+                  setPan({ x: 0, y: 0 });
+                  setZoom(1);
+                }
               }}
             >
-              <canvas
-                ref={canvas}
-                width={1024}
-                height={1024}
-                aria-label={t("Square seamless texture preview")}
-              />
-              {repeats === 3 && (
-                <div className={styles.grid} aria-hidden="true" />
+              <div
+                className={styles.tile}
+                style={{
+                  transform: `translate(${pan.x * 100}%, ${pan.y * 100}%) scale(${zoom})`,
+                }}
+              >
+                <canvas
+                  ref={canvas}
+                  width={1024}
+                  height={1024}
+                  aria-label={t("Square seamless texture preview")}
+                />
+                {repeats === 3 && (
+                  <div className={styles.grid} aria-hidden="true" />
+                )}
+              </div>
+              {!frame.layers.length && (
+                <div className={styles.empty}>
+                  <strong>{t("A pattern starts with an image.")}</strong>
+                  <p>
+                    {t("Add PNG, JPEG, or WebP images above.")}
+                    <br />
+                    {t("Transparent motifs work especially well.")}
+                  </p>
+                </div>
               )}
             </div>
-            {!frame.layers.length && (
-              <div className={styles.empty}>
-                <strong>{t("A pattern starts with an image.")}</strong>
-                <p>
-                  {t("Add PNG, JPEG, or WebP images above.")}
-                  <br />
-                  {t("Transparent motifs work especially well.")}
-                </p>
-              </div>
-            )}
-          </div>
-          <div className={styles.status}>
-            <span>
-              {format("{size} × {size} · PSD / PNG ZIP", { size: frame.size })}
-            </span>
-            <span>{t("Drag to pan · Arrow keys to move · Fit to reset")}</span>
+            <div className={styles.status}>
+              <span>
+                {format("{size} × {size} · PSD / PNG ZIP", {
+                  size: frame.size,
+                })}
+              </span>
+              <span>
+                {t("Drag to pan · Arrow keys to move · Fit to reset")}
+              </span>
+            </div>
           </div>
           <p className={styles.hint}>
             {t(

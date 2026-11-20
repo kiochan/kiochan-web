@@ -8,6 +8,7 @@ import { SnakePreview } from "@kiochan/lab-snake/preview";
 import { TextureArrayPreview } from "@kiochan/lab-texture-array/preview";
 import type { Metadata } from "next";
 import { LabCard } from "@/components/lab-card";
+import { LabFilters } from "@/components/lab-filters";
 import { Localized } from "@/components/language-provider";
 import { experiments } from "@/content/lab";
 
@@ -41,16 +42,20 @@ export default function LabPage() {
       <p className="mt-6 max-w-xl leading-8 text-ink-muted">
         <Localized text="A home for the useful, the curious, and the just-for-fun. These are little projects to open and play with, all in one place." />{" "}
       </p>
-      <div className="mt-14 grid gap-6 md:grid-cols-2">
-        {experiments.map((experiment) => {
+      <LabFilters
+        entries={experiments.map((experiment) => {
           const Preview = previews[experiment.slug];
-          return (
-            <LabCard key={experiment.slug} experiment={experiment}>
-              <Preview />
-            </LabCard>
-          );
+          return {
+            slug: experiment.slug,
+            tags: [experiment.category, ...experiment.tags],
+            card: (
+              <LabCard experiment={experiment}>
+                <Preview />
+              </LabCard>
+            ),
+          };
         })}
-      </div>
+      />
       <p className="mt-10 text-sm text-ink-muted">
         <Localized text="An evolving collection. More experiments will find their way here." />{" "}
       </p>

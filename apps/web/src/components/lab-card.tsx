@@ -4,7 +4,6 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Localized } from "@/components/language-provider";
 import { ArrowIcon } from "@/components/site-shell";
-import { MaterialIcon } from "@/components/ui/material-icon";
 import type { experiments } from "@/content/lab";
 import styles from "./lab-card.module.css";
 
@@ -23,7 +22,6 @@ export function LabCard({
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [keyboardFocus, setKeyboardFocus] = useState(false);
-  const [manual, setManual] = useState<"auto" | "play" | "pause">("auto");
   useEffect(() => {
     const element = card.current;
     if (!element) return;
@@ -51,10 +49,7 @@ export function LabCard({
     };
   }, []);
   const playing =
-    visible &&
-    foreground &&
-    !reducedMotion &&
-    (manual === "play" || (manual === "auto" && (hovered || keyboardFocus)));
+    visible && foreground && !reducedMotion && (hovered || keyboardFocus);
   return (
     <article
       ref={card}
@@ -69,36 +64,17 @@ export function LabCard({
       onPointerLeave={(event) => {
         if (event.pointerType === "mouse") setHovered(false);
       }}
-      onFocusCapture={(event) =>
-        setKeyboardFocus(event.target.matches(":focus-visible"))
-      }
-      onBlurCapture={(event) => {
-        if (
-          event.relatedTarget instanceof Node &&
-          event.currentTarget.contains(event.relatedTarget)
-        )
-          return;
-        setKeyboardFocus(false);
-        setManual("auto");
-      }}
     >
       <Link
         href={`/lab/${experiment.slug}`}
         className={styles.link}
         aria-labelledby={title}
+        onFocus={(event) =>
+          setKeyboardFocus(event.currentTarget.matches(":focus-visible"))
+        }
+        onBlur={() => setKeyboardFocus(false)}
       >
-        <div className={styles.preview}>
-          {children}
-          <span className={styles.badge}>
-            <Localized
-              text={
-                experiment.slug === "cubism"
-                  ? "Manifest inspection"
-                  : "Illustrated preview"
-              }
-            />
-          </span>
-        </div>
+        <div className={styles.preview}>{children}</div>
         <div className={styles.copy}>
           <p className="eyebrow">
             <Localized text={experiment.category} /> / {experiment.stack}
@@ -109,53 +85,21 @@ export function LabCard({
           <p className="mt-3 text-sm leading-7 text-ink-muted">
             <Localized text={experiment.description} />
           </p>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {experiment.tags.map((tag) => (
+              <li
+                key={tag}
+                className="rounded-full bg-surface-muted px-2.5 py-1 text-xs text-ink-muted"
+              >
+                <Localized text={tag} />
+              </li>
+            ))}
+          </ul>
           <span className={styles.open}>
             <Localized text="Open experiment" /> <ArrowIcon diagonal />
           </span>
         </div>
       </Link>
-      <div className={styles.controls}>
-        <span className={styles.hint}>
-          <Localized
-            text={
-              reducedMotion
-                ? "Reduced motion enabled"
-                : "Hover or focus to preview"
-            }
-          />
-        </span>
-        <span className={styles.touchHint}>
-          <Localized
-            text={
-              reducedMotion
-                ? "Reduced motion enabled"
-                : "Preview before you open"
-            }
-          />
-        </span>
-        <button
-          type="button"
-          disabled={reducedMotion}
-          aria-pressed={playing}
-          aria-label={`${playing ? "Pause" : "Play"} ${experiment.name} preview`}
-          className={styles.button}
-          onClick={() => setManual(playing ? "pause" : "play")}
-        >
-          <MaterialIcon
-            name={playing ? "pause" : "play_arrow"}
-            className="size-4"
-          />
-          <Localized
-            text={
-              reducedMotion
-                ? "Motion off"
-                : playing
-                  ? "Pause preview"
-                  : "Play preview"
-            }
-          />
-        </button>
-      </div>
     </article>
   );
 }

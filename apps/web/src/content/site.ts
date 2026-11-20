@@ -1275,46 +1275,6 @@ export const translations: Record<
     ja: "実験を読み込み中",
     de: "Experiment wird geladen",
   },
-  "Manifest inspection": {
-    zh: "清单检查",
-    ja: "マニフェストの確認",
-    de: "Manifest-Prüfung",
-  },
-  "Illustrated preview": {
-    zh: "示意预览",
-    ja: "イメージプレビュー",
-    de: "Illustrative Vorschau",
-  },
-  "Reduced motion enabled": {
-    zh: "已启用减少动态效果",
-    ja: "動きを減らす設定が有効です",
-    de: "Bewegung reduziert",
-  },
-  "Hover or focus to preview": {
-    zh: "悬停或聚焦以预览",
-    ja: "ホバーまたはフォーカスでプレビュー",
-    de: "Für Vorschau zeigen oder fokussieren",
-  },
-  "Preview before you open": {
-    zh: "打开前预览",
-    ja: "開く前にプレビュー",
-    de: "Vorschau vor dem Öffnen",
-  },
-  "Motion off": {
-    zh: "动态效果已关闭",
-    ja: "動きはオフ",
-    de: "Bewegung aus",
-  },
-  "Pause preview": {
-    zh: "暂停预览",
-    ja: "プレビューを一時停止",
-    de: "Vorschau pausieren",
-  },
-  "Play preview": {
-    zh: "播放预览",
-    ja: "プレビューを再生",
-    de: "Vorschau abspielen",
-  },
   Theme: {
     zh: "主题",
     ja: "テーマ",
@@ -1554,6 +1514,41 @@ export const translations: Record<
     zh: "创作工具",
     ja: "制作ツール",
     de: "Kreativwerkzeuge",
+  },
+  "Filter by tag": {
+    zh: "按标签筛选",
+    ja: "タグで絞り込む",
+    de: "Nach Schlagwort filtern",
+  },
+  "{count} of {total} experiments": {
+    zh: "显示 {count} 个实验，共 {total} 个",
+    ja: "全{total}件のうち{count}件を表示",
+    de: "{count} von {total} Experimenten",
+  },
+  "Photo collages": {
+    zh: "照片拼贴",
+    ja: "写真コラージュ",
+    de: "Fotocollagen",
+  },
+  "Pattern design": {
+    zh: "图案设计",
+    ja: "パターンデザイン",
+    de: "Mustergestaltung",
+  },
+  Physics: {
+    zh: "物理",
+    ja: "物理",
+    de: "Physik",
+  },
+  "Model inspection": {
+    zh: "模型检查",
+    ja: "モデル検査",
+    de: "Modellprüfung",
+  },
+  Arcade: {
+    zh: "街机",
+    ja: "アーケード",
+    de: "Arcade",
   },
   "Arrange full photos in balanced columns, choose a background color, and download a PNG collage.":
     {

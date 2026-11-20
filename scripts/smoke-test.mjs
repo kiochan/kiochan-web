@@ -128,18 +128,16 @@ async function verify() {
       assert.ok(!body.includes("https://kiochan.one/releases"));
     }
     if (path === "/lab") {
-      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 8);
-      for (const name of [
-        "Liquid Playground",
-        "Lattice Generator",
-        "Texture Array",
-        "Photo Mosaic",
-        "Photo Waterfall",
-        "Cubism Workbench",
-        "Breakout",
-        "Quick Snake",
-      ]) {
-        assert.ok(body.includes(`aria-label="Play ${name} preview"`), name);
+      const cards = [
+        ...body.matchAll(
+          /<article\b[^>]*data-lab-card="([^"]+)"[^>]*>[\s\S]*?<\/article>/g,
+        ),
+      ];
+      assert.equal(cards.length, 8);
+      for (const [card, slug] of cards) {
+        assert.ok(card.includes(`href="/lab/${slug}"`), slug);
+        assert.match(card, /<svg\b/, slug);
+        assert.doesNotMatch(card, /<button\b|Illustrated preview/, slug);
       }
     }
     if (path.startsWith("/lab/")) {

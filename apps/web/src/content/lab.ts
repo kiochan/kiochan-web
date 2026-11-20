@@ -1,5 +1,16 @@
 export const experiments = [
   {
+    slug: "image-palette",
+    name: "Image Palette",
+    category: "Creative tools",
+    tags: ["Color design"],
+    description:
+      "Extract several color palettes from one image and copy the HEX codes.",
+    stack: "React · Canvas",
+    packageName: "lab-image-palette",
+    original: null,
+  },
+  {
     slug: "photo-waterfall",
     name: "Photo Waterfall",
     category: "Creative tools",

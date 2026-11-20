@@ -1,5 +1,10 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
-export function CubismPreview() {
+import type { ReactNode } from "react";
+export function CubismPreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   return (
     <svg
       className={styles.scene}
@@ -17,7 +22,7 @@ export function CubismPreview() {
         className={styles.surface}
       />
       <text x="65" y="45" className={styles.label}>
-        MODEL MANIFEST
+        {renderLabel("MODEL MANIFEST")}
       </text>
       <path
         d="M65 59h230M86 76v58m0-48h20m-20 23h20m-20 23h20"
@@ -28,10 +33,10 @@ export function CubismPreview() {
           MOC
         </text>
         <text x="119" y="111">
-          TEXTURES
+          {renderLabel("TEXTURES")}
         </text>
         <text x="119" y="134">
-          MOTIONS
+          {renderLabel("MOTIONS")}
         </text>
       </g>
       <g className={`${styles.scan} ${styles.motion}`}>
@@ -47,7 +52,7 @@ export function CubismPreview() {
         <path d="M57 64h246" stroke="currentColor" opacity=".6" />
       </g>
       <text x="30" y="190" className={styles.label}>
-        MANIFEST ONLY / NO MODEL ASSETS
+        {renderLabel("MANIFEST ONLY / NO MODEL ASSETS")}
       </text>
     </svg>
   );

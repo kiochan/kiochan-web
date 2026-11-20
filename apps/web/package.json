@@ -13,6 +13,7 @@
     "@kiochan/database": "workspace:*",
     "@kiochan/lab-breakout": "workspace:*",
     "@kiochan/lab-cubism": "workspace:*",
+    "@kiochan/lab-image-palette": "workspace:*",
     "@kiochan/lab-lattice": "workspace:*",
     "@kiochan/lab-liquid": "workspace:*",
     "@kiochan/lab-photo-mosaic": "workspace:*",

@@ -77,10 +77,11 @@ export function LabCard({
         <div className={styles.preview}>{children}</div>
         <div className={styles.copy}>
           <p className="eyebrow">
-            <Localized text={experiment.category} /> / {experiment.stack}
+            <Localized text={experiment.category} /> /{" "}
+            <Localized text={experiment.stack} />
           </p>
           <h2 id={title} className="mt-4 text-2xl font-medium tracking-tight">
-            {experiment.name}
+            <Localized text={experiment.name} />
           </h2>
           <p className="mt-3 text-sm leading-7 text-ink-muted">
             <Localized text={experiment.description} />

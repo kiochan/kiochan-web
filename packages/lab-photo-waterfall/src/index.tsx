@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   buildWaterfall,
@@ -93,7 +98,13 @@ function currentOrder(
   return groups;
 }
 
-export function PhotoWaterfall() {
+export function PhotoWaterfall({
+  locale = "en",
+  t = defaultTranslate,
+}: {
+  locale?: string;
+  t?: Translate;
+} = {}) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [width, setWidth] = useState("1200");
   const [columns, setColumns] = useState("3");
@@ -104,7 +115,7 @@ export function PhotoWaterfall() {
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [fileError, setFileError] = useState("");
+  const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
   const [exportError, setExportError] = useState("");
   const nextId = useRef(0);
   const importing = useRef(false);
@@ -160,7 +171,7 @@ export function PhotoWaterfall() {
     if (!files.length || importing.current) return;
     importing.current = true;
     setLoading(true);
-    setFileError("");
+    setRejectedFiles([]);
     setExportError("");
     const accepted: Photo[] = [];
     const rejected: string[] = [];
@@ -172,7 +183,7 @@ export function PhotoWaterfall() {
       }
     }
     setPhotos((current) => [...current, ...accepted]);
-    if (rejected.length) setFileError(`Could not open ${rejected.join(", ")}.`);
+    setRejectedFiles(rejected);
     importing.current = false;
     setLoading(false);
   }
@@ -206,7 +217,7 @@ export function PhotoWaterfall() {
   return (
     <section
       className={styles.editor}
-      aria-label="Photo waterfall editor"
+      aria-label={t("Photo waterfall editor")}
       onDragEnter={(event) => {
         if (!event.dataTransfer.types.includes("Files")) return;
         event.preventDefault();
@@ -233,7 +244,7 @@ export function PhotoWaterfall() {
       <div className={styles.toolbar}>
         <div className={styles.controls}>
           <label>
-            Canvas width (px)
+            {t("Canvas width (px)")}
             <input
               type="number"
               min={minWidth}
@@ -243,7 +254,7 @@ export function PhotoWaterfall() {
             />
           </label>
           <label>
-            Columns
+            {t("Columns")}
             <input
               type="number"
               min="1"
@@ -263,21 +274,21 @@ export function PhotoWaterfall() {
             />
           </label>
           <label>
-            Gap placement
+            {t("Gap placement")}
             <select
               value={gap}
               onChange={(event) =>
                 setGap(event.currentTarget.value as GapPlacement)
               }
             >
-              <option value="bottom">Bottom</option>
-              <option value="top">Top</option>
-              <option value="ends">Top and bottom</option>
-              <option value="between">Between photos</option>
+              <option value="bottom">{t("Bottom")}</option>
+              <option value="top">{t("Top")}</option>
+              <option value="ends">{t("Top and bottom")}</option>
+              <option value="between">{t("Between photos")}</option>
             </select>
           </label>
           <label>
-            Background color
+            {t("Background color")}
             <input
               type="color"
               value={color}
@@ -291,7 +302,7 @@ export function PhotoWaterfall() {
               checked={transparent}
               onChange={(event) => setTransparent(event.currentTarget.checked)}
             />
-            Transparent
+            {t("Transparent")}
           </label>
         </div>
         <div className={styles.actions}>
@@ -307,11 +318,11 @@ export function PhotoWaterfall() {
                 input.value = "";
               }}
             />
-            {loading ? "Opening photos…" : "Add photos"}
+            {t(loading ? "Opening photos…" : "Add photos")}
           </label>
           {layout && manualOrder && (
             <button type="button" onClick={() => setManualOrder(null)}>
-              Auto arrange
+              {t("Auto arrange")}
             </button>
           )}
           <button
@@ -320,14 +331,14 @@ export function PhotoWaterfall() {
             disabled={!layout || !!tooLarge || exporting || loading}
             onClick={() => void download()}
           >
-            {exporting ? "Exporting…" : "Download PNG"}
+            {t(exporting ? "Exporting…" : "Download PNG")}
           </button>
         </div>
       </div>
 
       {layout && (
         <p className={styles.editHint}>
-          Drag photos to reorder them or move them to another column.
+          {t("Drag photos to reorder them or move them to another column.")}
         </p>
       )}
       <div className={styles.stage} data-dragging={dragging || undefined}>
@@ -338,6 +349,7 @@ export function PhotoWaterfall() {
             transparent={transparent}
             paint={paint}
             onMove={move}
+            t={t}
           />
         ) : (
           <div className={styles.empty}>
@@ -347,12 +359,18 @@ export function PhotoWaterfall() {
               <i />
             </span>
             <strong>
-              {photos.length ? "Check the canvas settings" : "Drop photos here"}
+              {t(
+                photos.length
+                  ? "Check the canvas settings"
+                  : "Drop photos here",
+              )}
             </strong>
             <span>
-              {photos.length
-                ? "Enter a valid width and column count to preview the collage."
-                : "Photos stay in your browser."}
+              {t(
+                photos.length
+                  ? "Enter a valid width and column count to preview the collage."
+                  : "Photos stay in your browser.",
+              )}
             </span>
           </div>
         )}
@@ -363,14 +381,25 @@ export function PhotoWaterfall() {
           {layout && (
             <span>
               {layout.width} × {layout.height} px ·{" "}
-              {layout.fillPercent.toFixed(1)}% unfilled
+              {formatMessage(t, "{percent}% unfilled", {
+                percent: layout.fillPercent.toLocaleString(locale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                }),
+              })}
             </span>
           )}
         </div>
         {photos.length > 0 && (
           <details>
             <summary>
-              {photos.length} {photos.length === 1 ? "photo" : "photos"}
+              {formatMessage(
+                t,
+                photos.length === 1 ? "{count} photo" : "{count} photos",
+                {
+                  count: photos.length,
+                },
+              )}
             </summary>
             <ul className={styles.files}>
               {photos.map(({ id, name }) => (
@@ -378,7 +407,7 @@ export function PhotoWaterfall() {
                   <span>{name}</span>
                   <button
                     type="button"
-                    aria-label={`Remove ${name}`}
+                    aria-label={formatMessage(t, "Remove {name}", { name })}
                     onClick={() => {
                       setPhotos((current) =>
                         current.filter((photo) => photo.id !== id),
@@ -386,7 +415,7 @@ export function PhotoWaterfall() {
                       setExportError("");
                     }}
                   >
-                    Remove
+                    {t("Remove")}
                   </button>
                 </li>
               ))}
@@ -394,16 +423,25 @@ export function PhotoWaterfall() {
           </details>
         )}
         {!valid && (
-          <p role="status">Use a width of 120–8192 px and 1–12 columns.</p>
+          <p role="status">
+            {t("Use a width of 120–8192 px and 1–12 columns.")}
+          </p>
         )}
         {tooLarge && (
           <p role="status">
-            This collage is too large to export. Reduce the canvas width or add
-            columns.
+            {t(
+              "This collage is too large to export. Reduce the canvas width or add columns.",
+            )}
           </p>
         )}
-        {fileError && <p role="alert">{fileError}</p>}
-        {exportError && <p role="alert">{exportError}</p>}
+        {rejectedFiles.length > 0 && (
+          <p role="alert">
+            {formatMessage(t, "Could not open {files}.", {
+              files: new Intl.ListFormat(locale).format(rejectedFiles),
+            })}
+          </p>
+        )}
+        {exportError && <p role="alert">{t(exportError)}</p>}
       </div>
     </section>
   );

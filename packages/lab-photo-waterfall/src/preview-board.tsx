@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage, type Translate } from "@kiochan/lab-ui/localization";
 import { type PointerEvent, useEffect, useId, useRef, useState } from "react";
 import type { WaterfallLayout } from "./layout";
 import styles from "./waterfall.module.css";
@@ -36,12 +37,14 @@ export function PreviewBoard({
   transparent,
   paint,
   onMove,
+  t,
 }: {
   layout: WaterfallLayout;
   photos: readonly { id: number; name: string }[];
   transparent: boolean;
   paint: (canvas: HTMLCanvasElement, scale: number) => void;
   onMove: (index: number, column: number, before: number | undefined) => void;
+  t: Translate;
 }) {
   const board = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -184,10 +187,12 @@ export function PreviewBoard({
         ref={canvas}
         width={Math.max(1, Math.round(layout.width * scale))}
         height={Math.max(1, Math.round(layout.height * scale))}
-        aria-label="Waterfall collage preview"
+        aria-label={t("Waterfall collage preview")}
       />
       <span id={help} className={styles.srOnly}>
-        Use the arrow keys to reorder this photo or move it to another column.
+        {t(
+          "Use the arrow keys to reorder this photo or move it to another column.",
+        )}
       </span>
       {layout.columns.flatMap(({ tiles }, column) =>
         tiles.map((tile, position) => (
@@ -202,7 +207,15 @@ export function PreviewBoard({
               width: percentX(tile.width),
               height: percentY(tile.height),
             }}
-            aria-label={`${photos[tile.index].name}, column ${column + 1}, position ${position + 1}`}
+            aria-label={formatMessage(
+              t,
+              "{name}, column {column}, position {position}",
+              {
+                name: photos[tile.index].name,
+                column: column + 1,
+                position: position + 1,
+              },
+            )}
             aria-describedby={help}
             onPointerDown={(event) => start(event, tile.index)}
             onKeyDown={(event) => {

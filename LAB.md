@@ -9,7 +9,9 @@
 
 ## Current collection
 
-Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, Texture Array, Photo Mosaic, and Photo Waterfall each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, Texture Array, Photo Mosaic, Photo Waterfall, and Image Palette each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+
+Image Palette extracts several sets of copyable HEX colors from a single local image. Sampling and palette generation run in the browser.
 
 Photo Waterfall arranges local photos in equal-width columns without cropping them. It balances column heights, supports dragging within and between columns, and exports a PNG with adjustable gap placement and a solid or transparent background.
 
@@ -21,7 +23,7 @@ Liquid is a new lightweight Canvas approximation rather than a wholesale LiquidF
 
 Each package exports a lightweight ./preview entry for its server-rendered SVG card artwork. This entry must not import the experiment runtime, engine, SDK, model, or asset loader. Shared preview motion styles live in lab-ui. Mouse hover and keyboard focus start playback. Touch users see static artwork and can tap the card to open the experiment. Offscreen cards, hidden documents, and reduced-motion preferences pause playback. Cubism previews illustrate manifest inspection only.
 
-Run `node --test scripts/lab-engines.test.mjs scripts/lattice.test.mjs` for engine, pattern, palette, and manifest checks, then the standard lint/type/build and production smoke checks. Every added lab package manifest must also be copied in the Docker dependency stage.
+Run `node --test scripts/lab-engines.test.mjs scripts/lattice.test.mjs scripts/image-palette.test.mjs` for engine, pattern, palette, and manifest checks, then the standard lint/type/build and production smoke checks. Every added lab package manifest must also be copied in the Docker dependency stage.
 
 ## Small React experiments
 

@@ -1,5 +1,6 @@
 import { BreakoutPreview } from "@kiochan/lab-breakout/preview";
 import { CubismPreview } from "@kiochan/lab-cubism/preview";
+import { ImagePalettePreview } from "@kiochan/lab-image-palette/preview";
 import { LatticePreview } from "@kiochan/lab-lattice/preview";
 import { LiquidPreview } from "@kiochan/lab-liquid/preview";
 import { PhotoMosaicPreview } from "@kiochan/lab-photo-mosaic/preview";
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/lab" },
 };
 const previews = {
+  "image-palette": ImagePalettePreview,
   "photo-mosaic": PhotoMosaicPreview,
   "photo-waterfall": PhotoWaterfallPreview,
   "texture-array": TextureArrayPreview,
@@ -28,6 +30,8 @@ const previews = {
   breakout: BreakoutPreview,
   snake: SnakePreview,
 };
+
+const renderPreviewLabel = (label: string) => <Localized text={label} />;
 
 export default function LabPage() {
   return (
@@ -50,7 +54,7 @@ export default function LabPage() {
             tags: [experiment.category, ...experiment.tags],
             card: (
               <LabCard experiment={experiment}>
-                <Preview />
+                <Preview renderLabel={renderPreviewLabel} />
               </LabCard>
             ),
           };

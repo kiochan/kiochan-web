@@ -3,6 +3,7 @@
 import {
   createContext,
   type ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -59,11 +60,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 }
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  function t(text: string) {
-    return context.language === "en"
-      ? text
-      : (translations[text]?.[context.language] ?? text);
-  }
+  const { language } = context;
+  const t = useCallback(
+    (text: string) =>
+      language === "en" ? text : (translations[text]?.[language] ?? text),
+    [language],
+  );
   return { ...context, t };
 }
 export function Localized({ text }: { text: string }) {

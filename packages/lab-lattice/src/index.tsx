@@ -1,4 +1,9 @@
 "use client";
+import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useEffect, useState } from "react";
 import { generatePalette, HARMONIES, type Harmony } from "./palette";
@@ -10,7 +15,19 @@ import {
 } from "./pattern";
 import local from "./styles.module.css";
 
-export function LatticeGenerator() {
+const colorLabels = ["Base color", "Stripe color", "Line color"];
+const harmonyLabels = {
+  analogous: "Analogous",
+  complementary: "Complementary",
+  triadic: "Triadic",
+  monochrome: "Monochrome",
+} satisfies Record<Harmony, string>;
+
+export function LatticeGenerator({
+  t = defaultTranslate,
+}: {
+  t?: Translate;
+} = {}) {
   const [repeat, setRepeat] = useState(72);
   const [stripe, setStripe] = useState(18);
   const [cross, setCross] = useState(true);
@@ -77,7 +94,7 @@ export function LatticeGenerator() {
     <div className={styles.panel}>
       <div className={styles.toolbar}>
         <label className={styles.field}>
-          Repeat: {repeat}px
+          {formatMessage(t, "Repeat: {size}px", { size: repeat })}
           <input
             type="range"
             min={24}
@@ -87,7 +104,7 @@ export function LatticeGenerator() {
           />
         </label>
         <label className={styles.field}>
-          Stripe: {band}px
+          {formatMessage(t, "Stripe: {size}px", { size: band })}
           <input
             type="range"
             min={2}
@@ -105,11 +122,11 @@ export function LatticeGenerator() {
               if (!e.target.checked && layer === "horizontal") setLayer("all");
             }}
           />{" "}
-          Cross stripes
+          {t("Cross stripes")}
         </label>
         {colors?.map((color, i) => (
-          <label className={styles.field} key={["base", "stripe", "line"][i]}>
-            {["Base color", "Stripe color", "Line color"][i]}
+          <label className={styles.field} key={colorLabels[i]}>
+            {t(colorLabels[i])}
             <input
               type="color"
               value={color}
@@ -126,14 +143,14 @@ export function LatticeGenerator() {
           </label>
         ))}
         <label className={styles.field}>
-          Color harmony
+          {t("Color harmony")}
           <select
             value={harmony}
             onChange={(e) => setHarmony(e.target.value as Harmony)}
           >
             {HARMONIES.map((item) => (
               <option value={item} key={item}>
-                {item[0].toUpperCase() + item.slice(1)}
+                {t(harmonyLabels[item])}
               </option>
             ))}
           </select>
@@ -144,38 +161,44 @@ export function LatticeGenerator() {
           onClick={autoPalette}
           disabled={!colors}
         >
-          Auto palette
+          {t("Auto palette")}
         </button>
       </div>
       <div className={styles.toolbar}>
         <label className={styles.field}>
-          Square tile
+          {t("Square tile")}
           <select
             value={tiles}
             onChange={(e) => setTiles(Number(e.target.value))}
           >
             {[1, 4, 8, 16].map((count) => (
               <option value={count} key={count}>
-                {count} × {count} repeats · {repeat * count} × {repeat * count}
-                px
+                {formatMessage(
+                  t,
+                  "{count} × {count} repeats · {size} × {size}px",
+                  {
+                    count,
+                    size: repeat * count,
+                  },
+                )}
               </option>
             ))}
           </select>
         </label>
         <label className={styles.field}>
-          Preview / export layer
+          {t("Preview / export layer")}
           <select
             value={layer}
             onChange={(e) => setLayer(e.target.value as PatternLayer | "all")}
           >
-            <option value="all">All layers</option>
+            <option value="all">{t("All layers")}</option>
             {PATTERN_LAYERS.map(({ id, label }) => (
               <option
                 value={id}
                 key={id}
                 disabled={id === "horizontal" && !cross}
               >
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
@@ -186,7 +209,7 @@ export function LatticeGenerator() {
             checked={repeated}
             onChange={(e) => setRepeated(e.target.checked)}
           />{" "}
-          Preview 3 × 3 tiles
+          {t("Preview 3 × 3 tiles")}
         </label>
       </div>
       <div className={styles.body}>
@@ -195,7 +218,15 @@ export function LatticeGenerator() {
             <div
               className={local.artwork}
               role="img"
-              aria-label={`${repeated ? "Three by three seamless repeat" : "Square tile"} preview: ${layer === "all" ? "all layers" : PATTERN_LAYERS.find((item) => item.id === layer)?.label}`}
+              aria-label={formatMessage(t, "{view} preview: {layer}", {
+                view: t(
+                  repeated ? "Three by three seamless repeat" : "Square tile",
+                ),
+                layer: t(
+                  PATTERN_LAYERS.find((item) => item.id === layer)?.label ??
+                    "all layers",
+                ),
+              })}
               style={{
                 backgroundImage: `url("${imageUrl}")`,
                 backgroundSize: repeated
@@ -205,14 +236,15 @@ export function LatticeGenerator() {
             />
           </div>
         ) : (
-          <p>Preparing your pattern…</p>
+          <p>{t("Preparing your pattern…")}</p>
         )}
       </div>
       <p className={styles.status}>
-        {extent} × {extent}px seamless square. The 3 × 3 preview repeats this
-        tile; downloads always contain one square. Select an individual layer to
-        download it separately. Stripe and fine-line PNGs have transparent
-        backgrounds. All-layer SVGs retain named, editable layers.
+        {formatMessage(
+          t,
+          "{size} × {size}px seamless square. The 3 × 3 preview repeats this tile. Each download contains a single square. Select an individual layer to download it separately. Stripe and fine-line PNGs have transparent backgrounds. All-layer SVGs retain named, editable layers.",
+          { size: extent },
+        )}
       </p>
       <div className={styles.controls}>
         <button
@@ -226,7 +258,7 @@ export function LatticeGenerator() {
             )
           }
         >
-          {layer === "all" ? "Download layered SVG" : "Download layer SVG"}
+          {t(layer === "all" ? "Download layered SVG" : "Download layer SVG")}
         </button>
         <button
           type="button"
@@ -234,29 +266,33 @@ export function LatticeGenerator() {
           className={styles.button}
           onClick={exportPng}
         >
-          {exporting
-            ? "Exporting PNG…"
-            : layer === "all"
-              ? "Download square PNG"
-              : "Download layer PNG"}
+          {t(
+            exporting
+              ? "Exporting PNG…"
+              : layer === "all"
+                ? "Download square PNG"
+                : "Download layer PNG",
+          )}
         </button>
       </div>
       {error && (
         <p role="alert" className={styles.status}>
-          {error}
+          {t(error)}
         </p>
       )}
       <p className={styles.status}>
-        A fresh SVG implementation inspired by Lattice-Generator. Original
-        design by MoonMoonCha; upstream work by Torrekie.{" "}
+        {t(
+          "An SVG implementation inspired by Lattice-Generator, with original design by MoonMoonCha and upstream work by Torrekie.",
+        )}{" "}
         <a href="https://github.com/kiochan/lattice-generator">
-          Original project
+          {t("Original project")}
         </a>{" "}
         ·{" "}
         <a href="https://creativecommons.org/licenses/by/4.0/">
-          CC BY 4.0 attribution
+          {t("CC BY 4.0 attribution")}
         </a>
-        . No images leave your browser.
+        {". "}
+        {t("No images leave your browser.")}
       </p>
     </div>
   );

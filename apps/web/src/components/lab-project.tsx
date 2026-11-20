@@ -71,7 +71,7 @@ export function LabProject({
             : "mt-4 text-4xl font-medium tracking-tight sm:text-5xl"
         }
       >
-        {project.name}
+        <Localized text={project.name} />
         <span className="text-brand">.</span>
       </h1>
       <p

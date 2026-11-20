@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
+import {
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
@@ -47,6 +52,9 @@ type Project = {
   pinned: ReadonlySet<string>;
 };
 type History = { past: Project[]; present: Project; future: Project[] };
+type Notice =
+  | string
+  | [template: string, values: Record<string, string | number>];
 type Gesture = {
   pointer: number;
   cell: Cell;
@@ -66,6 +74,12 @@ const arrows: Record<string, [number, number]> = {
   ArrowRight: [1, 0],
   ArrowUp: [0, -1],
   ArrowDown: [0, 1],
+};
+const edgeLabels: Record<Edge, string> = {
+  left: "Resize left edge",
+  right: "Resize right edge",
+  top: "Resize top edge",
+  bottom: "Resize bottom edge",
 };
 
 async function loadPhoto(file: File): Promise<Asset | null> {
@@ -101,7 +115,13 @@ function downloadMosaic(blob: Blob, size: Size) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function PhotoMosaic() {
+export function PhotoMosaic({
+  locale = "en",
+  t = defaultTranslate,
+}: {
+  locale?: string;
+  t?: Translate;
+} = {}) {
   const [history, setHistory] = useState<History>({
     past: [],
     present: empty,
@@ -118,7 +138,7 @@ export function PhotoMosaic() {
   const [matchBrightness, setMatchBrightness] = useState(false);
   const [previewStatus, setPreviewStatus] = useState("");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notices, setNotices] = useState<Notice[]>([]);
   const assets = useRef(new Map<string, Asset>());
   const targetAsset = useRef<Asset | undefined>(undefined);
   const preview = useRef<HTMLCanvasElement>(null);
@@ -174,6 +194,16 @@ export function PhotoMosaic() {
     target && (strength || density > 1) && layout.length,
   );
   const previewSize = scaledSize(size, 768);
+  const status =
+    !busy && previewStatus
+      ? t(previewStatus)
+      : notices
+          .map((notice) =>
+            typeof notice === "string"
+              ? t(notice)
+              : formatMessage(t, ...notice, locale),
+          )
+          .join(" ");
 
   useEffect(() => {
     const canvas = preview.current;
@@ -237,6 +267,10 @@ export function PhotoMosaic() {
     dragging,
   ]);
 
+  function setNotice(...messages: Notice[]) {
+    setNotices(messages);
+  }
+
   function commit(next: Project) {
     setHistory(({ past, present }) => ({
       past: [...past.slice(-19), present],
@@ -260,7 +294,7 @@ export function PhotoMosaic() {
         future: future.slice(1),
       });
     }
-    setNotice("");
+    setNotice();
   }
 
   function currentPhotos() {
@@ -312,7 +346,7 @@ export function PhotoMosaic() {
 
   async function arrangePhotos(image: Asset) {
     if (freeCount < 2) {
-      setNotice("");
+      setNotice();
       return;
     }
     setNotice("Calculating photo matches…");
@@ -348,7 +382,7 @@ export function PhotoMosaic() {
     URL.revokeObjectURL(target.url);
     targetAsset.current = undefined;
     setTarget(undefined);
-    setNotice("");
+    setNotice();
   }
 
   async function addPhotos(files: File[]) {
@@ -392,24 +426,32 @@ export function PhotoMosaic() {
     working.current = false;
     if (!mounted.current) return;
     setBusy(false);
-    setNotice(
-      added.length && next === original
-        ? "Unlock a photo to make room for the new images."
-        : [
-            failed ? `${failed} file(s) could not be opened as photos.` : "",
-            processed < files.length
-              ? `This mosaic can hold up to ${photoLimit} photos.`
-              : "",
-          ]
-            .filter(Boolean)
-            .join(" "),
-    );
+    if (added.length && next === original) {
+      setNotice("Unlock a photo to make room for the new images.");
+      return;
+    }
+    const messages: Notice[] = [];
+    if (failed) {
+      messages.push([
+        failed === 1
+          ? "{count} file could not be opened as a photo."
+          : "{count} files could not be opened as photos.",
+        { count: failed },
+      ]);
+    }
+    if (processed < files.length) {
+      messages.push([
+        "This mosaic can hold up to {count} photos.",
+        { count: photoLimit },
+      ]);
+    }
+    setNotice(...messages);
   }
 
   function reroll() {
     const next = repack(original, size, currentPhotos(), pinned);
     if (next !== original) commit({ ...project, layout: next });
-    setNotice("");
+    setNotice();
   }
 
   function remove(id: string) {
@@ -426,7 +468,7 @@ export function PhotoMosaic() {
       return;
     }
     setSelected(undefined);
-    setNotice("");
+    setNotice();
     commit({ ...project, layout: next });
   }
 
@@ -438,9 +480,10 @@ export function PhotoMosaic() {
       ) ||
       next.width * next.height > maxPixels
     ) {
-      setNotice(
-        `Enter whole pixel dimensions from ${minSide} to ${maxSide}, up to ${maxPixels.toLocaleString("en-US")} pixels total.`,
-      );
+      setNotice([
+        "Enter whole pixel dimensions from {min} to {max}, up to {total} pixels total.",
+        { min: String(minSide), max: String(maxSide), total: maxPixels },
+      ]);
       return;
     }
     const resized = resizeCanvas(original, size, next, currentPhotos(), pinned);
@@ -453,7 +496,7 @@ export function PhotoMosaic() {
       return;
     }
     commit({ ...project, size: next, layout: resized });
-    setNotice("");
+    setNotice();
   }
 
   async function exportPng() {
@@ -543,9 +586,8 @@ export function PhotoMosaic() {
     const final = proposal(event, drag);
     const next = final ?? drag.lastValid;
     if (next !== drag.layout) commit({ ...project, layout: next });
-    setNotice(
-      final ? "" : "That spot cannot be filled. Kept the last gapless layout.",
-    );
+    if (final) setNotice();
+    else setNotice("That spot cannot be filled. Kept the last gapless layout.");
   }
 
   function adjustByKey(
@@ -572,14 +614,15 @@ export function PhotoMosaic() {
     );
     setSelected(cell.id);
     if (next && next !== original) commit({ ...project, layout: next });
-    setNotice(next ? "" : "There is no gapless layout at that position.");
+    if (next) setNotice();
+    else setNotice("There is no gapless layout at that position.");
   }
 
   return (
-    <section className={styles.editor} aria-label="Photo mosaic editor">
+    <section className={styles.editor} aria-label={t("Photo mosaic editor")}>
       <div className={styles.toolbar}>
         <label className={styles.upload}>
-          Add photos
+          {t("Add photos")}
           <input
             type="file"
             multiple
@@ -597,7 +640,7 @@ export function PhotoMosaic() {
           disabled={blocked || freeCount < 2}
           onClick={reroll}
         >
-          Shuffle layout
+          {t("Shuffle layout")}
         </button>
         <div className={styles.history}>
           <button
@@ -605,14 +648,14 @@ export function PhotoMosaic() {
             disabled={blocked || !history.past.length}
             onClick={() => step("undo")}
           >
-            Undo
+            {t("Undo")}
           </button>
           <button
             type="button"
             disabled={blocked || !history.future.length}
             onClick={() => step("redo")}
           >
-            Redo
+            {t("Redo")}
           </button>
         </div>
         <button
@@ -621,12 +664,12 @@ export function PhotoMosaic() {
           disabled={blocked || !layout.length}
           onClick={() => void exportPng()}
         >
-          Download PNG
+          {t("Download PNG")}
         </button>
       </div>
       <div className={styles.settings}>
         <label className={styles.format}>
-          Preset
+          {t("Preset")}
           <select
             value={preset}
             disabled={blocked}
@@ -637,7 +680,7 @@ export function PhotoMosaic() {
             }}
           >
             <option value="custom" disabled>
-              Custom
+              {t("Custom")}
             </option>
             {Object.keys(formats).map((key) => (
               <option key={key}>{key}</option>
@@ -658,7 +701,7 @@ export function PhotoMosaic() {
           }}
         >
           <label className={styles.format}>
-            Width (px)
+            {t("Width (px)")}
             <input
               type="number"
               name="width"
@@ -670,7 +713,7 @@ export function PhotoMosaic() {
             />
           </label>
           <label className={styles.format}>
-            Height (px)
+            {t("Height (px)")}
             <input
               type="number"
               name="height"
@@ -682,11 +725,11 @@ export function PhotoMosaic() {
             />
           </label>
           <button type="submit" disabled={blocked}>
-            Apply size
+            {t("Apply size")}
           </button>
         </form>
         <label className={styles.format}>
-          Antialiasing
+          {t("Antialiasing")}
           <select
             value={smoothing}
             disabled={blocked}
@@ -694,16 +737,16 @@ export function PhotoMosaic() {
               setSmoothing(event.currentTarget.value as Smoothing)
             }
           >
-            <option value="off">Off (nearest neighbor)</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
+            <option value="off">{t("Off (nearest neighbor)")}</option>
+            <option value="low">{t("Low")}</option>
+            <option value="medium">{t("Medium")}</option>
+            <option value="high">{t("High")}</option>
           </select>
         </label>
       </div>
       <div className={styles.targetControls}>
         <label className={styles.upload}>
-          {target ? "Replace target image" : "Choose target image"}
+          {t(target ? "Replace target image" : "Choose target image")}
           <input
             type="file"
             accept="image/*"
@@ -722,7 +765,7 @@ export function PhotoMosaic() {
               <span title={target.name}>{target.name}</span>
             </div>
             <label className={styles.strength}>
-              Color strength
+              {t("Color strength")}
               <input
                 type="range"
                 min="0"
@@ -750,12 +793,12 @@ export function PhotoMosaic() {
                   value <= maxDensity
                 ) {
                   setDensity(value);
-                  setNotice("");
+                  setNotice();
                 }
               }}
             >
               <label className={styles.format}>
-                Tiles per side
+                {t("Tiles per side")}
                 <input
                   type="number"
                   name="density"
@@ -768,15 +811,17 @@ export function PhotoMosaic() {
                 />
               </label>
               <button type="submit" disabled={blocked}>
-                Apply density
+                {t("Apply density")}
               </button>
               {layout.length > 0 && (
                 <span className={styles.stats}>
                   {density} × {density} ·{" "}
-                  {densityTileCount(layout, pinned, density).toLocaleString(
-                    "en-US",
-                  )}{" "}
-                  tiles
+                  {formatMessage(
+                    t,
+                    "{count} tiles",
+                    { count: densityTileCount(layout, pinned, density) },
+                    locale,
+                  )}
                 </span>
               )}
             </form>
@@ -789,26 +834,26 @@ export function PhotoMosaic() {
                   setMatchBrightness(event.currentTarget.checked)
                 }
               />
-              Match target brightness
+              {t("Match target brightness")}
             </label>
             <button
               type="button"
               disabled={blocked || freeCount < 2}
               onClick={() => void matchPhotos(target)}
             >
-              Match photos again
+              {t("Match photos again")}
             </button>
             <button type="button" disabled={blocked} onClick={removeTarget}>
-              Remove target
+              {t("Remove target")}
             </button>
           </>
         )}
       </div>
       <p className={styles.status} role="status">
-        {busy ? notice : previewStatus || notice}
+        {status}
       </p>
       <section
-        aria-label="Mosaic canvas"
+        aria-label={t("Mosaic canvas")}
         className={styles.stage}
         data-drop-active={dropActive}
         onDragEnter={(event) => {
@@ -833,12 +878,16 @@ export function PhotoMosaic() {
           dragEntries.current = 0;
           setDropActive(false);
           if (!canImport) {
-            if (!blocked)
+            if (!blocked) {
               setNotice(
                 layout.length >= photoLimit
-                  ? `This mosaic can hold up to ${photoLimit} photos.`
+                  ? [
+                      "This mosaic can hold up to {count} photos.",
+                      { count: photoLimit },
+                    ]
                   : "Unlock a photo before adding more files.",
               );
+            }
             return;
           }
           void addPhotos(Array.from(event.dataTransfer.files));
@@ -846,9 +895,15 @@ export function PhotoMosaic() {
       >
         {layout.length === 0 ? (
           <div className={styles.empty}>
-            <strong>Drop photos here</strong>
+            <strong>{t("Drop photos here")}</strong>
             <span>
-              Drop up to {photoLimit} images, or use Add photos to browse.
+              {formatMessage(
+                t,
+                "Drop up to {count} images, or use Add photos to browse.",
+                {
+                  count: photoLimit,
+                },
+              )}
             </span>
           </div>
         ) : (
@@ -876,7 +931,7 @@ export function PhotoMosaic() {
                 className={styles.matchedPreview}
                 width={previewSize.width}
                 height={previewSize.height}
-                aria-label="Color-matched mosaic preview"
+                aria-label={t("Color-matched mosaic preview")}
               />
             )}
             {layout
@@ -890,7 +945,11 @@ export function PhotoMosaic() {
                     type="button"
                     className={styles.tile}
                     aria-label={
-                      locked ? `${asset?.name} (locked)` : asset?.name
+                      asset && locked
+                        ? formatMessage(t, "{name} (locked)", {
+                            name: asset.name,
+                          })
+                        : asset?.name
                     }
                     aria-pressed={selected === cell.id}
                     data-locked={locked}
@@ -907,7 +966,7 @@ export function PhotoMosaic() {
                     <img src={asset?.url} alt="" draggable={false} />
                     {locked && (
                       <span className={styles.lock} aria-hidden="true">
-                        Locked
+                        {t("Locked")}
                       </span>
                     )}
                   </button>
@@ -923,7 +982,7 @@ export function PhotoMosaic() {
                     key={edge}
                     className={styles.handle}
                     data-axis={axis}
-                    aria-label={`Resize ${edge} edge`}
+                    aria-label={t(edgeLabels[edge])}
                     style={{
                       left: `${(100 * (axis === "x" ? position : active.x + active.width / 2)) / size.width}%`,
                       top: `${(100 * (axis === "y" ? position : active.y + active.height / 2)) / size.height}%`,
@@ -937,14 +996,21 @@ export function PhotoMosaic() {
         )}
         {dropActive && layout.length > 0 && (
           <div className={styles.dropOverlay} aria-hidden="true">
-            <span>Drop photos to add them</span>
+            <span>{t("Drop photos to add them")}</span>
           </div>
         )}
       </section>
       <div className={styles.inspector}>
         <span className={styles.stats}>
-          {size.width} × {size.height} px · {layout.length} photos ·{" "}
-          {pinned.size} locked
+          {size.width} × {size.height} px ·{" "}
+          {formatMessage(
+            t,
+            layout.length === 1 ? "{count} photo" : "{count} photos",
+            {
+              count: layout.length,
+            },
+          )}{" "}
+          · {formatMessage(t, "{count} locked", { count: pinned.size })}
         </span>
         {active && (
           <div className={styles.selection}>
@@ -959,26 +1025,26 @@ export function PhotoMosaic() {
                 if (next.has(active.id)) next.delete(active.id);
                 else next.add(active.id);
                 commit({ ...project, pinned: next });
-                setNotice("");
+                setNotice();
               }}
             >
-              {pinned.has(active.id) ? "Unlock photo" : "Lock photo"}
+              {t(pinned.has(active.id) ? "Unlock photo" : "Lock photo")}
             </button>
             <button
               type="button"
               disabled={blocked || pinned.has(active.id)}
               onClick={() => remove(active.id)}
             >
-              Remove
+              {t("Remove")}
             </button>
           </div>
         )}
       </div>
       {layout.length > 0 && (
         <p className={styles.hint}>
-          Drop files onto the canvas to add them. Drag a photo to move it, or
-          drag an edge handle to resize it. The other unlocked photos reflow
-          around it. Arrow keys work on focused photos and handles.
+          {t(
+            "Drop files onto the canvas to add them. Drag a photo to move it, or drag an edge handle to resize it. The other unlocked photos reflow around it. Arrow keys work on focused photos and handles.",
+          )}
         </p>
       )}
     </section>

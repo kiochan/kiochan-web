@@ -26,6 +26,9 @@ importers:
       '@kiochan/lab-cubism':
         specifier: workspace:*
         version: link:../../packages/lab-cubism
+      '@kiochan/lab-image-palette':
+        specifier: workspace:*
+        version: link:../../packages/lab-image-palette
       '@kiochan/lab-lattice':
         specifier: workspace:*
         version: link:../../packages/lab-lattice
@@ -142,6 +145,22 @@ importers:
         version: 5.9.3
 
   packages/lab-cubism:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-image-palette:
     dependencies:
       '@kiochan/lab-ui':
         specifier: workspace:*

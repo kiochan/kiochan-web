@@ -5,6 +5,7 @@
   "private": true,
   "exports": {
     ".": "./src/index.tsx",
+    "./localization": "./src/localization.ts",
     "./styles.module.css": "./src/styles.module.css",
     "./preview.module.css": "./src/preview.module.css"
   },

@@ -1,4 +1,5 @@
 "use client";
+import { defaultTranslate, type Translate } from "@kiochan/lab-ui/localization";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useRef, useState } from "react";
 import { inspectManifest, type ModelSummary } from "./manifest";
@@ -13,7 +14,11 @@ export type {
 } from "./viewer";
 export { Live2DViewer } from "./viewer";
 
-export function CubismWorkbench() {
+export function CubismWorkbench({
+  t = defaultTranslate,
+}: {
+  t?: Translate;
+} = {}) {
   const [summary, setSummary] = useState<ModelSummary | null>(null);
   const [error, setError] = useState("");
   const request = useRef(0);
@@ -21,7 +26,7 @@ export function CubismWorkbench() {
     <div className={styles.panel}>
       <div className={styles.body}>
         <h2 style={{ fontSize: "1.25rem", fontWeight: 500 }}>
-          Bring your own model manifest
+          {t("Bring your own model manifest")}
         </h2>
         <p
           style={{
@@ -30,12 +35,12 @@ export function CubismWorkbench() {
             color: "var(--kio-color-text-muted)",
           }}
         >
-          Inspect a local .model3.json file. This reads reference names only; it
-          does not upload files, fetch textures, execute scripts, or render a
-          model.
+          {t(
+            "Inspect the reference names in a local .model3.json file. Inspection takes place entirely in your browser.",
+          )}
         </p>
         <label className={styles.field}>
-          Model manifest
+          {t("Model manifest")}
           <input
             type="file"
             accept=".model3.json,.json,application/json"
@@ -48,14 +53,19 @@ export function CubismWorkbench() {
               try {
                 if (file.size > 1024 * 1024)
                   throw new Error("Choose a manifest smaller than 1 MB.");
-                const result = inspectManifest(await file.text());
+                const text = await file.text().catch(() => {
+                  throw new Error("Could not read the manifest.");
+                });
+                const result = inspectManifest(text);
                 if (currentRequest === request.current) setSummary(result);
               } catch (err) {
                 if (currentRequest === request.current)
                   setError(
-                    err instanceof Error
-                      ? err.message
-                      : "Could not read the manifest.",
+                    err instanceof SyntaxError
+                      ? "The manifest is not valid JSON."
+                      : err instanceof Error
+                        ? err.message
+                        : "Could not read the manifest.",
                   );
               }
             }}
@@ -63,20 +73,20 @@ export function CubismWorkbench() {
         </label>
         {error && (
           <p role="alert" className={styles.error}>
-            {error}
+            {t(error)}
           </p>
         )}
         {summary && (
           <div style={{ marginTop: "1.5rem", overflowWrap: "anywhere" }}>
-            <h3>Manifest references</h3>
+            <h3>{t("Manifest references")}</h3>
             <dl>
-              <dt>Model</dt>
+              <dt>{t("Model")}</dt>
               <dd>{summary.moc}</dd>
-              <dt>Textures</dt>
+              <dt>{t("Textures")}</dt>
               <dd>{summary.textures.length}</dd>
-              <dt>Motions</dt>
+              <dt>{t("Motions")}</dt>
               <dd>{summary.motions}</dd>
-              <dt>Expressions</dt>
+              <dt>{t("Expressions")}</dt>
               <dd>{summary.expressions}</dd>
             </dl>
             <ul>
@@ -88,9 +98,9 @@ export function CubismWorkbench() {
         )}
       </div>
       <p className={styles.status}>
-        Viewer integration is available in the package. Actual rendering
-        requires an authorized Cubism runtime adapter and model assets. This
-        website includes neither SDK binaries nor third-party models.
+        {t(
+          "The package includes viewer integration. Model rendering requires an authorized Cubism runtime adapter and your own authorized model assets.",
+        )}
       </p>
     </div>
   );

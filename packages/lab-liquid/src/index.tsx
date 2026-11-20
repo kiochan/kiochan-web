@@ -1,10 +1,19 @@
 "use client";
 import { pointerPosition, useCanvas } from "@kiochan/lab-ui";
+import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useRef, useState } from "react";
 import { HEIGHT, LIMIT, type Particle, pour, stepFluid, WIDTH } from "./fluid";
 
-export function LiquidPlayground() {
+export function LiquidPlayground({
+  t = defaultTranslate,
+}: {
+  t?: Translate;
+} = {}) {
   const particles = useRef<Particle[]>([]);
   const clock = useRef(0);
   const [running, setRunning] = useState(false);
@@ -42,7 +51,7 @@ export function LiquidPlayground() {
             setRunning(!running);
           }}
         >
-          {running ? "Pause" : "Start simulation"}
+          {t(running ? "Pause" : "Start simulation")}
         </button>
         <button
           type="button"
@@ -50,7 +59,7 @@ export function LiquidPlayground() {
           disabled={count >= LIMIT}
           onClick={() => add()}
         >
-          Add water
+          {t("Add water")}
         </button>
         <button
           type="button"
@@ -62,10 +71,10 @@ export function LiquidPlayground() {
             setRunning(false);
           }}
         >
-          Clear
+          {t("Clear")}
         </button>
         <label className={styles.field}>
-          Gravity: {gravity}
+          {formatMessage(t, "Gravity: {value}", { value: gravity })}
           <input
             type="range"
             min={-10}
@@ -80,18 +89,25 @@ export function LiquidPlayground() {
         width={WIDTH}
         height={HEIGHT}
         className={`${styles.canvas} ${styles.interactive}`}
-        aria-label="Particle fluid simulation. Use Add water or tap the canvas to pour."
+        aria-label={t(
+          "Particle fluid simulation. Use Add water or tap the canvas to pour.",
+        )}
         onPointerDown={(e) => {
           const p = pointerPosition(e);
           add(p.x, p.y);
         }}
       >
-        Your browser needs Canvas support to show this experiment.
+        {t("Your browser needs Canvas support to show this experiment.")}
       </canvas>
       <p className={styles.status} aria-live="polite">
-        {count} / {LIMIT} particles · {running ? "Running" : "Paused"}. Tap the
-        canvas to pour. This lightweight particle approximation explores
-        fluid-like behavior; it is not an engineering solver.
+        {formatMessage(t, "{count} / {limit} particles · {status}.", {
+          count,
+          limit: LIMIT,
+          status: t(running ? "Running" : "Paused"),
+        })}{" "}
+        {t(
+          "Tap the canvas to pour. This experiment uses a lightweight particle model to approximate fluid motion.",
+        )}
       </p>
     </div>
   );

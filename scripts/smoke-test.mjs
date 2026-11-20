@@ -32,6 +32,7 @@ async function verify() {
     ["/lab/texture-array/app", "Texture Array"],
     ["/lab/photo-mosaic", "Drop photos here"],
     ["/lab/photo-waterfall", "Canvas width (px)"],
+    ["/lab/image-palette", "Choose an image"],
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
@@ -116,6 +117,7 @@ async function verify() {
       );
     }
     if (path === "/sitemap.xml") {
+      assert.ok(body.includes("/lab/image-palette"));
       assert.ok(body.includes("/lab/photo-mosaic"));
       assert.ok(body.includes("/lab/photo-waterfall"));
       assert.ok(body.includes("/lab/texture-array"));
@@ -133,7 +135,7 @@ async function verify() {
           /<article\b[^>]*data-lab-card="([^"]+)"[^>]*>[\s\S]*?<\/article>/g,
         ),
       ];
-      assert.equal(cards.length, 8);
+      assert.equal(cards.length, 9);
       for (const [card, slug] of cards) {
         assert.ok(card.includes(`href="/lab/${slug}"`), slug);
         assert.match(card, /<svg\b/, slug);

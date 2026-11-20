@@ -1,5 +1,10 @@
 "use client";
 import { useCanvas } from "@kiochan/lab-ui";
+import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useRef, useState } from "react";
 import {
@@ -22,7 +27,14 @@ const keys: Record<string, Direction> = {
   a: "left",
   d: "right",
 };
-export function QuickSnake() {
+const directionLabels = {
+  up: "Move up",
+  left: "Move left",
+  down: "Move down",
+  right: "Move right",
+} satisfies Record<Direction, string>;
+
+export function QuickSnake({ t = defaultTranslate }: { t?: Translate } = {}) {
   const game = useRef<SnakeGame | null>(null);
   const pending = useRef<Direction | null>(null);
   const clock = useRef(0);
@@ -101,13 +113,16 @@ export function QuickSnake() {
     <div className={styles.panel}>
       <div className={styles.toolbar}>
         <button type="button" className={styles.button} onClick={toggle}>
-          {running ? "Pause" : "Start game"}
+          {t(running ? "Pause" : "Start game")}
         </button>
         <button type="button" className={styles.button} onClick={reset}>
-          Reset game
+          {t("Reset game")}
         </button>
         <span role="status">
-          {status} · Score: {score}
+          {formatMessage(t, "{status} · Score: {score}", {
+            status: t(status),
+            score,
+          })}
         </span>
       </div>
       <canvas
@@ -116,7 +131,9 @@ export function QuickSnake() {
         height={ROWS * CELL}
         className={styles.canvas}
         tabIndex={0}
-        aria-label="Snake game. Arrow keys or WASD to steer. Space to pause."
+        aria-label={t(
+          "Snake game. Arrow keys or WASD to steer. Space to pause.",
+        )}
         onKeyDown={(e) => {
           const direction = keys[e.key];
           if (direction) {
@@ -128,18 +145,18 @@ export function QuickSnake() {
           }
         }}
       >
-        Use a Canvas-capable browser to play Snake.
+        {t("Use a Canvas-capable browser to play Snake.")}
       </canvas>
       <fieldset
         className={styles.controls}
-        aria-label="Snake direction controls"
+        aria-label={t("Snake direction controls")}
       >
         {(["up", "left", "down", "right"] as const).map((direction) => (
           <button
             type="button"
             key={direction}
             className={styles.button}
-            aria-label={`Move ${direction}`}
+            aria-label={t(directionLabels[direction])}
             onClick={() => {
               pending.current ??= direction;
             }}
@@ -155,9 +172,9 @@ export function QuickSnake() {
         ))}
       </fieldset>
       <p className={styles.status}>
-        Start, then steer with the arrow keys, WASD, or the buttons. Eat the
-        round food. Avoid the walls and your own tail. Keys are captured only
-        while the board has focus.
+        {t(
+          "Start, then steer with the arrow keys, WASD, or the buttons. Eat the round food. Avoid the walls and your own tail. Keys are captured only while the board has focus.",
+        )}
       </p>
     </div>
   );

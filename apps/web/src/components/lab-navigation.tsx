@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Localized } from "@/components/language-provider";
+import { Localized, useLanguage } from "@/components/language-provider";
 import { experiments } from "@/content/lab";
 
 function Links() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   return (
-    <nav aria-label="Lab projects" className="space-y-1">
+    <nav aria-label={t("Lab projects")} className="space-y-1">
       {[
         { href: "/lab", name: "All experiments" },
         ...experiments.map((item) => ({
@@ -35,11 +36,14 @@ function Links() {
 }
 export function LabNavigation() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   return (
     <>
-      <aside className="hidden lg:block" aria-label="Lab sidebar">
+      <aside className="hidden lg:block" aria-label={t("Lab sidebar")}>
         <div className="sticky top-28">
-          <p className="eyebrow px-3 mb-5">Kiochan / Lab</p>
+          <p className="eyebrow px-3 mb-5">
+            Kiochan / <Localized text="Lab" />
+          </p>
           <Links />
           <p className="mt-8 px-3 text-xs leading-6 text-ink-muted">
             <Localized text="Small projects, one home." /> <br />

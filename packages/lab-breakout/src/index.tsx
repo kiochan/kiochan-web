@@ -1,5 +1,10 @@
 "use client";
 import { pointerPosition, useCanvas } from "@kiochan/lab-ui";
+import {
+  defaultTranslate,
+  formatMessage,
+  type Translate,
+} from "@kiochan/lab-ui/localization";
 import styles from "@kiochan/lab-ui/styles.module.css";
 import { useRef, useState } from "react";
 import {
@@ -20,7 +25,7 @@ function phaseLabel(phase: BreakoutGame["phase"]) {
       ? "Game over"
       : "Playing";
 }
-export function Breakout() {
+export function Breakout({ t = defaultTranslate }: { t?: Translate } = {}) {
   const game = useRef<BreakoutGame | null>(null);
   const held = useRef(0),
     clock = useRef(0);
@@ -83,13 +88,16 @@ export function Breakout() {
     <div className={styles.panel}>
       <div className={styles.toolbar}>
         <button type="button" className={styles.button} onClick={toggle}>
-          {running ? "Pause" : "Start game"}
+          {t(running ? "Pause" : "Start game")}
         </button>
         <button type="button" className={styles.button} onClick={reset}>
-          Reset game
+          {t("Reset game")}
         </button>
         <span role="status">
-          {hud.status} · Score: {hud.score} · Lives: {hud.lives}
+          {formatMessage(t, "{status} · Score: {score} · Lives: {lives}", {
+            ...hud,
+            status: t(hud.status),
+          })}
         </span>
       </div>
       <canvas
@@ -98,7 +106,9 @@ export function Breakout() {
         height={HEIGHT}
         className={`${styles.canvas} ${styles.interactive}`}
         tabIndex={0}
-        aria-label="Breakout game. Left and right arrows move the paddle. Space pauses."
+        aria-label={t(
+          "Breakout game. Left and right arrows move the paddle. Space pauses.",
+        )}
         onKeyDown={(e) => {
           if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
             e.preventDefault();
@@ -125,12 +135,12 @@ export function Breakout() {
           if (game.current) movePaddle(game.current, pointerPosition(e).x);
         }}
       >
-        Use a Canvas-capable browser to play Breakout.
+        {t("Use a Canvas-capable browser to play Breakout.")}
       </canvas>
       <p className={styles.status}>
-        Start, then move the paddle with your pointer, a finger, or the left and
-        right arrow keys. Clear all 28 bricks before losing three balls. Space
-        pauses while the board has focus.
+        {t(
+          "Start, then move the paddle with your pointer, a finger, or the left and right arrow keys. Clear all 28 bricks before losing three balls. Space pauses while the board has focus.",
+        )}
       </p>
     </div>
   );

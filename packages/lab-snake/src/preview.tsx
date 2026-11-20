@@ -1,8 +1,13 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
+import type { ReactNode } from "react";
 
 const columns = Array.from({ length: 12 }, (_, i) => 38 + i * 24);
 const rows = Array.from({ length: 7 }, (_, i) => 18 + i * 24);
-export function SnakePreview() {
+export function SnakePreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   return (
     <svg
       className={styles.scene}
@@ -35,7 +40,7 @@ export function SnakePreview() {
         className={`${styles.accent} ${styles.pulse} ${styles.motion}`}
       />
       <text x="30" y="190" className={styles.label}>
-        STEER / GROW / REPEAT
+        {renderLabel("STEER / GROW / REPEAT")}
       </text>
     </svg>
   );

@@ -1,7 +1,11 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
-import { useId } from "react";
+import { type ReactNode, useId } from "react";
 
-export function TextureArrayPreview() {
+export function TextureArrayPreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   const id = useId();
   return (
     <svg
@@ -31,7 +35,7 @@ export function TextureArrayPreview() {
         />
       </g>
       <text x="28" y="190" className={styles.label}>
-        IMAGE / ARRAY / SEAMLESS
+        {renderLabel("IMAGE / ARRAY / SEAMLESS")}
       </text>
     </svg>
   );

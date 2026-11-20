@@ -1,4 +1,5 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
+import type { ReactNode } from "react";
 
 const drops = Array.from({ length: 13 }, (_, i) => ({
   x: 72 + ((i * 37) % 218),
@@ -7,7 +8,11 @@ const drops = Array.from({ length: 13 }, (_, i) => ({
   opacity: 0.35 + (i % 3) * 0.2,
   delay: -i * 0.23,
 }));
-export function LiquidPreview() {
+export function LiquidPreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   return (
     <svg
       className={styles.scene}
@@ -40,7 +45,7 @@ export function LiquidPreview() {
         />
       ))}
       <text x="30" y="190" className={styles.label}>
-        POUR / GRAVITY / FLOW
+        {renderLabel("POUR / GRAVITY / FLOW")}
       </text>
     </svg>
   );

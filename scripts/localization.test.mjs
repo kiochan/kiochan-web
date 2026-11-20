@@ -8,7 +8,6 @@ import {
   home,
   notes,
   panelTools,
-  textureArrayChinese,
   translations,
 } from "../apps/web/src/content/site.ts";
 import {
@@ -17,21 +16,47 @@ import {
   textureFieldLabels,
 } from "../packages/lab-texture-array/src/localization.ts";
 
+const translatedLanguages = ["zh", "ja", "de"];
+const placeholders = (text) =>
+  [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
+
 test("every translated phrase has all three non-English variants", () => {
   for (const [source, variants] of Object.entries(translations)) {
-    for (const language of ["zh", "ja", "de"]) {
+    for (const language of translatedLanguages) {
       assert.ok(variants[language]?.trim(), `${language}: ${source}`);
+      assert.deepEqual(
+        placeholders(variants[language]),
+        placeholders(source),
+        `Placeholder mismatch (${language}): ${source}`,
+      );
     }
   }
 });
 
-test("texture editor Chinese covers controls, accessibility, errors and parameterized messages", async () => {
+test("texture editor translations cover controls, accessibility, errors and parameterized messages", async () => {
   const require = createRequire(
     new URL("../apps/web/package.json", import.meta.url),
   );
   const ts = require("typescript");
   const root = new URL("../packages/lab-texture-array/src/", import.meta.url);
-  const keys = new Set(textureFieldLabels);
+  const keys = new Set([...textureFieldLabels, "Loading texture editor"]);
+  function addMessage(node) {
+    if (!node) return;
+    if (ts.isStringLiteral(node) && /[A-Za-z]/.test(node.text))
+      keys.add(node.text);
+    if (ts.isConditionalExpression(node)) {
+      addMessage(node.whenTrue);
+      addMessage(node.whenFalse);
+    }
+    if (
+      ts.isBinaryExpression(node) &&
+      (node.operatorToken.kind === ts.SyntaxKind.BarBarToken ||
+        node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)
+    ) {
+      addMessage(node.left);
+      addMessage(node.right);
+    }
+  }
   for (const name of await readdir(root)) {
     if (!/\.(ts|tsx)$/.test(name) || name.endsWith(".d.ts")) continue;
     const source = ts.createSourceFile(
@@ -44,11 +69,9 @@ test("texture editor Chinese covers controls, accessibility, errors and paramete
     function visit(node) {
       if (
         ts.isNewExpression(node) &&
-        node.expression.getText(source) === "Error" &&
-        node.arguments?.[0] &&
-        ts.isStringLiteral(node.arguments[0])
+        node.expression.getText(source) === "Error"
       )
-        keys.add(node.arguments[0].text);
+        addMessage(node.arguments?.[0]);
       if (ts.isCallExpression(node)) {
         const callee = node.expression.getText(source);
         if (
@@ -57,12 +80,11 @@ test("texture editor Chinese covers controls, accessibility, errors and paramete
             "format",
             "formatTextureText",
             "onProgress",
+            "renderLabel",
             "setError",
           ].includes(callee)
         ) {
-          const value = node.arguments[0];
-          if (value && ts.isStringLiteral(value) && /[A-Za-z]/.test(value.text))
-            keys.add(value.text);
+          addMessage(node.arguments[0]);
         }
       }
       if (name === "index.tsx" && ts.isJsxText(node))
@@ -83,26 +105,16 @@ test("texture editor Chinese covers controls, accessibility, errors and paramete
     }
     visit(source);
   }
+  assert.ok(keys.size > 90);
   for (const key of keys)
     assert.ok(
-      textureArrayChinese[key]?.trim(),
+      Object.hasOwn(translations, key),
       `Missing texture translation: ${key}`,
     );
-  assert.ok(keys.size > 90);
-  for (const [english, chinese] of Object.entries(textureArrayChinese)) {
-    assert.match(chinese, /[\u3400-\u9fff]/, english);
-    const placeholders = (text) =>
-      [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
-    assert.deepEqual(
-      placeholders(english),
-      placeholders(chinese),
-      `Placeholder mismatch: ${english}`,
-    );
-  }
 });
 
 test("texture translations format live progress and stored history without modifying source text", () => {
-  const translate = (text) => textureArrayChinese[text] ?? text;
+  const translate = (text) => translations[text]?.zh ?? text;
   assert.equal(
     localizeTextureText("Import 3 image(s)", translate),
     "导入 3 张图片",
@@ -110,6 +122,20 @@ test("texture translations format live progress and stored history without modif
   assert.equal(
     localizeTextureText("Encoding export layer 2 of 12…", translate),
     "正在编码导出图层 2/12…",
+  );
+  assert.equal(
+    localizeTextureText(
+      "Encoding export layer 2 of 12…",
+      (text) => translations[text]?.ja ?? text,
+    ),
+    "書き出し用のレイヤーをエンコード中 (2/12)…",
+  );
+  assert.equal(
+    localizeTextureText(
+      "Encoding export layer 2 of 12…",
+      (text) => translations[text]?.de ?? text,
+    ),
+    "Ebene 2 von 12 für den Export wird codiert…",
   );
   assert.equal(
     localizeTextureText("Change horizontal spacing (%)", translate),
@@ -137,6 +163,20 @@ test("texture translations format live progress and stored history without modif
     localizeTextureText(history.label, translate),
     "更改纵向间距（%）",
   );
+  assert.equal(
+    localizeTextureText(
+      history.label,
+      (text) => translations[text]?.ja ?? text,
+    ),
+    "縦方向の間隔 (%)を変更",
+  );
+  assert.equal(
+    localizeTextureText(
+      history.label,
+      (text) => translations[text]?.de ?? text,
+    ),
+    "Vertikaler Abstand (%) ändern",
+  );
   assert.equal(history.label, "Change vertical spacing (%)");
 });
 
@@ -163,9 +203,15 @@ test("editorial cards and detail pages have complete translations", () => {
       ]),
     ]),
     ...experiments.flatMap((experiment) => [
+      experiment.name,
       experiment.description,
       experiment.category,
+      ...experiment.tags,
     ]),
+    "Lab sidebar",
+    "Lab projects",
+    "React · Local files",
+    "{count} of {total} experiments",
   ];
   for (const phrase of phrases) {
     if (phrase === "Live2D") continue;

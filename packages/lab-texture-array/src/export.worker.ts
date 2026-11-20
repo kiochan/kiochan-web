@@ -32,7 +32,10 @@ self.onmessage = (event: MessageEvent<ExportCommand>) => {
   } catch (error) {
     encoder = null;
     self.postMessage({
-      error: error instanceof Error ? error.message : "Image export failed.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Image encoder failed. Try a smaller output size.",
     } satisfies ExportReply);
   }
 };

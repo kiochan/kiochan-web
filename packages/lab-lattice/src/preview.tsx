@@ -1,6 +1,10 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
-import { useId } from "react";
-export function LatticePreview() {
+import { type ReactNode, useId } from "react";
+export function LatticePreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   const id = useId();
   return (
     <svg
@@ -38,7 +42,7 @@ export function LatticePreview() {
         />
       </g>
       <text x="28" y="190" className={styles.label}>
-        REPEAT / WEAVE / EXPORT
+        {renderLabel("REPEAT / WEAVE / EXPORT")}
       </text>
     </svg>
   );

@@ -199,254 +199,6 @@ export const notes = [
   },
 ] as const;
 
-export const textureArrayChinese: Record<string, string> = {
-  "Invalid project JSON. Choose a saved Texture Array project.":
-    "工程 JSON 无效，请选择已保存的 Texture Array 工程文件。",
-  "Unable to decode image. Choose a valid PNG, JPEG, or WebP image.":
-    "无法解码图片，请选择有效的 PNG、JPEG 或 WebP 图片。",
-  "3 × 3 check": "3 × 3 拼接检查",
-  "Export needs at least one layer.": "导出需要至少一个图层。",
-  "A pattern starts with an image.": "从一张图片开始创作。",
-  "A project supports up to 12 source images.": "每个工程最多支持 12 张原图。",
-  "Add PNG, JPEG, or WebP images above.":
-    "请在上方添加 PNG、JPEG 或 WebP 图片。",
-  "Replace image": "替换图片",
-  "Open workspace": "打开工作区",
-  "Back to overview": "返回介绍页",
-  "Saved in this browser": "已保存到此浏览器",
-  "Saving project…": "正在保存工程…",
-  "Restoring saved project…": "正在恢复已保存的工程…",
-  "The saved project could not be restored. Open a project, start a new one, or replace the saved copy.":
-    "无法恢复浏览器中保存的工程，请打开工程、新建工程或替换保存的副本。",
-  "Browser storage is unavailable or full. Download Save project to keep your work. Workspace navigation is paused until saving succeeds.":
-    "浏览器存储不可用或已满，请点击保存工程下载备份。保存成功前不会跳转到工作区，以免丢失修改。",
-  "Replace saved copy": "替换浏览器中的副本",
-  "Select all layers": "勾选全部图层",
-  "{count} checked": "已勾选 {count} 层",
-  "Select {name}": "勾选 {name}",
-  "Editing {count} layer(s)": "正在调整 {count} 个图层",
-  "Selected layers have different parameters. Confirm to synchronize them with the first checked layer: {name}.":
-    "所选图层的参数不一致。确认后将按照列表中第一个勾选图层 {name} 的参数同步。",
-  "Confirm and sync selected layers": "确认并同步所选图层",
-  "Selected layer parameters": "所选图层参数",
-  "Image actions affect the active layer. Parameters affect checked layers.":
-    "图片操作仅影响当前图层；参数调整影响勾选的图层。",
-  Layers: "图层",
-  "Layer settings": "图层设置",
-  "Parameter clipboard": "参数剪贴板",
-  "Array parameters": "排列参数",
-  "Select a layer to edit. Drop one image on a row to replace it.":
-    "选中图层后编辑参数，或将单张图片拖到对应行来替换图片。",
-  "Layer {number}": "图层 {number}",
-  "Hide {name}": "隐藏 {name}",
-  "Show {name}": "显示 {name}",
-  "Export size": "导出尺寸",
-  "Square side (px)": "正方形边长（像素）",
-  "Pixels · PSD / PNG ZIP": "像素 · PSD / PNG ZIP",
-  "Choose any whole-number side from 1 to 4096 px. Width and height stay equal.":
-    "可输入 1 至 4096 的任意整数，宽高保持一致。",
-  "Copy parameters": "复制参数",
-  "Paste parameters": "粘贴参数",
-  "Paste to all layers": "粘贴到全部图层",
-  "Paste layer parameters": "粘贴图层参数",
-  "Parameters copied from {name}.": "已复制图层 {name} 的参数。",
-  "Copy array settings, size, angles, offsets, opacity, and image scaling. Paste keeps each layer's image, name, visibility, and order.":
-    "复制排列、大小、角度、偏移、透明度和缩放采样设置。粘贴时保留各图层的图片、名称、可见性和顺序。",
-  "Import PSD": "导入 PSD",
-  "Choose PSD layers": "选择 PSD 图层",
-  "Selected layers become independent images. PSD group compositing, masks, effects, blend modes, and document positions are not reproduced.":
-    "所选图层将作为独立图片导入，不重现 PSD 组的合成效果、蒙版、特效、混合模式和文档中的位置。",
-  "Hidden layers can also be selected. Imported layers start visible.":
-    "也可以选择隐藏图层，导入后图层默认可见。",
-  "Select available": "选择可导入图层",
-  "Clear selection": "清空选择",
-  Hidden: "已隐藏",
-  "No importable pixels": "没有可导入的像素",
-  "Import selected layers": "导入所选图层",
-  "Cancel PSD import": "取消导入 PSD",
-  "Choose a PSD file of up to 70 MB.": "请选择不超过 70 MB 的 PSD 文件。",
-  "Choose a valid PSD file. PSB is not supported.":
-    "请选择有效的 PSD 文件，暂不支持 PSB。",
-  "PSD import supports 8-bit RGB documents only.":
-    "PSD 导入仅支持 8 位 RGB 文档。",
-  "PSD dimensions must be at most 8192px per side and 32 megapixels.":
-    "PSD 每边最多 8192 像素，总像素不超过 3200 万。",
-  "PSD import supports up to 256 layers and 32 nested groups.":
-    "PSD 最多支持 256 个图层和 32 层嵌套组。",
-  "This PSD has no importable pixel layers.": "此 PSD 中没有可导入的像素图层。",
-  "Select between 1 and 12 PSD layers.": "请选择 1 至 12 个 PSD 图层。",
-  "A selected PSD layer cannot be imported.": "所选 PSD 图层无法导入。",
-  "Unable to decode a selected PSD layer.": "无法解码所选 PSD 图层。",
-  "A selected PSD layer exceeds the 8 MB image limit.":
-    "所选 PSD 图层转换后超过单张图片 8 MB 的限制。",
-  "Open a PSD before selecting layers.": "请先打开 PSD 文件再选择图层。",
-  "Unable to read PSD layers.": "无法读取 PSD 图层。",
-  "PSD import timed out. Choose a smaller file.":
-    "PSD 导入超时，请选择更小的文件。",
-  "PSD import cancelled.": "PSD 导入已取消。",
-  "Drop one image to replace a layer. Drop multiple images outside the layer list to add them.":
-    "替换图层时请拖入一张图片。批量添加请将多张图片拖到图层列表以外的编辑区域。",
-  "Drop one image to replace this layer. Its name and settings stay unchanged.":
-    "松开以替换此图层的图片，保留图层名称和参数。",
-  "Drop images anywhere in the editor to add layers. Drop one image onto a layer to replace it.":
-    "将图片拖入编辑区域可批量添加图层；将单张图片拖到指定图层上可替换图片。",
-  "Layer name": "图层名称",
-  "Rename layer": "重命名图层",
-  "Add images": "添加图片",
-  "Array angle (°)": "阵列角度（°）",
-  "Cancel export": "取消导出",
-  "Change image scaling": "更改图像采样方式",
-  "Change output size": "更改输出尺寸",
-  "Change {setting}": "更改{setting}",
-  "Choose PNG, JPEG, or WebP images of up to 8 MB each.":
-    "请选择 PNG、JPEG 或 WebP 图片，每张不超过 8 MB。",
-  Columns: "列数",
-  "Diagonal 45°": "45° 斜排",
-  "Diagonal array preset": "应用斜排预设",
-  "Drag to pan · Arrow keys to move · Fit to reset":
-    "拖动平移 · 方向键移动 · 点击适应画布复位",
-  Duplicate: "复制",
-  "Duplicate image identifiers.": "原图标识重复。",
-  "Duplicate layer": "复制图层",
-  "Duplicate layer identifiers.": "图层标识重复。",
-  "Edit history": "操作历史",
-  "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. The project autosaves in this browser and is not uploaded. Download Save project for a portable backup.":
-    "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。工程会自动保存到此浏览器，不会上传。请下载保存工程文件作为可携带的备份。",
-  "Encoding export layer {current} of {total}…":
-    "正在编码导出图层 {current}/{total}…",
-  "Export layered PSD": "导出分层 PSD",
-  "Export PNG ZIP": "导出 PNG ZIP",
-  "Finishing image export…": "正在生成导出文件…",
-  Fit: "适应画布",
-  "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.":
-    "实际中心间距：横向占画布 {x}% · 纵向占画布 {y}%。均匀无缝排列会按可用的周期档位匹配间距。",
-  "GPU context lost during image export. Please try again after recovery.":
-    "图像导出期间 GPU 上下文丢失，请待恢复后重试。",
-  "GPU context lost. Your project is still available to save. Restore the context or reload your saved project.":
-    "GPU 上下文已丢失，工程仍可保存。请等待恢复，或重新载入已保存的工程。",
-  "GPU could not allocate the output canvas. Try a smaller resolution.":
-    "GPU 无法分配输出画布，请尝试较低分辨率。",
-  "GPU rendering failed during image export.": "图像导出期间 GPU 渲染失败。",
-  "GPU rendering failed. Try fewer images or a smaller output.":
-    "GPU 渲染失败，请减少图片数量或降低输出尺寸。",
-  "Grid array": "规则网格",
-  "Grid array preset": "应用网格预设",
-  "Half-drop array": "错行阵列",
-  "Half-drop array preset": "应用错行预设",
-  "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.":
-    "错行阵列将相邻行错开约半个单元，并匹配正方形边缘的无缝周期。",
-  Hide: "隐藏",
-  "Hide layer": "隐藏图层",
-  "Horizontal spacing (%)": "横向间距（%）",
-  "Image exceeds this GPU's {size}px texture limit.":
-    "图片超过此 GPU 的 {size} 像素纹理尺寸限制。",
-  "Image rotation (°)": "图片旋转（°）",
-  "Image scaling": "图像采样",
-  "Images are still loading. Please try again.": "图片仍在加载，请稍后重试。",
-  "Import {count} image(s)": "导入 {count} 张图片",
-  "Invalid export image dimensions or pixels.": "导出图像尺寸或像素数据无效。",
-  "Invalid image sampling mode.": "图像采样模式无效。",
-  "Invalid lattice settings.": "周期网格参数无效。",
-  "Invalid layer source.": "图层原图引用无效。",
-  "Invalid or oversized image source.": "原图数据无效或超过大小限制。",
-  "Invalid output resolution.": "输出分辨率无效。",
-  "Invalid project history.": "工程历史记录无效。",
-  "Invalid project setting.": "工程参数无效。",
-  "Invalid project structure.": "工程文件结构无效。",
-  "Invalid project text.": "工程文本字段无效。",
-  "LAYERS & ARRAY": "图层与阵列",
-  "Later layers draw on top. Size preserves the original aspect ratio.":
-    "靠后的图层显示在上方。调整大小时保留原图宽高比。",
-  "Loading texture editor": "正在加载贴图编辑器",
-  "Local images. Editable arrays. One seamless square.":
-    "本地图片，可编辑阵列，一张无缝正方形贴图。",
-  "Move down": "下移",
-  "Move layer down": "下移图层",
-  "Move layer up": "上移图层",
-  "Move up": "上移",
-  "New project": "新建工程",
-  "No images yet.": "尚未添加图片。",
-  "Offset X (%)": "横向偏移（%）",
-  "Offset Y (%)": "纵向偏移（%）",
-  "Opacity (%)": "不透明度（%）",
-  "Open project": "打开工程",
-  "Output resolution exceeds this GPU's limit.":
-    "输出分辨率超过此 GPU 的限制。",
-  "Output size": "输出尺寸",
-  "Periodic lattice enumeration failed.": "周期网格生成失败。",
-  "Pixel · Hard edges": "像素模式 · 保留硬边缘",
-  "Preparing export composite…": "正在准备导出合成图…",
-  "Processing local files…": "正在处理本地文件…",
-  "Project exceeds the 70 MB limit.": "工程文件超过 70 MB 限制。",
-  Redo: "重做",
-  Remove: "删除",
-  "Remove layer": "删除图层",
-  "Reset spacing": "重置间距",
-  "Row stagger (%)": "行错位（%）",
-  Rows: "行数",
-  "Save project": "保存工程",
-  "Shader linking failed.": "着色器链接失败。",
-  "Shader compilation failed.": "着色器编译失败。",
-  "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.":
-    "清晰模式兼顾细节与平滑边缘。像素模式保留硬像素边缘，缩小时可能产生锯齿。放大预览直接显示输出像素，不再额外柔化。",
-  "Sharp · Smooth edges": "清晰模式 · 平滑边缘",
-  Show: "显示",
-  "Show layer": "显示图层",
-  "Single tile": "单张贴图",
-  "Size (% of tile)": "大小（占画布 %）",
-  "Something went wrong.": "操作失败，请重试。",
-  "Source images exceed the project's 48 MB binary budget.":
-    "原图总大小超过工程约 48 MB 的限制。",
-  "Source images must be at most 8192px per side and 32 megapixels.":
-    "原图每边最多 8192 像素，总像素数最多 3200 万。",
-  "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.":
-    "间距沿旋转后的阵列两轴调整。100% 使用当前列数和行数的基准间距；数值越大，图案越疏，图片本身大小不变。",
-  "Square seamless texture preview": "正方形无缝贴图预览",
-  "TEXTURE ARRAY / SEAMLESS WORKSPACE": "纹理阵列 / 无缝贴图工作区",
-  "Image encoder failed. Try a smaller output size.":
-    "图像编码失败，请尝试较小的输出尺寸。",
-  "Export encoder has not started.": "图像编码器尚未启动。",
-  "Image encoder returned no file.": "图像编码器未生成文件。",
-  "Export exceeds the memory limit. Use a smaller output size.":
-    "导出超过内存限制，请减小输出尺寸。",
-  "Image export cancelled.": "已取消图像导出。",
-  "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers keep custom names. Save project keeps original images and editable array settings.":
-    "PSD 保留图层、透明度和可见性。PNG ZIP 包含各图层的透明 PNG、合成图和可见性清单。导出图层保留自定义名称。保存工程可保留原图和可编辑的阵列参数。",
-  "Export supports up to 12 layers.": "导出最多支持 12 个图层。",
-  "Texture Array editor": "纹理阵列编辑器",
-  "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.":
-    "贴图视口：拖动或使用方向键平移，加减键缩放，Home 键复位。",
-  "The density limit is active; both axes are adjusted proportionally.":
-    "已达到密度上限，两轴间距已按比例调整。",
-  "The outline is the finite preview area. 3 × 3 shows nine copies; export always saves one square tile. View movement never changes your design.":
-    "边框内是有限的预览区域。3 × 3 显示九份拼接副本，导出始终保存一张正方形贴图。移动视图不会改变设计。",
-  "Too many layers.": "图层数量超过限制。",
-  "Transparent motifs work especially well.": "使用透明背景图案效果更佳。",
-  "Unable to allocate GPU resources.": "无法分配 GPU 资源。",
-  "Unable to allocate image texture.": "无法分配图片纹理。",
-  "Unable to allocate lattice positions.": "无法分配阵列位置数据。",
-  "Unable to construct a bounded periodic lattice.": "无法生成有界的周期网格。",
-  "Unable to create shader program.": "无法创建着色器程序。",
-  "Unable to create shader.": "无法创建着色器。",
-  "Unable to read image encoder response.": "无法读取图像编码器响应。",
-  "Unable to read export pixels from the GPU.": "无法从 GPU 读取图像像素。",
-  "Unable to read image.": "无法读取图片。",
-  Undo: "撤销",
-  "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.":
-    "均匀周期：实际角度 {angle}° · 每张贴图 {count} 个图案。请求的角度和间距会匹配为均匀的正方形周期，因此实际角度与数量可能调整。图片自身旋转独立控制。",
-  "Unsupported texture project.": "不支持此贴图工程格式或版本。",
-  "Up to 12 layers per project. Remove a layer before importing more images.":
-    "每个工程最多 12 个图层，请删除图层后再导入图片。",
-  "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.":
-    "每个工程最多保留 12 张原图，包含撤销所需的原图。新建工程可清空原图。",
-  "Vertical spacing (%)": "纵向间距（%）",
-  "WebGL2 is unavailable. Enable hardware acceleration or use a WebGL2-capable browser.":
-    "WebGL2 不可用，请启用硬件加速或使用支持 WebGL2 的浏览器。",
-  "Zoom in": "放大",
-  "Zoom out": "缩小",
-  "{size} × {size} · PSD / PNG ZIP": "{size} × {size} · 分层 PSD / PNG ZIP",
-};
-
 export type Note = (typeof notes)[number];
 
 export function readingTime(note: Note) {
@@ -1094,6 +846,16 @@ export const translations: Record<
     ja: "実験を切り替える",
     de: "Experiment wechseln",
   },
+  "Lab projects": {
+    zh: "实验室项目",
+    ja: "ラボのプロジェクト",
+    de: "Laborprojekte",
+  },
+  "Lab sidebar": {
+    zh: "实验室侧栏",
+    ja: "ラボのサイドバー",
+    de: "Labor-Seitenleiste",
+  },
   "Open experiment": {
     zh: "打开实验",
     ja: "実験を開く",
@@ -1530,6 +1292,201 @@ export const translations: Record<
     ja: "写真コラージュ",
     de: "Fotocollagen",
   },
+  "Color design": {
+    zh: "色彩设计",
+    ja: "配色デザイン",
+    de: "Farbgestaltung",
+  },
+  "React · Local files": {
+    zh: "React · 本地文件",
+    ja: "React · ローカルファイル",
+    de: "React · Lokale Dateien",
+  },
+  "Image Palette": {
+    zh: "图片配色",
+    ja: "画像の配色",
+    de: "Bildpalette",
+  },
+  "Photo Waterfall": {
+    zh: "照片瀑布流",
+    ja: "写真の段組みコラージュ",
+    de: "Foto-Spaltencollage",
+  },
+  "Photo Mosaic": {
+    zh: "照片拼图",
+    ja: "写真モザイク",
+    de: "Fotomosaik",
+  },
+  "Texture Array": {
+    zh: "纹理阵列",
+    ja: "テクスチャ配列",
+    de: "Textur-Array",
+  },
+  "Liquid Playground": {
+    zh: "流体模拟",
+    ja: "流体シミュレーション",
+    de: "Flüssigkeitssimulation",
+  },
+  "Lattice Generator": {
+    zh: "格纹生成器",
+    ja: "チェック柄ジェネレーター",
+    de: "Karomuster-Generator",
+  },
+  "Cubism Workbench": {
+    zh: "Cubism 工作台",
+    ja: "Cubism ワークベンチ",
+    de: "Cubism-Werkbank",
+  },
+  Breakout: {
+    zh: "打砖块",
+    ja: "ブロック崩し",
+    de: "Breakout",
+  },
+  "Quick Snake": {
+    zh: "贪吃蛇",
+    ja: "スネーク",
+    de: "Quick Snake",
+  },
+  "AIM / BOUNCE / BREAK": {
+    zh: "瞄准 / 反弹 / 打砖块",
+    ja: "狙う / 跳ね返す / 壊す",
+    de: "ZIELEN / ABPRALLEN / TREFFEN",
+  },
+  "MODEL MANIFEST": {
+    zh: "模型清单",
+    ja: "モデルマニフェスト",
+    de: "MODELLMANIFEST",
+  },
+  TEXTURES: {
+    zh: "纹理",
+    ja: "テクスチャ",
+    de: "TEXTUREN",
+  },
+  MOTIONS: {
+    zh: "动作",
+    ja: "モーション",
+    de: "BEWEGUNGEN",
+  },
+  "MANIFEST ONLY / NO MODEL ASSETS": {
+    zh: "仅查看清单 / 不含模型资源",
+    ja: "マニフェストのみ / モデル素材なし",
+    de: "NUR MANIFEST / OHNE MODELLDATEIEN",
+  },
+  "REPEAT / WEAVE / EXPORT": {
+    zh: "重复 / 编织 / 导出",
+    ja: "繰り返す / 織る / 書き出す",
+    de: "WIEDERHOLEN / WEBEN / EXPORTIEREN",
+  },
+  "POUR / GRAVITY / FLOW": {
+    zh: "倾倒 / 重力 / 流动",
+    ja: "注ぐ / 重力 / 流れ",
+    de: "GIESSEN / SCHWERKRAFT / FLUSS",
+  },
+  "STEER / GROW / REPEAT": {
+    zh: "转向 / 吃食物 / 变长",
+    ja: "曲がる / 伸びる / 繰り返す",
+    de: "LENKEN / WACHSEN / WIEDERHOLEN",
+  },
+  "IMAGE / ARRAY / SEAMLESS": {
+    zh: "图片 / 阵列 / 无缝",
+    ja: "画像 / 配列 / シームレス",
+    de: "BILD / ARRAY / NAHTLOS",
+  },
+  "Extract several color palettes from one image and copy the HEX codes.": {
+    zh: "从一张图片提取多组配色，并直接复制 HEX 色值。",
+    ja: "1 枚の画像から複数の配色を抽出し、HEX コードをコピーできます。",
+    de: "Mehrere Farbpaletten aus einem Bild extrahieren und die HEX-Codes kopieren.",
+  },
+  "Loading image palette tool": {
+    zh: "正在加载图片配色工具",
+    ja: "画像の配色ツールを読み込み中",
+    de: "Werkzeug für Bildpaletten wird geladen",
+  },
+  "Choose an image": {
+    zh: "选择图片",
+    ja: "画像を選択",
+    de: "Bild auswählen",
+  },
+  "Replace image": {
+    zh: "替换图片",
+    ja: "画像を変更",
+    de: "Bild ersetzen",
+  },
+  "Source image": {
+    zh: "原图",
+    ja: "元の画像",
+    de: "Ausgangsbild",
+  },
+  "Drop or paste one image. It stays in your browser.": {
+    zh: "也可拖入或粘贴一张图片。图片仅在浏览器内处理。",
+    ja: "画像を 1 枚ドロップまたは貼り付けてください。処理はブラウザ内で行われます。",
+    de: "Ein Bild ablegen oder einfügen. Es bleibt im Browser.",
+  },
+  "Extracting colors…": {
+    zh: "正在提取颜色…",
+    ja: "色を抽出中…",
+    de: "Farben werden extrahiert…",
+  },
+  "This image could not be opened. Try a PNG, JPEG, or WebP.": {
+    zh: "无法打开这张图片。请尝试 PNG、JPEG 或 WebP。",
+    ja: "画像を開けませんでした。PNG、JPEG、WebP のいずれかをお試しください。",
+    de: "Das Bild konnte nicht geöffnet werden. Versuche es mit PNG, JPEG oder WebP.",
+  },
+  "This image has no visible colors.": {
+    zh: "这张图片没有可见颜色。",
+    ja: "この画像には表示できる色がありません。",
+    de: "Dieses Bild enthält keine sichtbaren Farben.",
+  },
+  "Extracted palettes": {
+    zh: "提取的配色",
+    ja: "抽出した配色",
+    de: "Extrahierte Farbpaletten",
+  },
+  "Dominant colors": {
+    zh: "主色",
+    ja: "主要色",
+    de: "Dominante Farben",
+  },
+  "Color accents": {
+    zh: "强调色",
+    ja: "アクセントカラー",
+    de: "Akzentfarben",
+  },
+  "Light tones": {
+    zh: "浅色",
+    ja: "明るい色",
+    de: "Helle Farbtöne",
+  },
+  "Deep tones": {
+    zh: "深色",
+    ja: "深い色",
+    de: "Dunkle Farbtöne",
+  },
+  "Copy palette": {
+    zh: "复制整组",
+    ja: "配色をコピー",
+    de: "Palette kopieren",
+  },
+  "Copy color": {
+    zh: "复制色值",
+    ja: "色をコピー",
+    de: "Farbe kopieren",
+  },
+  Copied: {
+    zh: "已复制",
+    ja: "コピー済み",
+    de: "Kopiert",
+  },
+  "Copied to clipboard": {
+    zh: "已复制到剪贴板",
+    ja: "クリップボードにコピーしました",
+    de: "In die Zwischenablage kopiert",
+  },
+  "Clipboard unavailable. Select a HEX code to copy it manually.": {
+    zh: "无法访问剪贴板，请选中 HEX 色值并手动复制。",
+    ja: "クリップボードを利用できません。HEX コードを選択して手動でコピーしてください。",
+    de: "Die Zwischenablage ist nicht verfügbar. Wähle einen HEX-Code aus und kopiere ihn manuell.",
+  },
   "Pattern design": {
     zh: "图案设计",
     ja: "パターンデザイン",
@@ -1624,4 +1581,1876 @@ export const translations: Record<
       ja: "現在公開中のビルドです。インストール前に検証状況をご確認ください。",
       de: "Der aktuell veröffentlichte Build. Vor der Installation bitte die Prüfhinweise lesen.",
     },
+  "Invalid project JSON. Choose a saved Texture Array project.": {
+    zh: "工程 JSON 无效，请选择已保存的 Texture Array 工程文件。",
+    ja: "プロジェクトの JSON が無効です。保存済みのテクスチャ配列プロジェクトを選択してください。",
+    de: "Ungültiges Projekt-JSON. Wähle ein gespeichertes Texture-Array-Projekt.",
+  },
+  "Unable to decode image. Choose a valid PNG, JPEG, or WebP image.": {
+    zh: "无法解码图片，请选择有效的 PNG、JPEG 或 WebP 图片。",
+    ja: "画像を読み込めません。正しい PNG、JPEG、WebP 画像を選択してください。",
+    de: "Das Bild konnte nicht decodiert werden. Wähle ein gültiges PNG-, JPEG- oder WebP-Bild.",
+  },
+  "3 × 3 check": {
+    zh: "3 × 3 拼接检查",
+    ja: "3 × 3 で確認",
+    de: "3 × 3 prüfen",
+  },
+  "A pattern starts with an image.": {
+    zh: "从一张图片开始创作。",
+    ja: "まず画像を追加してください。",
+    de: "Ein Muster beginnt mit einem Bild.",
+  },
+  "A project supports up to 12 source images.": {
+    zh: "每个工程最多支持 12 张原图。",
+    ja: "1 つのプロジェクトに元画像を 12 枚まで追加できます。",
+    de: "Ein Projekt unterstützt bis zu 12 Quellbilder.",
+  },
+  "Add PNG, JPEG, or WebP images above.": {
+    zh: "请在上方添加 PNG、JPEG 或 WebP 图片。",
+    ja: "上のボタンから PNG、JPEG、WebP 画像を追加してください。",
+    de: "Füge oben PNG-, JPEG- oder WebP-Bilder hinzu.",
+  },
+  "Add images": {
+    zh: "添加图片",
+    ja: "画像を追加",
+    de: "Bilder hinzufügen",
+  },
+  "Array angle (°)": {
+    zh: "阵列角度（°）",
+    ja: "配列の角度 (°)",
+    de: "Winkel der Anordnung (°)",
+  },
+  "Cancel export": {
+    zh: "取消导出",
+    ja: "書き出しをキャンセル",
+    de: "Export abbrechen",
+  },
+  "Change image scaling": {
+    zh: "更改图像采样方式",
+    ja: "画像の拡大・縮小方式を変更",
+    de: "Skalierungsmodus ändern",
+  },
+  "Change output size": {
+    zh: "更改输出尺寸",
+    ja: "出力サイズを変更",
+    de: "Ausgabegröße ändern",
+  },
+  "Change {setting}": {
+    zh: "更改{setting}",
+    ja: "{setting}を変更",
+    de: "{setting} ändern",
+  },
+  "Choose PNG, JPEG, or WebP images of up to 8 MB each.": {
+    zh: "请选择 PNG、JPEG 或 WebP 图片，每张不超过 8 MB。",
+    ja: "1 枚あたり 8 MB 以下の PNG、JPEG、WebP 画像を選択してください。",
+    de: "Wähle PNG-, JPEG- oder WebP-Bilder mit jeweils höchstens 8 MB.",
+  },
+  Columns: {
+    zh: "列数",
+    ja: "列数",
+    de: "Spalten",
+  },
+  "Diagonal 45°": {
+    zh: "45° 斜排",
+    ja: "斜め 45°",
+    de: "Diagonal 45°",
+  },
+  "Diagonal array preset": {
+    zh: "应用斜排预设",
+    ja: "斜めのプリセットを適用",
+    de: "Diagonales Raster anwenden",
+  },
+  "Drag to pan · Arrow keys to move · Fit to reset": {
+    zh: "拖动平移 · 方向键移动 · 点击适应画布复位",
+    ja: "ドラッグまたは矢印キーで移動 · 全体表示でリセット",
+    de: "Ziehen oder Pfeiltasten zum Verschieben · Einpassen setzt die Ansicht zurück",
+  },
+  Duplicate: {
+    zh: "复制",
+    ja: "複製",
+    de: "Duplizieren",
+  },
+  "Duplicate image identifiers.": {
+    zh: "原图标识重复。",
+    ja: "元画像の ID が重複しています。",
+    de: "Quellbild-IDs sind doppelt vorhanden.",
+  },
+  "Duplicate layer": {
+    zh: "复制图层",
+    ja: "レイヤーを複製",
+    de: "Ebene duplizieren",
+  },
+  "Duplicate layer identifiers.": {
+    zh: "图层标识重复。",
+    ja: "レイヤーの ID が重複しています。",
+    de: "Ebenen-IDs sind doppelt vorhanden.",
+  },
+  "Edit history": {
+    zh: "操作历史",
+    ja: "編集履歴",
+    de: "Bearbeitungsverlauf",
+  },
+  Fit: {
+    zh: "适应画布",
+    ja: "全体表示",
+    de: "Einpassen",
+  },
+  "Fitted center spacing: X {x}% · Y {y}% of tile. Uniform seamless repeats use discrete spacing steps.":
+    {
+      zh: "实际中心间距：横向占画布 {x}% · 纵向占画布 {y}%。均匀无缝排列会按可用的周期档位匹配间距。",
+      ja: "調整後の中心間隔はタイルに対して X {x}%、Y {y}% です。均一で継ぎ目のない繰り返しに合わせ、間隔は段階的に調整されます。",
+      de: "Angepasster Abstand zwischen den Mittelpunkten, bezogen auf die Kachel: X {x} % · Y {y} %. Für eine gleichmäßige, nahtlose Wiederholung wird der Abstand stufenweise angepasst.",
+    },
+  "GPU context lost. Your project is still available to save. Restore the context or reload your saved project.":
+    {
+      zh: "GPU 上下文已丢失，工程仍可保存。请等待恢复，或重新载入已保存的工程。",
+      ja: "GPU コンテキストが失われました。プロジェクトは引き続き保存できます。復旧を待つか、保存済みのプロジェクトを開き直してください。",
+      de: "Der GPU-Kontext ist verloren gegangen. Du kannst dein Projekt weiterhin speichern. Warte auf die Wiederherstellung oder öffne das gespeicherte Projekt erneut.",
+    },
+  "GPU could not allocate the output canvas. Try a smaller resolution.": {
+    zh: "GPU 无法分配输出画布，请尝试较低分辨率。",
+    ja: "GPU が出力キャンバスのメモリを確保できませんでした。解像度を下げてください。",
+    de: "Die GPU konnte keinen Speicher für die Ausgabezeichenfläche reservieren. Versuche es mit einer kleineren Auflösung.",
+  },
+  "GPU rendering failed. Try fewer images or a smaller output.": {
+    zh: "GPU 渲染失败，请减少图片数量或降低输出尺寸。",
+    ja: "GPU の描画に失敗しました。画像を減らすか、出力サイズを小さくしてください。",
+    de: "Das Rendern auf der GPU ist fehlgeschlagen. Versuche es mit weniger Bildern oder einer kleineren Ausgabegröße.",
+  },
+  "Grid array": {
+    zh: "规则网格",
+    ja: "格子状",
+    de: "Gleichmäßiges Raster",
+  },
+  "Grid array preset": {
+    zh: "应用网格预设",
+    ja: "格子状のプリセットを適用",
+    de: "Gleichmäßiges Raster anwenden",
+  },
+  "Half-drop array": {
+    zh: "错行阵列",
+    ja: "半分ずらし",
+    de: "Halbversatz",
+  },
+  "Half-drop array preset": {
+    zh: "应用错行预设",
+    ja: "半分ずらしのプリセットを適用",
+    de: "Raster mit Halbversatz anwenden",
+  },
+  "Half-drop shifts neighboring rows by about half a cell. The repeat is fitted to the square edges.":
+    {
+      zh: "错行阵列将相邻行错开约半个单元，并匹配正方形边缘的无缝周期。",
+      ja: "半分ずらしでは、隣り合う行を約半マスずらします。正方形の端で柄がつながるように調整します。",
+      de: "Beim Halbversatz sind benachbarte Zeilen um etwa eine halbe Zelle versetzt. Das Muster wird so angepasst, dass es an den Kachelrändern nahtlos anschließt.",
+    },
+  Hide: {
+    zh: "隐藏",
+    ja: "非表示",
+    de: "Ausblenden",
+  },
+  "Hide layer": {
+    zh: "隐藏图层",
+    ja: "レイヤーを非表示",
+    de: "Ebene ausblenden",
+  },
+  "Horizontal spacing (%)": {
+    zh: "横向间距（%）",
+    ja: "横方向の間隔 (%)",
+    de: "Horizontaler Abstand (%)",
+  },
+  "Image exceeds this GPU's {size}px texture limit.": {
+    zh: "图片超过此 GPU 的 {size} 像素纹理尺寸限制。",
+    ja: "画像がこの GPU のテクスチャサイズ上限 ({size} px) を超えています。",
+    de: "Das Bild überschreitet die maximale Texturgröße dieser GPU von {size} px.",
+  },
+  "Image rotation (°)": {
+    zh: "图片旋转（°）",
+    ja: "画像の回転 (°)",
+    de: "Bilddrehung (°)",
+  },
+  "Image scaling": {
+    zh: "图像采样",
+    ja: "画像の拡大・縮小方式",
+    de: "Bildskalierung",
+  },
+  "Images are still loading. Please try again.": {
+    zh: "图片仍在加载，请稍后重试。",
+    ja: "画像を読み込み中です。しばらくしてから再試行してください。",
+    de: "Die Bilder werden noch geladen. Versuche es gleich noch einmal.",
+  },
+  "Import {count} image(s)": {
+    zh: "导入 {count} 张图片",
+    ja: "画像を {count} 枚読み込む",
+    de: "Bilder importieren ({count})",
+  },
+  "Invalid image sampling mode.": {
+    zh: "图像采样模式无效。",
+    ja: "画像のサンプリング方式が無効です。",
+    de: "Die Methode zur Bildabtastung ist ungültig.",
+  },
+  "Invalid lattice settings.": {
+    zh: "周期网格参数无效。",
+    ja: "格子の設定が無効です。",
+    de: "Die Rastereinstellungen sind ungültig.",
+  },
+  "Invalid layer source.": {
+    zh: "图层原图引用无效。",
+    ja: "レイヤーが参照する元画像が無効です。",
+    de: "Das Quellbild der Ebene ist ungültig.",
+  },
+  "Invalid or oversized image source.": {
+    zh: "原图数据无效或超过大小限制。",
+    ja: "元画像が無効か、サイズ上限を超えています。",
+    de: "Das Quellbild ist ungültig oder zu groß.",
+  },
+  "Invalid output resolution.": {
+    zh: "输出分辨率无效。",
+    ja: "出力解像度が無効です。",
+    de: "Die Ausgabeauflösung ist ungültig.",
+  },
+  "Invalid project history.": {
+    zh: "工程历史记录无效。",
+    ja: "プロジェクトの履歴が無効です。",
+    de: "Der Projektverlauf ist ungültig.",
+  },
+  "Invalid project setting.": {
+    zh: "工程参数无效。",
+    ja: "プロジェクトの設定が無効です。",
+    de: "Eine Projekteinstellung ist ungültig.",
+  },
+  "Invalid project structure.": {
+    zh: "工程文件结构无效。",
+    ja: "プロジェクトの構造が無効です。",
+    de: "Die Projektstruktur ist ungültig.",
+  },
+  "Invalid project text.": {
+    zh: "工程文本字段无效。",
+    ja: "プロジェクトのテキスト項目が無効です。",
+    de: "Ein Textfeld im Projekt ist ungültig.",
+  },
+  "LAYERS & ARRAY": {
+    zh: "图层与阵列",
+    ja: "レイヤーと配列",
+    de: "EBENEN UND ANORDNUNG",
+  },
+  "Later layers draw on top. Size preserves the original aspect ratio.": {
+    zh: "靠后的图层显示在上方。调整大小时保留原图宽高比。",
+    ja: "一覧の後ろにあるレイヤーほど手前に描画されます。サイズを変更しても元画像の縦横比は変わりません。",
+    de: "Spätere Ebenen werden über früheren gezeichnet. Beim Skalieren bleibt das ursprüngliche Seitenverhältnis erhalten.",
+  },
+  "Loading texture editor": {
+    zh: "正在加载贴图编辑器",
+    ja: "テクスチャエディターを読み込み中",
+    de: "Textur-Editor wird geladen",
+  },
+  "Local images. Editable arrays. One seamless square.": {
+    zh: "本地图片，可编辑阵列，一张无缝正方形贴图。",
+    ja: "ローカル画像を並べて、継ぎ目のない正方形のテクスチャを作れます。",
+    de: "Ordne lokale Bilder zu einer nahtlosen quadratischen Textur an.",
+  },
+  "Move down": {
+    zh: "下移",
+    ja: "下へ移動",
+    de: "Nach unten",
+  },
+  "Move layer down": {
+    zh: "下移图层",
+    ja: "レイヤーを下へ移動",
+    de: "Ebene nach unten verschieben",
+  },
+  "Move layer up": {
+    zh: "上移图层",
+    ja: "レイヤーを上へ移動",
+    de: "Ebene nach oben verschieben",
+  },
+  "Move up": {
+    zh: "上移",
+    ja: "上へ移動",
+    de: "Nach oben",
+  },
+  "New project": {
+    zh: "新建工程",
+    ja: "新規プロジェクト",
+    de: "Neues Projekt",
+  },
+  "No images yet.": {
+    zh: "尚未添加图片。",
+    ja: "画像がまだありません。",
+    de: "Noch keine Bilder vorhanden.",
+  },
+  "Offset X (%)": {
+    zh: "横向偏移（%）",
+    ja: "X 方向のずれ (%)",
+    de: "X-Versatz (%)",
+  },
+  "Offset Y (%)": {
+    zh: "纵向偏移（%）",
+    ja: "Y 方向のずれ (%)",
+    de: "Y-Versatz (%)",
+  },
+  "Opacity (%)": {
+    zh: "不透明度（%）",
+    ja: "不透明度 (%)",
+    de: "Deckkraft (%)",
+  },
+  "Open project": {
+    zh: "打开工程",
+    ja: "プロジェクトを開く",
+    de: "Projekt öffnen",
+  },
+  "Output resolution exceeds this GPU's limit.": {
+    zh: "输出分辨率超过此 GPU 的限制。",
+    ja: "出力解像度がこの GPU の上限を超えています。",
+    de: "Die Ausgabeauflösung überschreitet das Limit dieser GPU.",
+  },
+  "Output size": {
+    zh: "输出尺寸",
+    ja: "出力サイズ",
+    de: "Ausgabegröße",
+  },
+  "Periodic lattice enumeration failed.": {
+    zh: "周期网格生成失败。",
+    ja: "周期格子の座標を列挙できませんでした。",
+    de: "Die Punkte des periodischen Rasters konnten nicht ermittelt werden.",
+  },
+  "Pixel · Hard edges": {
+    zh: "像素模式 · 保留硬边缘",
+    ja: "ピクセル · くっきりした輪郭",
+    de: "Pixel · Harte Kanten",
+  },
+  "Processing local files…": {
+    zh: "正在处理本地文件…",
+    ja: "ローカルファイルを処理中…",
+    de: "Lokale Dateien werden verarbeitet…",
+  },
+  "Project exceeds the 70 MB limit.": {
+    zh: "工程文件超过 70 MB 限制。",
+    ja: "プロジェクトが 70 MB の上限を超えています。",
+    de: "Das Projekt überschreitet das Limit von 70 MB.",
+  },
+  Redo: {
+    zh: "重做",
+    ja: "やり直す",
+    de: "Wiederholen",
+  },
+  Remove: {
+    zh: "删除",
+    ja: "削除",
+    de: "Entfernen",
+  },
+  "Remove layer": {
+    zh: "删除图层",
+    ja: "レイヤーを削除",
+    de: "Ebene entfernen",
+  },
+  "Reset spacing": {
+    zh: "重置间距",
+    ja: "間隔をリセット",
+    de: "Abstände zurücksetzen",
+  },
+  "Row stagger (%)": {
+    zh: "行错位（%）",
+    ja: "行のずれ (%)",
+    de: "Zeilenversatz (%)",
+  },
+  Rows: {
+    zh: "行数",
+    ja: "行数",
+    de: "Zeilen",
+  },
+  "Save project": {
+    zh: "保存工程",
+    ja: "プロジェクトを保存",
+    de: "Projekt speichern",
+  },
+  "Shader linking failed.": {
+    zh: "着色器链接失败。",
+    ja: "シェーダーのリンクに失敗しました。",
+    de: "Das Verknüpfen der Shader ist fehlgeschlagen.",
+  },
+  "Shader compilation failed.": {
+    zh: "着色器编译失败。",
+    ja: "シェーダーのコンパイルに失敗しました。",
+    de: "Das Kompilieren des Shaders ist fehlgeschlagen.",
+  },
+  "Sharp balances detail and smooth edges. Pixel preserves hard pixels and may alias when reduced. Zoom reveals output pixels without extra smoothing.":
+    {
+      zh: "清晰模式兼顾细节与平滑边缘。像素模式保留硬像素边缘，缩小时可能产生锯齿。放大预览直接显示输出像素，不再额外柔化。",
+      ja: "シャープは細部を保ちながら輪郭をなめらかにします。ピクセルはくっきりした輪郭を保ちますが、縮小時にジャギーが出ることがあります。拡大表示では出力ピクセルがそのまま表示されます。",
+      de: "Scharf erhält Details und glättet Kanten. Pixel erhält harte Kanten und kann beim Verkleinern Treppeneffekte erzeugen. Beim Zoomen werden die Ausgabepixel ohne zusätzliche Glättung gezeigt.",
+    },
+  "Sharp · Smooth edges": {
+    zh: "清晰模式 · 平滑边缘",
+    ja: "シャープ · なめらかな輪郭",
+    de: "Scharf · Glatte Kanten",
+  },
+  Show: {
+    zh: "显示",
+    ja: "表示",
+    de: "Einblenden",
+  },
+  "Show layer": {
+    zh: "显示图层",
+    ja: "レイヤーを表示",
+    de: "Ebene einblenden",
+  },
+  "Single tile": {
+    zh: "单张贴图",
+    ja: "タイル 1 枚",
+    de: "Einzelne Kachel",
+  },
+  "Size (% of tile)": {
+    zh: "大小（占画布 %）",
+    ja: "サイズ (タイルに対する %)",
+    de: "Größe (% der Kachel)",
+  },
+  "Something went wrong.": {
+    zh: "操作失败，请重试。",
+    ja: "問題が発生しました。",
+    de: "Ein Fehler ist aufgetreten.",
+  },
+  "Source images exceed the project's 48 MB binary budget.": {
+    zh: "原图总大小超过工程约 48 MB 的限制。",
+    ja: "元画像の合計サイズがプロジェクトの上限 (48 MB) を超えています。",
+    de: "Die Quellbilder überschreiten zusammen das Projektlimit von 48 MB.",
+  },
+  "Source images must be at most 8192px per side and 32 megapixels.": {
+    zh: "原图每边最多 8192 像素，总像素数最多 3200 万。",
+    ja: "元画像は各辺 8192 px 以下、合計 3200 万画素以下にしてください。",
+    de: "Quellbilder dürfen höchstens 8192 px pro Seite und 32 Megapixel haben.",
+  },
+  "Spacing follows the rotated array axes. 100% uses the Columns and Rows baseline; higher values spread motifs apart without resizing the images.":
+    {
+      zh: "间距沿旋转后的阵列两轴调整。100% 使用当前列数和行数的基准间距；数值越大，图案越疏，图片本身大小不变。",
+      ja: "間隔は回転後の配列の軸に沿って調整されます。100% は列数と行数で決まる基準の間隔です。値を上げると画像のサイズを保ったまま柄の間隔が広がります。",
+      de: "Die Abstände folgen den gedrehten Achsen der Anordnung. Bei 100 % bestimmen die Spalten und Zeilen den Grundabstand. Höhere Werte vergrößern den Abstand der Motive bei gleichbleibender Bildgröße.",
+    },
+  "Square seamless texture preview": {
+    zh: "正方形无缝贴图预览",
+    ja: "継ぎ目のない正方形テクスチャのプレビュー",
+    de: "Vorschau der nahtlosen quadratischen Textur",
+  },
+  "TEXTURE ARRAY / SEAMLESS WORKSPACE": {
+    zh: "纹理阵列 / 无缝贴图工作区",
+    ja: "テクスチャ配列 / シームレス編集",
+    de: "TEXTURANORDNUNG / NAHTLOSE MUSTER",
+  },
+  "Texture Array editor": {
+    zh: "纹理阵列编辑器",
+    ja: "テクスチャ配列エディター",
+    de: "Editor für Texturanordnungen",
+  },
+  "Texture viewport. Drag to pan, or use arrow keys. Plus and minus zoom. Home resets the view.":
+    {
+      zh: "贴图视口：拖动或使用方向键平移，加减键缩放，Home 键复位。",
+      ja: "テクスチャの表示領域。ドラッグまたは矢印キーで移動し、プラスキーとマイナスキーで拡大・縮小します。Home キーで表示をリセットします。",
+      de: "Texturansicht. Verschiebe die Ansicht durch Ziehen oder mit den Pfeiltasten. Plus und Minus ändern den Zoom. Pos1 setzt die Ansicht zurück.",
+    },
+  "The density limit is active; both axes are adjusted proportionally.": {
+    zh: "已达到密度上限，两轴间距已按比例调整。",
+    ja: "密度の上限に達したため、両方の軸で間隔を同じ比率で調整しています。",
+    de: "Das Dichtelimit wurde erreicht. Die Abstände beider Achsen werden proportional angepasst.",
+  },
+  "The outline is the finite preview area. 3 × 3 shows nine copies; export always saves one square tile. View movement never changes your design.":
+    {
+      zh: "边框内是有限的预览区域。3 × 3 显示九份拼接副本，导出始终保存一张正方形贴图。移动视图不会改变设计。",
+      ja: "枠内がプレビューの範囲です。3 × 3 ではタイルを 9 枚表示します。書き出されるのは正方形のタイル 1 枚です。プレビューを移動してもデザインは変わりません。",
+      de: "Der Rahmen begrenzt die Vorschau. 3 × 3 zeigt neun Kopien der Kachel. Der Export speichert stets eine quadratische Kachel. Das Verschieben der Ansicht ändert das Muster nicht.",
+    },
+  "Too many layers.": {
+    zh: "图层数量超过限制。",
+    ja: "レイヤー数が上限を超えています。",
+    de: "Zu viele Ebenen.",
+  },
+  "Transparent motifs work especially well.": {
+    zh: "使用透明背景图案效果更佳。",
+    ja: "背景が透明な画像が特に適しています。",
+    de: "Motive mit transparentem Hintergrund eignen sich besonders gut.",
+  },
+  "Unable to allocate GPU resources.": {
+    zh: "无法分配 GPU 资源。",
+    ja: "GPU リソースを確保できませんでした。",
+    de: "GPU-Ressourcen konnten nicht reserviert werden.",
+  },
+  "Unable to allocate image texture.": {
+    zh: "无法分配图片纹理。",
+    ja: "画像テクスチャのメモリを確保できませんでした。",
+    de: "Für die Bildtextur konnte kein Speicher reserviert werden.",
+  },
+  "Unable to allocate lattice positions.": {
+    zh: "无法分配阵列位置数据。",
+    ja: "格子座標のメモリを確保できませんでした。",
+    de: "Für die Rasterkoordinaten konnte kein Speicher reserviert werden.",
+  },
+  "Unable to construct a bounded periodic lattice.": {
+    zh: "无法生成有界的周期网格。",
+    ja: "範囲内に収まる周期格子を作成できませんでした。",
+    de: "Das begrenzte periodische Raster konnte nicht erstellt werden.",
+  },
+  "Unable to create shader program.": {
+    zh: "无法创建着色器程序。",
+    ja: "シェーダープログラムを作成できませんでした。",
+    de: "Das Shaderprogramm konnte nicht erstellt werden.",
+  },
+  "Unable to create shader.": {
+    zh: "无法创建着色器。",
+    ja: "シェーダーを作成できませんでした。",
+    de: "Der Shader konnte nicht erstellt werden.",
+  },
+  "Unable to read image.": {
+    zh: "无法读取图片。",
+    ja: "画像を読み込めませんでした。",
+    de: "Das Bild konnte nicht gelesen werden.",
+  },
+  Undo: {
+    zh: "撤销",
+    ja: "元に戻す",
+    de: "Rückgängig",
+  },
+  "Uniform repeat: {angle}° · {count} motifs per tile. The requested angle and spacing are matched to a uniform square repeat, so the actual angle and count may adjust. Image rotation stays independent.":
+    {
+      zh: "均匀周期：实际角度 {angle}° · 每张贴图 {count} 个图案。请求的角度和间距会匹配为均匀的正方形周期，因此实际角度与数量可能调整。图片自身旋转独立控制。",
+      ja: "均一な繰り返し: {angle}° · タイルあたり {count} 個の柄。角度と間隔は正方形のタイルで均一に繰り返すように調整されるため、実際の角度と柄の数が変わることがあります。個々の画像の回転は別に調整できます。",
+      de: "Gleichmäßige Wiederholung: {angle}° · {count} Motive pro Kachel. Winkel und Abstand werden an die gleichmäßige Wiederholung der quadratischen Kachel angepasst. Der tatsächliche Winkel und die Anzahl können sich dadurch ändern. Die einzelnen Bilder lassen sich unabhängig davon drehen.",
+    },
+  "Unsupported texture project.": {
+    zh: "不支持此贴图工程格式或版本。",
+    ja: "対応していないテクスチャプロジェクトです。",
+    de: "Dieses Texturprojekt wird nicht unterstützt.",
+  },
+  "Up to 12 layers per project. Remove a layer before importing more images.": {
+    zh: "每个工程最多 12 个图层，请删除图层后再导入图片。",
+    ja: "1 つのプロジェクトで使えるレイヤーは 12 枚までです。画像を追加する前にレイヤーを削除してください。",
+    de: "Pro Projekt sind bis zu 12 Ebenen möglich. Entferne eine Ebene, bevor du weitere Bilder importierst.",
+  },
+  "Up to 12 source images per project, including images retained for undo. Start a new project to clear sources.":
+    {
+      zh: "每个工程最多保留 12 张原图，包含撤销所需的原图。新建工程可清空原图。",
+      ja: "元に戻すために保持している画像を含め、元画像は 1 プロジェクトにつき 12 枚までです。新規プロジェクトを作成すると元画像を一括で削除できます。",
+      de: "Pro Projekt sind maximal 12 Quellbilder möglich, einschließlich der Bilder, die für „Rückgängig“ gespeichert sind. Beginne ein neues Projekt, um die Quellbilder zu leeren.",
+    },
+  "Vertical spacing (%)": {
+    zh: "纵向间距（%）",
+    ja: "縦方向の間隔 (%)",
+    de: "Vertikaler Abstand (%)",
+  },
+  "WebGL2 is unavailable. Enable hardware acceleration or use a WebGL2-capable browser.":
+    {
+      zh: "WebGL2 不可用，请启用硬件加速或使用支持 WebGL2 的浏览器。",
+      ja: "WebGL2 を利用できません。ハードウェアアクセラレーションを有効にするか、WebGL2 対応のブラウザーを使用してください。",
+      de: "WebGL2 ist nicht verfügbar. Aktiviere die Hardwarebeschleunigung oder verwende einen Browser mit WebGL2-Unterstützung.",
+    },
+  "Zoom in": {
+    zh: "放大",
+    ja: "拡大",
+    de: "Vergrößern",
+  },
+  "Zoom out": {
+    zh: "缩小",
+    ja: "縮小",
+    de: "Verkleinern",
+  },
+  Pause: {
+    zh: "暂停",
+    ja: "一時停止",
+    de: "Pausieren",
+  },
+  "Start game": {
+    zh: "开始游戏",
+    ja: "ゲームを開始",
+    de: "Spiel starten",
+  },
+  "Reset game": {
+    zh: "重置游戏",
+    ja: "ゲームをリセット",
+    de: "Spiel zurücksetzen",
+  },
+  Ready: {
+    zh: "准备就绪",
+    ja: "準備完了",
+    de: "Bereit",
+  },
+  Playing: {
+    zh: "游戏中",
+    ja: "プレイ中",
+    de: "Spiel läuft",
+  },
+  Paused: {
+    zh: "已暂停",
+    ja: "一時停止中",
+    de: "Pausiert",
+  },
+  "Game over": {
+    zh: "游戏结束",
+    ja: "ゲームオーバー",
+    de: "Spiel vorbei",
+  },
+  "You cleared the board!": {
+    zh: "你清除了所有砖块！",
+    ja: "すべてのブロックを壊しました！",
+    de: "Du hast alle Steine abgeräumt!",
+  },
+  "{status} · Score: {score} · Lives: {lives}": {
+    zh: "{status} · 得分：{score} · 剩余球数：{lives}",
+    ja: "{status} · スコア：{score} · 残りのボール：{lives}",
+    de: "{status} · Punkte: {score} · Leben: {lives}",
+  },
+  "Breakout game. Left and right arrows move the paddle. Space pauses.": {
+    zh: "打砖块游戏。按左右方向键移动挡板，按空格键暂停。",
+    ja: "ブロック崩しゲーム。左右の矢印キーでパドルを動かし、スペースキーで一時停止します。",
+    de: "Breakout. Mit den Pfeiltasten nach links und rechts steuerst du den Schläger. Die Leertaste pausiert das Spiel.",
+  },
+  "Use a Canvas-capable browser to play Breakout.": {
+    zh: "请使用支持 Canvas 的浏览器玩打砖块。",
+    ja: "ブロック崩しを遊ぶには、Canvas に対応したブラウザーを使ってください。",
+    de: "Zum Spielen von Breakout brauchst du einen Browser mit Canvas-Unterstützung.",
+  },
+  "Start, then move the paddle with your pointer, a finger, or the left and right arrow keys. Clear all 28 bricks before losing three balls. Space pauses while the board has focus.":
+    {
+      zh: "开始游戏后，用鼠标、手指或左右方向键移动挡板。在用完三个球之前击碎全部 28 块砖。游戏区域获得焦点时，按空格键暂停。",
+      ja: "ゲームを始めたら、ポインター、指、または左右の矢印キーでパドルを動かします。ボールを 3 個失う前に、28 個のブロックをすべて壊してください。ゲーム画面にフォーカスがある間は、スペースキーで一時停止できます。",
+      de: "Starte das Spiel und bewege den Schläger mit dem Zeiger, dem Finger oder den Pfeiltasten nach links und rechts. Räume alle 28 Steine ab, bevor du drei Bälle verlierst. Solange das Spielfeld den Fokus hat, pausierst du mit der Leertaste.",
+    },
+  "You filled the board!": {
+    zh: "你填满了整个棋盘！",
+    ja: "盤面を埋め尽くしました！",
+    de: "Du hast das ganze Spielfeld gefüllt!",
+  },
+  "{status} · Score: {score}": {
+    zh: "{status} · 得分：{score}",
+    ja: "{status} · スコア：{score}",
+    de: "{status} · Punkte: {score}",
+  },
+  "Snake game. Arrow keys or WASD to steer. Space to pause.": {
+    zh: "贪吃蛇游戏。按方向键或 WASD 控制方向，按空格键暂停。",
+    ja: "スネークゲーム。矢印キーまたは WASD で移動方向を変え、スペースキーで一時停止します。",
+    de: "Snake. Mit den Pfeiltasten oder WASD steuerst du die Schlange. Die Leertaste pausiert das Spiel.",
+  },
+  "Use a Canvas-capable browser to play Snake.": {
+    zh: "请使用支持 Canvas 的浏览器玩贪吃蛇。",
+    ja: "スネークを遊ぶには、Canvas に対応したブラウザーを使ってください。",
+    de: "Zum Spielen von Snake brauchst du einen Browser mit Canvas-Unterstützung.",
+  },
+  "Snake direction controls": {
+    zh: "贪吃蛇方向控制",
+    ja: "スネークの方向操作",
+    de: "Richtungssteuerung für Snake",
+  },
+  "Move left": {
+    zh: "左移",
+    ja: "左へ移動",
+    de: "Nach links",
+  },
+  "Move right": {
+    zh: "右移",
+    ja: "右へ移動",
+    de: "Nach rechts",
+  },
+  "Start, then steer with the arrow keys, WASD, or the buttons. Eat the round food. Avoid the walls and your own tail. Keys are captured only while the board has focus.":
+    {
+      zh: "开始游戏后，用方向键、WASD 或按钮控制贪吃蛇。吃掉圆形食物，避开墙壁和自己的尾巴。只有游戏区域获得焦点时，键盘控制才生效。",
+      ja: "ゲームを始めたら、矢印キー、WASD、またはボタンで操作します。丸いエサを食べながら、壁と自分のしっぽを避けてください。キー操作は、ゲーム画面にフォーカスがある間だけ有効です。",
+      de: "Starte das Spiel und steuere die Schlange mit den Pfeiltasten, WASD oder den Schaltflächen. Friss das runde Futter und weiche den Wänden und deinem eigenen Schwanz aus. Die Tasten funktionieren nur, solange das Spielfeld den Fokus hat.",
+    },
+  "Start simulation": {
+    zh: "开始模拟",
+    ja: "シミュレーションを開始",
+    de: "Simulation starten",
+  },
+  "Add water": {
+    zh: "加水",
+    ja: "水を追加",
+    de: "Wasser hinzufügen",
+  },
+  Clear: {
+    zh: "清空",
+    ja: "クリア",
+    de: "Leeren",
+  },
+  "Gravity: {value}": {
+    zh: "重力：{value}",
+    ja: "重力：{value}",
+    de: "Schwerkraft: {value}",
+  },
+  "Particle fluid simulation. Use Add water or tap the canvas to pour.": {
+    zh: "流体粒子模拟。选择「加水」或轻点画布即可注水。",
+    ja: "流体の粒子シミュレーション。「水を追加」を選ぶか、キャンバスをタップすると水を注げます。",
+    de: "Partikelsimulation für Flüssigkeiten. Wähle „Wasser hinzufügen“ oder tippe auf die Zeichenfläche.",
+  },
+  "Your browser needs Canvas support to show this experiment.": {
+    zh: "此实验需要支持 Canvas 的浏览器。",
+    ja: "この実験を表示するには、Canvas に対応したブラウザーが必要です。",
+    de: "Für dieses Experiment brauchst du einen Browser mit Canvas-Unterstützung.",
+  },
+  "{count} / {limit} particles · {status}.": {
+    zh: "粒子数：{count} / {limit} · {status}。",
+    ja: "粒子数：{count} / {limit} · {status}。",
+    de: "{count} / {limit} Partikel · {status}.",
+  },
+  Running: {
+    zh: "运行中",
+    ja: "実行中",
+    de: "Läuft",
+  },
+  "Tap the canvas to pour. This experiment uses a lightweight particle model to approximate fluid motion.":
+    {
+      zh: "轻点画布即可注水。此实验使用简化的粒子模型近似模拟流体运动。",
+      ja: "キャンバスをタップすると水を注げます。この実験では、簡易的な粒子モデルで流体の動きを近似します。",
+      de: "Tippe auf die Zeichenfläche, um Wasser hineinzugießen. Dieses Experiment nähert die Bewegung von Flüssigkeiten mit einem vereinfachten Partikelmodell an.",
+    },
+  "Repeat: {size}px": {
+    zh: "重复间距：{size}px",
+    ja: "繰り返し間隔：{size}px",
+    de: "Wiederholungsabstand: {size} px",
+  },
+  "Stripe: {size}px": {
+    zh: "条纹宽度：{size}px",
+    ja: "ストライプ幅：{size}px",
+    de: "Streifenbreite: {size} px",
+  },
+  "Cross stripes": {
+    zh: "交叉条纹",
+    ja: "交差するストライプ",
+    de: "Querstreifen",
+  },
+  "Base color": {
+    zh: "底色",
+    ja: "地色",
+    de: "Grundfarbe",
+  },
+  "Stripe color": {
+    zh: "条纹颜色",
+    ja: "ストライプの色",
+    de: "Streifenfarbe",
+  },
+  "Line color": {
+    zh: "线条颜色",
+    ja: "ラインの色",
+    de: "Linienfarbe",
+  },
+  "Live preview of your repeating plaid pattern": {
+    zh: "重复格纹的实时预览",
+    ja: "繰り返しチェック柄のライブプレビュー",
+    de: "Live-Vorschau des wiederholten Karomusters",
+  },
+  "Preparing your pattern…": {
+    zh: "正在准备图案…",
+    ja: "パターンを準備しています…",
+    de: "Muster wird vorbereitet…",
+  },
+  "Download SVG": {
+    zh: "下载 SVG",
+    ja: "SVG をダウンロード",
+    de: "SVG herunterladen",
+  },
+  "Download PNG": {
+    zh: "下载 PNG",
+    ja: "PNG をダウンロード",
+    de: "PNG herunterladen",
+  },
+  "PNG export failed. Try downloading the SVG instead.": {
+    zh: "PNG 导出失败。请尝试下载 SVG。",
+    ja: "PNG の書き出しに失敗しました。SVG のダウンロードをお試しください。",
+    de: "Der PNG-Export ist fehlgeschlagen. Versuche, die SVG-Datei herunterzuladen.",
+  },
+  "An SVG implementation inspired by Lattice-Generator, with original design by MoonMoonCha and upstream work by Torrekie.":
+    {
+      zh: "本 SVG 实现受 Lattice-Generator 启发。原始设计来自 MoonMoonCha，上游实现来自 Torrekie。",
+      ja: "Lattice-Generator に着想を得た SVG 実装です。原案は MoonMoonCha、上流プロジェクトの開発は Torrekie によるものです。",
+      de: "Diese SVG-Implementierung ist von Lattice-Generator inspiriert. Das ursprüngliche Design stammt von MoonMoonCha, die Arbeit am Vorgängerprojekt von Torrekie.",
+    },
+  "CC BY 4.0 attribution": {
+    zh: "CC BY 4.0 署名",
+    ja: "CC BY 4.0 のクレジット",
+    de: "Namensnennung nach CC BY 4.0",
+  },
+  "No images leave your browser.": {
+    zh: "图像处理始终在浏览器中完成。",
+    ja: "画像はブラウザー内だけで処理されます。",
+    de: "Bilder werden ausschließlich im Browser verarbeitet.",
+  },
+  "Bring your own model manifest": {
+    zh: "选择本地模型清单",
+    ja: "ローカルのモデルマニフェストを選択",
+    de: "Eigenes Modellmanifest auswählen",
+  },
+  "Inspect the reference names in a local .model3.json file. Inspection takes place entirely in your browser.":
+    {
+      zh: "查看本地 .model3.json 文件中引用的文件名。检查过程完全在浏览器中完成。",
+      ja: "ローカルの .model3.json ファイルが参照するファイル名を確認できます。確認処理はすべてブラウザー内で行われます。",
+      de: "Prüfe die Dateinamen, auf die eine lokale .model3.json-Datei verweist. Die Prüfung läuft vollständig in deinem Browser.",
+    },
+  "Model manifest": {
+    zh: "模型清单",
+    ja: "モデルマニフェスト",
+    de: "Modellmanifest",
+  },
+  "Choose a manifest smaller than 1 MB.": {
+    zh: "请选择小于 1 MB 的清单文件。",
+    ja: "1 MB 未満のマニフェストを選択してください。",
+    de: "Wähle ein Manifest mit weniger als 1 MB.",
+  },
+  "The manifest is not valid JSON.": {
+    zh: "清单文件的 JSON 格式无效。",
+    ja: "マニフェストの JSON 形式が無効です。",
+    de: "Das Manifest enthält ungültiges JSON.",
+  },
+  "Could not read the manifest.": {
+    zh: "无法读取清单文件。",
+    ja: "マニフェストを読み込めませんでした。",
+    de: "Das Manifest konnte nicht gelesen werden.",
+  },
+  "Choose a Cubism .model3.json manifest with Version 3.": {
+    zh: "请选择 Version 字段为 3 的 Cubism .model3.json 清单文件。",
+    ja: "Version フィールドが 3 の Cubism .model3.json マニフェストを選択してください。",
+    de: "Wähle ein Cubism-Manifest (.model3.json) mit dem Wert 3 im Feld Version.",
+  },
+  "The manifest needs a .moc3 reference.": {
+    zh: "清单必须包含 .moc3 文件引用。",
+    ja: "マニフェストには .moc3 ファイルへの参照が必要です。",
+    de: "Das Manifest muss auf eine .moc3-Datei verweisen.",
+  },
+  "Texture references must be a list of up to 64 file names.": {
+    zh: "纹理引用必须是列表，最多包含 64 个文件名。",
+    ja: "テクスチャ参照は、最大 64 個のファイル名を含むリストにしてください。",
+    de: "Texturreferenzen müssen als Liste mit höchstens 64 Dateinamen vorliegen.",
+  },
+  "Manifest references": {
+    zh: "清单中的引用",
+    ja: "マニフェストの参照先",
+    de: "Referenzen im Manifest",
+  },
+  Model: {
+    zh: "模型",
+    ja: "モデル",
+    de: "Modell",
+  },
+  Textures: {
+    zh: "纹理",
+    ja: "テクスチャ",
+    de: "Texturen",
+  },
+  Motions: {
+    zh: "动作",
+    ja: "モーション",
+    de: "Bewegungen",
+  },
+  Expressions: {
+    zh: "表情",
+    ja: "表情",
+    de: "Gesichtsausdrücke",
+  },
+  "The package includes viewer integration. Model rendering requires an authorized Cubism runtime adapter and your own authorized model assets.":
+    {
+      zh: "此软件包提供查看器的集成接口。渲染模型需要经授权的 Cubism 运行时适配器，以及你有权使用的模型资源。",
+      ja: "パッケージにはビューアーとの連携機能が含まれています。モデルを描画するには、使用が許可された Cubism ランタイムアダプターと、利用権限のあるモデル素材が必要です。",
+      de: "Das Paket bietet eine Viewer-Integration. Zur Anzeige des Modells brauchst du einen autorisierten Cubism-Runtime-Adapter und Modelldateien, für die du eine Nutzungsberechtigung hast.",
+    },
+  "Loading photo mosaic editor": {
+    zh: "正在加载照片马赛克编辑器",
+    ja: "フォトモザイクエディターを読み込み中",
+    de: "Editor für Fotomosaike wird geladen",
+  },
+  "Loading photo waterfall editor": {
+    zh: "正在加载瀑布流拼图编辑器",
+    ja: "写真の段組みエディターを読み込み中",
+    de: "Editor für Spaltencollagen wird geladen",
+  },
+  "Photo mosaic editor": {
+    zh: "照片马赛克编辑器",
+    ja: "フォトモザイクエディター",
+    de: "Fotomosaik-Editor",
+  },
+  "Photo waterfall editor": {
+    zh: "瀑布流拼图编辑器",
+    ja: "写真の段組みエディター",
+    de: "Editor für Spaltencollagen",
+  },
+  "Calculating preview…": {
+    zh: "正在生成预览…",
+    ja: "プレビューを生成中…",
+    de: "Vorschau wird berechnet…",
+  },
+  "The matched preview could not be rendered.": {
+    zh: "无法生成配色匹配预览。",
+    ja: "色を合わせたプレビューを表示できませんでした。",
+    de: "Die Vorschau mit Farbanpassung konnte nicht angezeigt werden.",
+  },
+  "Opening target…": {
+    zh: "正在打开目标图片…",
+    ja: "目標画像を開いています…",
+    de: "Zielbild wird geöffnet…",
+  },
+  "The target could not be opened as an image.": {
+    zh: "无法打开目标图片。",
+    ja: "目標画像を開けませんでした。",
+    de: "Die Zieldatei konnte nicht als Bild geöffnet werden.",
+  },
+  "Calculating photo matches…": {
+    zh: "正在匹配照片颜色…",
+    ja: "写真の色の一致を計算中…",
+    de: "Passende Fotos werden berechnet…",
+  },
+  "Photos arranged by target color.": {
+    zh: "已按目标图片的颜色排列照片。",
+    ja: "目標画像の色に合わせて写真を配置しました。",
+    de: "Die Fotos wurden nach den Farben des Zielbilds angeordnet.",
+  },
+  "The current layout already matches these photos.": {
+    zh: "当前布局已符合这些照片的色彩匹配结果。",
+    ja: "現在の配置はすでにこれらの写真に合っています。",
+    de: "Das aktuelle Layout passt bereits zu diesen Fotos.",
+  },
+  "The photos could not be rearranged by color.": {
+    zh: "无法按颜色重新排列照片。",
+    ja: "写真を色に合わせて並べ替えられませんでした。",
+    de: "Die Fotos konnten nicht nach Farbe neu angeordnet werden.",
+  },
+  "Opening photos…": {
+    zh: "正在打开照片…",
+    ja: "写真を開いています…",
+    de: "Fotos werden geöffnet…",
+  },
+  "Unlock a photo to make room for the new images.": {
+    zh: "请解锁一张照片，为新照片留出空间。",
+    ja: "新しい画像を追加できるよう、写真の固定を解除してください。",
+    de: "Löse die Fixierung eines Fotos, um Platz für die neuen Bilder zu schaffen.",
+  },
+  "{count} file could not be opened as a photo.": {
+    zh: "有 {count} 个文件无法作为照片打开。",
+    ja: "{count} 件のファイルを写真として開けませんでした。",
+    de: "{count} Datei konnte nicht als Foto geöffnet werden.",
+  },
+  "{count} files could not be opened as photos.": {
+    zh: "有 {count} 个文件无法作为照片打开。",
+    ja: "{count} 件のファイルを写真として開けませんでした。",
+    de: "{count} Dateien konnten nicht als Fotos geöffnet werden.",
+  },
+  "This mosaic can hold up to {count} photos.": {
+    zh: "此马赛克拼图最多可容纳 {count} 张照片。",
+    ja: "このモザイクには最大 {count} 枚の写真を配置できます。",
+    de: "Dieses Mosaik bietet Platz für bis zu {count} Fotos.",
+  },
+  "Unlock another photo to remove this one and keep the canvas filled.": {
+    zh: "请解锁另一张照片，以便移除当前照片并填满画布。",
+    ja: "この写真を外してキャンバスに隙間を作らないようにするには、別の写真の固定を解除してください。",
+    de: "Löse die Fixierung eines anderen Fotos, damit die Fläche beim Entfernen dieses Fotos ausgefüllt bleibt.",
+  },
+  "Enter whole pixel dimensions from {min} to {max}, up to {total} pixels total.":
+    {
+      zh: "宽高请输入 {min} 到 {max} 之间的整数，总像素数不超过 {total}。",
+      ja: "幅と高さは {min}〜{max} の整数で指定してください。総画素数は {total} 以下です。",
+      de: "Gib für Breite und Höhe ganze Werte von {min} bis {max} ein. Insgesamt sind bis zu {total} Pixel möglich.",
+    },
+  "This size cannot be filled around the locked photos. Unlock photos or try a different size.":
+    {
+      zh: "按此尺寸调整时，无法填满锁定照片周围的空间。请解锁部分照片，或尝试其他尺寸。",
+      ja: "このサイズでは固定した写真の周りを埋められません。写真の固定を解除するか、別のサイズを試してください。",
+      de: "Bei dieser Größe bleiben Lücken um die fixierten Fotos. Löse Fixierungen oder wähle eine andere Größe.",
+    },
+  "This canvas is too small to fit all the photos.": {
+    zh: "画布太小，无法容纳所有照片。",
+    ja: "すべての写真を配置するにはキャンバスが小さすぎます。",
+    de: "Die Arbeitsfläche ist zu klein für alle Fotos.",
+  },
+  "Calculating and encoding PNG…": {
+    zh: "正在计算并编码 PNG…",
+    ja: "画像を計算し、PNG に変換しています…",
+    de: "PNG wird berechnet und kodiert…",
+  },
+  "PNG download started.": {
+    zh: "已开始下载 PNG。",
+    ja: "PNG のダウンロードを開始しました。",
+    de: "PNG-Download wurde gestartet.",
+  },
+  "The PNG could not be exported.": {
+    zh: "无法导出 PNG。",
+    ja: "PNG を書き出せませんでした。",
+    de: "Das PNG konnte nicht exportiert werden.",
+  },
+  "That spot cannot be filled. Kept the last gapless layout.": {
+    zh: "无法填满该位置，已保留上一个无缝布局。",
+    ja: "その位置には隙間ができるため、直前の配置を維持しました。",
+    de: "An dieser Stelle würde eine Lücke entstehen. Das letzte lückenlose Layout bleibt erhalten.",
+  },
+  "There is no gapless layout at that position.": {
+    zh: "在该位置无法实现无缝布局。",
+    ja: "その位置には隙間なく配置できません。",
+    de: "An dieser Position ist kein lückenloses Layout möglich.",
+  },
+  "Add photos": {
+    zh: "添加照片",
+    ja: "写真を追加",
+    de: "Fotos hinzufügen",
+  },
+  "Shuffle layout": {
+    zh: "随机重排",
+    ja: "配置をシャッフル",
+    de: "Layout mischen",
+  },
+  Preset: {
+    zh: "尺寸预设",
+    ja: "サイズプリセット",
+    de: "Größenvorlage",
+  },
+  Custom: {
+    zh: "自定义",
+    ja: "カスタム",
+    de: "Benutzerdefiniert",
+  },
+  "Width (px)": {
+    zh: "宽度（px）",
+    ja: "幅（px）",
+    de: "Breite (px)",
+  },
+  "Height (px)": {
+    zh: "高度（px）",
+    ja: "高さ（px）",
+    de: "Höhe (px)",
+  },
+  "Apply size": {
+    zh: "应用尺寸",
+    ja: "サイズを適用",
+    de: "Größe übernehmen",
+  },
+  Antialiasing: {
+    zh: "抗锯齿",
+    ja: "アンチエイリアス",
+    de: "Kantenglättung",
+  },
+  "Off (nearest neighbor)": {
+    zh: "关闭（最近邻）",
+    ja: "オフ（最近傍法）",
+    de: "Aus (Nächster Nachbar)",
+  },
+  Low: {
+    zh: "低",
+    ja: "低",
+    de: "Niedrig",
+  },
+  Medium: {
+    zh: "中",
+    ja: "中",
+    de: "Mittel",
+  },
+  High: {
+    zh: "高",
+    ja: "高",
+    de: "Hoch",
+  },
+  "Replace target image": {
+    zh: "更换目标图片",
+    ja: "目標画像を変更",
+    de: "Zielbild ersetzen",
+  },
+  "Choose target image": {
+    zh: "选择目标图片",
+    ja: "目標画像を選択",
+    de: "Zielbild auswählen",
+  },
+  "Color strength": {
+    zh: "配色强度",
+    ja: "色補正の強さ",
+    de: "Stärke der Farbanpassung",
+  },
+  "Tiles per side": {
+    zh: "每边拼图块数",
+    ja: "一辺あたりのタイル数",
+    de: "Kacheln pro Seite",
+  },
+  "Apply density": {
+    zh: "应用密度",
+    ja: "密度を適用",
+    de: "Dichte übernehmen",
+  },
+  "{count} tiles": {
+    zh: "{count} 个拼图块",
+    ja: "タイル {count} 枚",
+    de: "{count} Kacheln",
+  },
+  "Match target brightness": {
+    zh: "匹配目标亮度",
+    ja: "目標画像の明るさに合わせる",
+    de: "Helligkeit an Zielbild anpassen",
+  },
+  "Match photos again": {
+    zh: "重新匹配照片",
+    ja: "写真の色合わせをやり直す",
+    de: "Fotos erneut abgleichen",
+  },
+  "Remove target": {
+    zh: "移除目标图片",
+    ja: "目標画像を削除",
+    de: "Zielbild entfernen",
+  },
+  "Mosaic canvas": {
+    zh: "马赛克画布",
+    ja: "モザイクキャンバス",
+    de: "Mosaik-Arbeitsfläche",
+  },
+  "Unlock a photo before adding more files.": {
+    zh: "请先解锁一张照片，再添加更多文件。",
+    ja: "写真の固定を解除してから、ファイルを追加してください。",
+    de: "Löse die Fixierung eines Fotos, bevor du weitere Dateien hinzufügst.",
+  },
+  "Drop photos here": {
+    zh: "将照片拖到这里",
+    ja: "ここに写真をドロップ",
+    de: "Fotos hier ablegen",
+  },
+  "Drop up to {count} images, or use Add photos to browse.": {
+    zh: "最多可拖入 {count} 张图片，也可以点击「添加照片」浏览文件。",
+    ja: "最大 {count} 枚の画像をドロップするか、「写真を追加」から選択してください。",
+    de: "Lege bis zu {count} Bilder ab oder wähle sie über „Fotos hinzufügen“ aus.",
+  },
+  "Color-matched mosaic preview": {
+    zh: "配色匹配后的马赛克预览",
+    ja: "色を合わせたモザイクのプレビュー",
+    de: "Mosaikvorschau mit Farbanpassung",
+  },
+  Locked: {
+    zh: "已锁定",
+    ja: "固定済み",
+    de: "Fixiert",
+  },
+  "{name} (locked)": {
+    zh: "{name}（已锁定）",
+    ja: "{name}（固定済み）",
+    de: "{name} (fixiert)",
+  },
+  "Resize left edge": {
+    zh: "拖动左边缘调整大小",
+    ja: "左端でサイズを変更",
+    de: "Größe am linken Rand ändern",
+  },
+  "Resize right edge": {
+    zh: "拖动右边缘调整大小",
+    ja: "右端でサイズを変更",
+    de: "Größe am rechten Rand ändern",
+  },
+  "Resize top edge": {
+    zh: "拖动上边缘调整大小",
+    ja: "上端でサイズを変更",
+    de: "Größe am oberen Rand ändern",
+  },
+  "Resize bottom edge": {
+    zh: "拖动下边缘调整大小",
+    ja: "下端でサイズを変更",
+    de: "Größe am unteren Rand ändern",
+  },
+  "Drop photos to add them": {
+    zh: "松开即可添加照片",
+    ja: "写真をドロップして追加",
+    de: "Fotos zum Hinzufügen ablegen",
+  },
+  "{count} photo": {
+    zh: "{count} 张照片",
+    ja: "写真 {count} 枚",
+    de: "{count} Foto",
+  },
+  "{count} photos": {
+    zh: "{count} 张照片",
+    ja: "写真 {count} 枚",
+    de: "{count} Fotos",
+  },
+  "{count} locked": {
+    zh: "已锁定 {count} 张",
+    ja: "{count} 枚を固定",
+    de: "{count} fixiert",
+  },
+  "Unlock photo": {
+    zh: "解锁照片",
+    ja: "写真の固定を解除",
+    de: "Foto entsperren",
+  },
+  "Lock photo": {
+    zh: "锁定照片",
+    ja: "写真を固定",
+    de: "Foto fixieren",
+  },
+  "Drop files onto the canvas to add them. Drag a photo to move it, or drag an edge handle to resize it. The other unlocked photos reflow around it. Arrow keys work on focused photos and handles.":
+    {
+      zh: "将文件拖入画布即可添加。拖动照片可移动位置，拖动边缘手柄可调整大小。其他未锁定的照片会自动重新排列。选中照片或手柄后，也可以使用方向键。",
+      ja: "キャンバスにファイルをドロップして追加できます。写真をドラッグして移動し、端のハンドルをドラッグしてサイズを変えます。固定していないほかの写真は自動で並び直します。写真やハンドルにフォーカスして矢印キーでも操作できます。",
+      de: "Lege Dateien zum Hinzufügen auf der Arbeitsfläche ab. Ziehe ein Foto zum Verschieben oder einen Randgriff zum Ändern der Größe. Die übrigen unfixierten Fotos ordnen sich neu an. Fokussierte Fotos und Griffe lassen sich mit den Pfeiltasten steuern.",
+    },
+  "Canvas width (px)": {
+    zh: "画布宽度（px）",
+    ja: "キャンバスの幅（px）",
+    de: "Arbeitsflächenbreite (px)",
+  },
+  "Gap placement": {
+    zh: "留白位置",
+    ja: "余白の位置",
+    de: "Position der Leerflächen",
+  },
+  Bottom: {
+    zh: "底部",
+    ja: "下",
+    de: "Unten",
+  },
+  Top: {
+    zh: "顶部",
+    ja: "上",
+    de: "Oben",
+  },
+  "Top and bottom": {
+    zh: "顶部和底部",
+    ja: "上下",
+    de: "Oben und unten",
+  },
+  "Between photos": {
+    zh: "照片之间",
+    ja: "写真の間",
+    de: "Zwischen den Fotos",
+  },
+  "Background color": {
+    zh: "背景色",
+    ja: "背景色",
+    de: "Hintergrundfarbe",
+  },
+  Transparent: {
+    zh: "透明背景",
+    ja: "背景を透明にする",
+    de: "Transparenter Hintergrund",
+  },
+  "Auto arrange": {
+    zh: "自动排列",
+    ja: "自動配置",
+    de: "Automatisch anordnen",
+  },
+  "Exporting…": {
+    zh: "正在导出…",
+    ja: "書き出し中…",
+    de: "Export läuft…",
+  },
+  "Drag photos to reorder them or move them to another column.": {
+    zh: "拖动照片可以调整顺序，也可以将照片移到其他列。",
+    ja: "写真をドラッグして順番を変えたり、別の列に移動したりできます。",
+    de: "Ziehe Fotos, um ihre Reihenfolge zu ändern oder sie in eine andere Spalte zu verschieben.",
+  },
+  "Check the canvas settings": {
+    zh: "请检查画布设置",
+    ja: "キャンバスの設定を確認",
+    de: "Prüfe die Einstellungen der Arbeitsfläche",
+  },
+  "Enter a valid width and column count to preview the collage.": {
+    zh: "请输入有效的宽度和列数，以预览拼图。",
+    ja: "コラージュをプレビューするには、有効な幅と列数を入力してください。",
+    de: "Gib eine gültige Breite und Spaltenzahl ein, um die Collage anzuzeigen.",
+  },
+  "Photos stay in your browser.": {
+    zh: "照片仅在浏览器内处理。",
+    ja: "写真はブラウザー内で処理されます。",
+    de: "Deine Fotos bleiben im Browser.",
+  },
+  "{percent}% unfilled": {
+    zh: "{percent}% 留白",
+    ja: "余白 {percent}%",
+    de: "{percent} % freie Fläche",
+  },
+  "Remove {name}": {
+    zh: "移除 {name}",
+    ja: "{name} を削除",
+    de: "{name} entfernen",
+  },
+  "Use a width of 120–8192 px and 1–12 columns.": {
+    zh: "宽度须为 120–8192 px，列数须为 1–12。",
+    ja: "幅は 120〜8192 px、列数は 1〜12 に設定してください。",
+    de: "Erlaubt sind 120–8192 px Breite und 1–12 Spalten.",
+  },
+  "This collage is too large to export. Reduce the canvas width or add columns.":
+    {
+      zh: "拼图太大，无法导出。请缩小画布宽度或增加列数。",
+      ja: "コラージュが大きすぎて書き出せません。幅を狭くするか、列を増やしてください。",
+      de: "Die Collage ist für den Export zu groß. Verringere die Breite oder füge Spalten hinzu.",
+    },
+  "Could not open {files}.": {
+    zh: "无法打开 {files}。",
+    ja: "{files} を開けませんでした。",
+    de: "Folgende Dateien konnten nicht geöffnet werden: {files}.",
+  },
+  "PNG export failed. Try a smaller canvas width.": {
+    zh: "PNG 导出失败。请尝试缩小画布宽度。",
+    ja: "PNG の書き出しに失敗しました。キャンバスの幅を狭くしてみてください。",
+    de: "Der PNG-Export ist fehlgeschlagen. Versuche es mit einer kleineren Breite.",
+  },
+  "Waterfall collage preview": {
+    zh: "瀑布流拼图预览",
+    ja: "段組みコラージュのプレビュー",
+    de: "Vorschau der Spaltencollage",
+  },
+  "Use the arrow keys to reorder this photo or move it to another column.": {
+    zh: "使用方向键调整这张照片的顺序，或将它移到其他列。",
+    ja: "矢印キーでこの写真の順番を変えたり、別の列に移動したりできます。",
+    de: "Verschiebe dieses Foto mit den Pfeiltasten innerhalb der Spalte oder in eine andere Spalte.",
+  },
+  "{name}, column {column}, position {position}": {
+    zh: "{name}，第 {column} 列，第 {position} 个位置",
+    ja: "{name}、{column} 列目、{position} 番目",
+    de: "{name}, Spalte {column}, Position {position}",
+  },
+  "Copy palette · {name}": {
+    zh: "复制整组配色 · {name}",
+    ja: "{name} の配色をコピー",
+    de: "Palette kopieren · {name}",
+  },
+  "Copy color {color}": {
+    zh: "复制色值 {color}",
+    ja: "色 {color} をコピー",
+    de: "Farbe {color} kopieren",
+  },
+  "Copied to clipboard · {colors}": {
+    zh: "已复制到剪贴板 · {colors}",
+    ja: "クリップボードにコピーしました · {colors}",
+    de: "In die Zwischenablage kopiert · {colors}",
+  },
+  "Color harmony": {
+    zh: "色彩搭配",
+    ja: "配色の調和",
+    de: "Farbharmonie",
+  },
+  Analogous: {
+    zh: "邻近色",
+    ja: "類似色",
+    de: "Analog",
+  },
+  Complementary: {
+    zh: "互补色",
+    ja: "補色",
+    de: "Komplementär",
+  },
+  Triadic: {
+    zh: "三等分色",
+    ja: "三色配色",
+    de: "Triadisch",
+  },
+  Monochrome: {
+    zh: "同色系",
+    ja: "単色",
+    de: "Monochrom",
+  },
+  "Auto palette": {
+    zh: "自动配色",
+    ja: "配色を自動生成",
+    de: "Palette erzeugen",
+  },
+  "Square tile": {
+    zh: "方形图块",
+    ja: "正方形タイル",
+    de: "Quadratische Kachel",
+  },
+  "{count} × {count} repeats · {size} × {size}px": {
+    zh: "{count} × {count} 次重复 · {size} × {size}px",
+    ja: "{count} × {count} 回の繰り返し · {size} × {size}px",
+    de: "{count} × {count} Wiederholungen · {size} × {size} px",
+  },
+  "Preview / export layer": {
+    zh: "预览和导出的图层",
+    ja: "プレビュー・書き出しのレイヤー",
+    de: "Ebene für Vorschau und Export",
+  },
+  "All layers": {
+    zh: "所有图层",
+    ja: "すべてのレイヤー",
+    de: "Alle Ebenen",
+  },
+  "all layers": {
+    zh: "所有图层",
+    ja: "すべてのレイヤー",
+    de: "alle Ebenen",
+  },
+  Background: {
+    zh: "背景",
+    ja: "背景",
+    de: "Hintergrund",
+  },
+  "Vertical stripes": {
+    zh: "竖向条纹",
+    ja: "縦ストライプ",
+    de: "Vertikale Streifen",
+  },
+  "Horizontal stripes": {
+    zh: "横向条纹",
+    ja: "横ストライプ",
+    de: "Horizontale Streifen",
+  },
+  "Fine lines": {
+    zh: "细线",
+    ja: "細いライン",
+    de: "Feine Linien",
+  },
+  "Preview 3 × 3 tiles": {
+    zh: "预览 3 × 3 拼接",
+    ja: "3 × 3 のタイルをプレビュー",
+    de: "3 × 3 Kacheln anzeigen",
+  },
+  "Three by three seamless repeat": {
+    zh: "3 × 3 无缝拼接",
+    ja: "3 × 3 のシームレスな繰り返し",
+    de: "Nahtlose 3 × 3 Wiederholung",
+  },
+  "{view} preview: {layer}": {
+    zh: "{view}预览：{layer}",
+    ja: "{view}のプレビュー：{layer}",
+    de: "Vorschau ({view}): {layer}",
+  },
+  "{size} × {size}px seamless square. The 3 × 3 preview repeats this tile. Each download contains a single square. Select an individual layer to download it separately. Stripe and fine-line PNGs have transparent backgrounds. All-layer SVGs retain named, editable layers.":
+    {
+      zh: "{size} × {size}px 的无缝方形图块。3 × 3 预览重复排列这个图块。每次只下载一个方形图块。选择单个图层即可单独下载。条纹和细线图层的 PNG 背景透明。包含所有图层的 SVG 保留可编辑的命名图层。",
+      ja: "{size} × {size}px のシームレスな正方形タイルです。3 × 3 のプレビューではこのタイルを繰り返します。ダウンロードされるのは正方形タイル 1 枚です。個別にダウンロードするには、対象のレイヤーを選択してください。ストライプと細線の PNG は背景が透明です。全レイヤーを含む SVG では、名前付きのレイヤーを編集できます。",
+      de: "Nahtlose quadratische Kachel mit {size} × {size} px. Die 3 × 3 Vorschau wiederholt diese Kachel. Jeder Download enthält eine einzelne Kachel. Wähle eine Ebene aus, um sie separat herunterzuladen. PNG-Dateien mit Streifen oder feinen Linien haben einen transparenten Hintergrund. SVG-Dateien mit allen Ebenen behalten benannte, editierbare Ebenen.",
+    },
+  "Download layered SVG": {
+    zh: "下载分层 SVG",
+    ja: "レイヤー付き SVG をダウンロード",
+    de: "SVG mit Ebenen herunterladen",
+  },
+  "Download layer SVG": {
+    zh: "下载图层 SVG",
+    ja: "レイヤーを SVG でダウンロード",
+    de: "Ebene als SVG herunterladen",
+  },
+  "Exporting PNG…": {
+    zh: "正在导出 PNG…",
+    ja: "PNG を書き出しています…",
+    de: "PNG wird exportiert…",
+  },
+  "Download square PNG": {
+    zh: "下载方形 PNG",
+    ja: "正方形の PNG をダウンロード",
+    de: "Quadratisches PNG herunterladen",
+  },
+  "Download layer PNG": {
+    zh: "下载图层 PNG",
+    ja: "レイヤーを PNG でダウンロード",
+    de: "Ebene als PNG herunterladen",
+  },
+  "Export needs at least one layer.": {
+    zh: "导出需要至少一个图层。",
+    ja: "書き出しにはレイヤーが少なくとも 1 枚必要です。",
+    de: "Für den Export ist mindestens eine Ebene erforderlich.",
+  },
+  "Open workspace": {
+    zh: "打开工作区",
+    ja: "作業画面を開く",
+    de: "Arbeitsbereich öffnen",
+  },
+  "Back to overview": {
+    zh: "返回介绍页",
+    ja: "概要に戻る",
+    de: "Zurück zur Übersicht",
+  },
+  "Saved in this browser": {
+    zh: "已保存到此浏览器",
+    ja: "このブラウザーに保存済み",
+    de: "In diesem Browser gespeichert",
+  },
+  "Saving project…": {
+    zh: "正在保存工程…",
+    ja: "プロジェクトを保存中…",
+    de: "Projekt wird gespeichert…",
+  },
+  "Restoring saved project…": {
+    zh: "正在恢复已保存的工程…",
+    ja: "保存済みのプロジェクトを復元中…",
+    de: "Gespeichertes Projekt wird wiederhergestellt…",
+  },
+  "The saved project could not be restored. Open a project, start a new one, or replace the saved copy.":
+    {
+      zh: "无法恢复浏览器中保存的工程，请打开工程、新建工程或替换保存的副本。",
+      ja: "保存済みのプロジェクトを復元できませんでした。プロジェクトを開くか、新規作成するか、保存済みのコピーを置き換えてください。",
+      de: "Das gespeicherte Projekt konnte nicht wiederhergestellt werden. Öffne ein Projekt, beginne ein neues oder ersetze die gespeicherte Kopie.",
+    },
+  "Browser storage is unavailable or full. Download Save project to keep your work. Workspace navigation is paused until saving succeeds.":
+    {
+      zh: "浏览器存储不可用或已满，请点击保存工程下载备份。保存成功前不会跳转到工作区，以免丢失修改。",
+      ja: "ブラウザーの保存領域が使えないか、空きがありません。「プロジェクトを保存」でファイルをダウンロードして作業内容を保管してください。保存に成功するまで作業画面から移動できません。",
+      de: "Der Browserspeicher ist nicht verfügbar oder voll. Lade über „Projekt speichern“ eine Kopie herunter, um deine Arbeit zu sichern. Du kannst den Arbeitsbereich erst verlassen, wenn das Speichern erfolgreich war.",
+    },
+  "Replace saved copy": {
+    zh: "替换浏览器中的副本",
+    ja: "保存済みのコピーを置き換える",
+    de: "Gespeicherte Kopie ersetzen",
+  },
+  "Select all layers": {
+    zh: "勾选全部图层",
+    ja: "すべてのレイヤーを選択",
+    de: "Alle Ebenen auswählen",
+  },
+  "{count} checked": {
+    zh: "已勾选 {count} 层",
+    ja: "{count} 枚選択済み",
+    de: "{count} ausgewählt",
+  },
+  "Select {name}": {
+    zh: "勾选 {name}",
+    ja: "{name}を選択",
+    de: "{name} auswählen",
+  },
+  "Editing {count} layer(s)": {
+    zh: "正在调整 {count} 个图层",
+    ja: "{count} 枚のレイヤーを編集中",
+    de: "Ebenen in Bearbeitung: {count}",
+  },
+  "Selected layers have different parameters. Confirm to synchronize them with the first checked layer: {name}.":
+    {
+      zh: "所选图层的参数不一致。确认后将按照列表中第一个勾选图层 {name} 的参数同步。",
+      ja: "選択したレイヤーの設定が異なります。最初にチェックされたレイヤー「{name}」に合わせるには、確認してください。",
+      de: "Die ausgewählten Ebenen haben unterschiedliche Parameter. Bestätige, um sie mit der ersten ausgewählten Ebene „{name}“ abzugleichen.",
+    },
+  "Confirm and sync selected layers": {
+    zh: "确认并同步所选图层",
+    ja: "確認して選択したレイヤーを同期",
+    de: "Bestätigen und ausgewählte Ebenen abgleichen",
+  },
+  "Selected layer parameters": {
+    zh: "所选图层参数",
+    ja: "選択したレイヤーの設定",
+    de: "Parameter der ausgewählten Ebenen",
+  },
+  "Image actions affect the active layer. Parameters affect checked layers.": {
+    zh: "图片操作仅影响当前图层；参数调整影响勾选的图层。",
+    ja: "画像の操作はアクティブなレイヤーに適用されます。パラメーターの変更はチェックしたレイヤーに適用されます。",
+    de: "Bildaktionen gelten für die aktive Ebene. Parameteränderungen gelten für die ausgewählten Ebenen.",
+  },
+  Layers: {
+    zh: "图层",
+    ja: "レイヤー",
+    de: "Ebenen",
+  },
+  "Layer settings": {
+    zh: "图层设置",
+    ja: "レイヤー設定",
+    de: "Ebeneneinstellungen",
+  },
+  "Parameter clipboard": {
+    zh: "参数剪贴板",
+    ja: "パラメーターのコピー・貼り付け",
+    de: "Parameter kopieren und einfügen",
+  },
+  "Array parameters": {
+    zh: "排列参数",
+    ja: "配列パラメーター",
+    de: "Anordnungsparameter",
+  },
+  "Select a layer to edit. Drop one image on a row to replace it.": {
+    zh: "选中图层后编辑参数，或将单张图片拖到对应行来替换图片。",
+    ja: "編集するレイヤーを選択してください。レイヤーの行に画像を 1 枚ドロップすると、画像が置き換わります。",
+    de: "Wähle eine Ebene zum Bearbeiten aus. Ziehe ein einzelnes Bild auf eine Zeile, um das Bild dieser Ebene zu ersetzen.",
+  },
+  "Layer {number}": {
+    zh: "图层 {number}",
+    ja: "レイヤー {number}",
+    de: "Ebene {number}",
+  },
+  "Hide {name}": {
+    zh: "隐藏 {name}",
+    ja: "{name}を非表示",
+    de: "{name} ausblenden",
+  },
+  "Show {name}": {
+    zh: "显示 {name}",
+    ja: "{name}を表示",
+    de: "{name} einblenden",
+  },
+  "Export size": {
+    zh: "导出尺寸",
+    ja: "書き出しサイズ",
+    de: "Exportgröße",
+  },
+  "Square side (px)": {
+    zh: "正方形边长（像素）",
+    ja: "正方形の一辺 (px)",
+    de: "Seitenlänge (px)",
+  },
+  "Pixels · PSD / PNG ZIP": {
+    zh: "像素 · PSD / PNG ZIP",
+    ja: "ピクセル · PSD / PNG ZIP",
+    de: "Pixel · PSD / PNG ZIP",
+  },
+  "Choose any whole-number side from 1 to 4096 px. Width and height stay equal.":
+    {
+      zh: "可输入 1 至 4096 的任意整数，宽高保持一致。",
+      ja: "一辺の長さは 1〜4096 px の整数で指定できます。幅と高さは同じ値になります。",
+      de: "Wähle eine ganzzahlige Seitenlänge von 1 bis 4096 px. Breite und Höhe bleiben gleich.",
+    },
+  "Copy parameters": {
+    zh: "复制参数",
+    ja: "パラメーターをコピー",
+    de: "Parameter kopieren",
+  },
+  "Paste parameters": {
+    zh: "粘贴参数",
+    ja: "パラメーターを貼り付け",
+    de: "Parameter einfügen",
+  },
+  "Paste to all layers": {
+    zh: "粘贴到全部图层",
+    ja: "すべてのレイヤーに貼り付け",
+    de: "In alle Ebenen einfügen",
+  },
+  "Paste layer parameters": {
+    zh: "粘贴图层参数",
+    ja: "レイヤーのパラメーターを貼り付け",
+    de: "Ebenenparameter einfügen",
+  },
+  "Parameters copied from {name}.": {
+    zh: "已复制图层 {name} 的参数。",
+    ja: "{name}からパラメーターをコピーしました。",
+    de: "Parameter aus „{name}“ kopiert.",
+  },
+  "Copy array settings, size, angles, offsets, opacity, and image scaling. Paste keeps each layer's image, name, visibility, and order.":
+    {
+      zh: "复制排列、大小、角度、偏移、透明度和缩放采样设置。粘贴时保留各图层的图片、名称、可见性和顺序。",
+      ja: "配列設定、サイズ、角度、ずれ、不透明度、画像の拡大・縮小方式をコピーできます。貼り付けても各レイヤーの画像、名前、表示状態、順序は変わりません。",
+      de: "Kopiere Anordnung, Größe, Winkel, Versatz, Deckkraft und Skalierungsmodus. Beim Einfügen bleiben Bild, Name, Sichtbarkeit und Reihenfolge jeder Ebene erhalten.",
+    },
+  "Import PSD": {
+    zh: "导入 PSD",
+    ja: "PSD を読み込む",
+    de: "PSD importieren",
+  },
+  "Choose PSD layers": {
+    zh: "选择 PSD 图层",
+    ja: "PSD のレイヤーを選択",
+    de: "PSD-Ebenen auswählen",
+  },
+  "Selected layers become independent images. PSD group compositing, masks, effects, blend modes, and document positions are not reproduced.":
+    {
+      zh: "所选图层将作为独立图片导入，不重现 PSD 组的合成效果、蒙版、特效、混合模式和文档中的位置。",
+      ja: "選択したレイヤーは個別の画像として読み込まれます。PSD のグループ合成、マスク、効果、描画モード、ドキュメント内の位置は再現されません。",
+      de: "Die ausgewählten Ebenen werden als eigenständige Bilder importiert. Die Verrechnung von PSD-Gruppen, Masken, Effekte, Mischmodi und Positionen im Dokument werden nicht übernommen.",
+    },
+  "Hidden layers can also be selected. Imported layers start visible.": {
+    zh: "也可以选择隐藏图层，导入后图层默认可见。",
+    ja: "非表示のレイヤーも選択できます。読み込んだレイヤーは表示された状態になります。",
+    de: "Ausgeblendete Ebenen lassen sich ebenfalls auswählen. Importierte Ebenen sind zunächst sichtbar.",
+  },
+  "Select available": {
+    zh: "选择可导入图层",
+    ja: "読み込めるレイヤーを選択",
+    de: "Importierbare Ebenen auswählen",
+  },
+  "Clear selection": {
+    zh: "清空选择",
+    ja: "選択を解除",
+    de: "Auswahl aufheben",
+  },
+  Hidden: {
+    zh: "已隐藏",
+    ja: "非表示",
+    de: "Ausgeblendet",
+  },
+  "No importable pixels": {
+    zh: "没有可导入的像素",
+    ja: "読み込めるピクセルがありません",
+    de: "Keine importierbaren Pixel",
+  },
+  "Import selected layers": {
+    zh: "导入所选图层",
+    ja: "選択したレイヤーを読み込む",
+    de: "Ausgewählte Ebenen importieren",
+  },
+  "Cancel PSD import": {
+    zh: "取消导入 PSD",
+    ja: "PSD の読み込みをキャンセル",
+    de: "PSD-Import abbrechen",
+  },
+  "Choose a PSD file of up to 70 MB.": {
+    zh: "请选择不超过 70 MB 的 PSD 文件。",
+    ja: "70 MB 以下の PSD ファイルを選択してください。",
+    de: "Wähle eine PSD-Datei mit höchstens 70 MB.",
+  },
+  "Choose a valid PSD file. PSB is not supported.": {
+    zh: "请选择有效的 PSD 文件，暂不支持 PSB。",
+    ja: "正しい PSD ファイルを選択してください。PSB には対応していません。",
+    de: "Wähle eine gültige PSD-Datei. PSB wird nicht unterstützt.",
+  },
+  "PSD import supports 8-bit RGB documents only.": {
+    zh: "PSD 导入仅支持 8 位 RGB 文档。",
+    ja: "PSD の読み込みは 8 ビット RGB ドキュメントにのみ対応しています。",
+    de: "Der PSD-Import unterstützt nur RGB-Dokumente mit 8 Bit.",
+  },
+  "PSD dimensions must be at most 8192px per side and 32 megapixels.": {
+    zh: "PSD 每边最多 8192 像素，总像素不超过 3200 万。",
+    ja: "PSD は各辺 8192 px 以下、合計 3200 万画素以下にしてください。",
+    de: "Eine PSD darf höchstens 8192 px pro Seite und 32 Megapixel haben.",
+  },
+  "PSD import supports up to 256 layers and 32 nested groups.": {
+    zh: "PSD 最多支持 256 个图层和 32 层嵌套组。",
+    ja: "PSD の読み込みでは最大 256 レイヤー、グループの入れ子は最大 32 階層まで対応しています。",
+    de: "Der PSD-Import unterstützt bis zu 256 Ebenen und 32 Verschachtelungsebenen für Gruppen.",
+  },
+  "This PSD has no importable pixel layers.": {
+    zh: "此 PSD 中没有可导入的像素图层。",
+    ja: "この PSD には読み込めるピクセルレイヤーがありません。",
+    de: "Diese PSD enthält keine importierbaren Pixelebenen.",
+  },
+  "Select between 1 and 12 PSD layers.": {
+    zh: "请选择 1 至 12 个 PSD 图层。",
+    ja: "PSD のレイヤーを 1〜12 枚選択してください。",
+    de: "Wähle 1 bis 12 PSD-Ebenen aus.",
+  },
+  "A selected PSD layer cannot be imported.": {
+    zh: "所选 PSD 图层无法导入。",
+    ja: "選択した PSD レイヤーのうち、読み込めないレイヤーがあります。",
+    de: "Eine ausgewählte PSD-Ebene kann nicht importiert werden.",
+  },
+  "Unable to decode a selected PSD layer.": {
+    zh: "无法解码所选 PSD 图层。",
+    ja: "選択した PSD レイヤーをデコードできませんでした。",
+    de: "Eine ausgewählte PSD-Ebene konnte nicht decodiert werden.",
+  },
+  "A selected PSD layer exceeds the 8 MB image limit.": {
+    zh: "所选 PSD 图层转换后超过单张图片 8 MB 的限制。",
+    ja: "選択した PSD レイヤーのうち、画像サイズの上限 (8 MB) を超えているものがあります。",
+    de: "Eine ausgewählte PSD-Ebene überschreitet das Bildlimit von 8 MB.",
+  },
+  "Open a PSD before selecting layers.": {
+    zh: "请先打开 PSD 文件再选择图层。",
+    ja: "レイヤーを選択する前に PSD を開いてください。",
+    de: "Öffne eine PSD, bevor du Ebenen auswählst.",
+  },
+  "Unable to read PSD layers.": {
+    zh: "无法读取 PSD 图层。",
+    ja: "PSD のレイヤーを読み込めませんでした。",
+    de: "Die PSD-Ebenen konnten nicht gelesen werden.",
+  },
+  "PSD import timed out. Choose a smaller file.": {
+    zh: "PSD 导入超时，请选择更小的文件。",
+    ja: "PSD の読み込みがタイムアウトしました。サイズの小さいファイルを選択してください。",
+    de: "Der PSD-Import hat zu lange gedauert. Wähle eine kleinere Datei.",
+  },
+  "PSD import cancelled.": {
+    zh: "PSD 导入已取消。",
+    ja: "PSD の読み込みをキャンセルしました。",
+    de: "PSD-Import abgebrochen.",
+  },
+  "Drop one image to replace a layer. Drop multiple images outside the layer list to add them.":
+    {
+      zh: "替换图层时请拖入一张图片。批量添加请将多张图片拖到图层列表以外的编辑区域。",
+      ja: "画像を 1 枚ドロップするとレイヤーの画像を置き換えられます。複数の画像を追加するには、レイヤー一覧の外側にドロップしてください。",
+      de: "Ziehe ein einzelnes Bild auf eine Ebene, um ihr Bild zu ersetzen. Ziehe mehrere Bilder außerhalb der Ebenenliste in den Editor, um sie hinzuzufügen.",
+    },
+  "Drop one image to replace this layer. Its name and settings stay unchanged.":
+    {
+      zh: "松开以替换此图层的图片，保留图层名称和参数。",
+      ja: "画像を 1 枚ドロップすると、このレイヤーの画像を置き換えられます。名前と設定は変わりません。",
+      de: "Ziehe ein einzelnes Bild hierher, um das Bild dieser Ebene zu ersetzen. Name und Einstellungen bleiben erhalten.",
+    },
+  "Drop images anywhere in the editor to add layers. Drop one image onto a layer to replace it.":
+    {
+      zh: "将图片拖入编辑区域可批量添加图层；将单张图片拖到指定图层上可替换图片。",
+      ja: "画像を編集画面にドロップするとレイヤーを追加できます。レイヤーの画像を置き換えるには、そのレイヤーに画像を 1 枚ドロップしてください。",
+      de: "Ziehe Bilder in den Editor, um Ebenen hinzuzufügen. Ziehe ein einzelnes Bild auf eine Ebene, um ihr Bild zu ersetzen.",
+    },
+  "Layer name": {
+    zh: "图层名称",
+    ja: "レイヤー名",
+    de: "Ebenenname",
+  },
+  "Rename layer": {
+    zh: "重命名图层",
+    ja: "レイヤー名を変更",
+    de: "Ebene umbenennen",
+  },
+  "Edits keep original image bytes intact. Save project includes sources and up to 100 history states; editing an earlier state replaces its redo branch. The project autosaves in this browser and is not uploaded. Download Save project for a portable backup.":
+    {
+      zh: "编辑不会改写原图文件。保存工程会包含原图及最多 100 条历史状态；从较早状态继续编辑会替换其后的重做分支。工程会自动保存到此浏览器，不会上传。请下载保存工程文件作为可携带的备份。",
+      ja: "編集しても元画像のデータは変わりません。プロジェクトには元画像と最大 100 件の履歴が含まれます。以前の履歴から編集を再開すると、それ以降の履歴は置き換わります。プロジェクトはこのブラウザーに自動保存され、アップロードされません。「プロジェクトを保存」で持ち運べるバックアップをダウンロードできます。",
+      de: "Beim Bearbeiten bleiben die Originaldateien unverändert. Das Projekt enthält die Quellbilder und bis zu 100 Bearbeitungsstände. Bearbeitest du einen früheren Stand, werden die nachfolgenden Stände ersetzt. Das Projekt wird automatisch in diesem Browser gespeichert und nicht hochgeladen. Mit „Projekt speichern“ kannst du eine Sicherung als Datei herunterladen.",
+    },
+  "Encoding export layer {current} of {total}…": {
+    zh: "正在编码导出图层 {current}/{total}…",
+    ja: "書き出し用のレイヤーをエンコード中 ({current}/{total})…",
+    de: "Ebene {current} von {total} für den Export wird codiert…",
+  },
+  "Export layered PSD": {
+    zh: "导出分层 PSD",
+    ja: "レイヤー付き PSD を書き出す",
+    de: "PSD mit Ebenen exportieren",
+  },
+  "Export PNG ZIP": {
+    zh: "导出 PNG ZIP",
+    ja: "PNG ZIP を書き出す",
+    de: "PNG als ZIP exportieren",
+  },
+  "Finishing image export…": {
+    zh: "正在生成导出文件…",
+    ja: "画像の書き出しを完了中…",
+    de: "Bildexport wird abgeschlossen…",
+  },
+  "GPU context lost during image export. Please try again after recovery.": {
+    zh: "图像导出期间 GPU 上下文丢失，请待恢复后重试。",
+    ja: "画像の書き出し中に GPU コンテキストが失われました。復旧後に再試行してください。",
+    de: "Beim Bildexport ging der GPU-Kontext verloren. Versuche es nach der Wiederherstellung erneut.",
+  },
+  "GPU rendering failed during image export.": {
+    zh: "图像导出期间 GPU 渲染失败。",
+    ja: "画像の書き出し中に GPU の描画に失敗しました。",
+    de: "Das Rendern auf der GPU ist beim Bildexport fehlgeschlagen.",
+  },
+  "Invalid export image dimensions or pixels.": {
+    zh: "导出图像尺寸或像素数据无效。",
+    ja: "書き出す画像のサイズまたはピクセルデータが無効です。",
+    de: "Die Bildabmessungen oder Pixeldaten für den Export sind ungültig.",
+  },
+  "Preparing export composite…": {
+    zh: "正在准备导出合成图…",
+    ja: "書き出し用の合成画像を準備中…",
+    de: "Gesamtbild für den Export wird vorbereitet…",
+  },
+  "Image encoder failed. Try a smaller output size.": {
+    zh: "图像编码失败，请尝试较小的输出尺寸。",
+    ja: "画像のエンコードに失敗しました。出力サイズを小さくしてください。",
+    de: "Die Bildcodierung ist fehlgeschlagen. Versuche es mit einer kleineren Ausgabegröße.",
+  },
+  "Export encoder has not started.": {
+    zh: "图像编码器尚未启动。",
+    ja: "書き出し用のエンコーダーが起動していません。",
+    de: "Der Export-Encoder wurde noch nicht gestartet.",
+  },
+  "Image encoder returned no file.": {
+    zh: "图像编码器未生成文件。",
+    ja: "画像エンコーダーがファイルを返しませんでした。",
+    de: "Der Bild-Encoder hat keine Datei zurückgegeben.",
+  },
+  "Export exceeds the memory limit. Use a smaller output size.": {
+    zh: "导出超过内存限制，请减小输出尺寸。",
+    ja: "書き出しに必要なメモリが上限を超えています。出力サイズを小さくしてください。",
+    de: "Der Export überschreitet das Speicherlimit. Wähle eine kleinere Ausgabegröße.",
+  },
+  "Image export cancelled.": {
+    zh: "已取消图像导出。",
+    ja: "画像の書き出しをキャンセルしました。",
+    de: "Bildexport abgebrochen.",
+  },
+  "PSD keeps layers, transparency, and visibility. PNG ZIP includes each transparent layer, a composite, and a visibility manifest. Exported layers keep custom names. Save project keeps original images and editable array settings.":
+    {
+      zh: "PSD 保留图层、透明度和可见性。PNG ZIP 包含各图层的透明 PNG、合成图和可见性清单。导出图层保留自定义名称。保存工程可保留原图和可编辑的阵列参数。",
+      ja: "PSD はレイヤー、透明度、表示状態を保持します。PNG ZIP には透明度を保った各レイヤー、合成画像、表示状態のマニフェストが含まれます。書き出したレイヤーには設定した名前が付きます。プロジェクトを保存すると、元画像と編集可能な配列設定が保持されます。",
+      de: "PSD erhält Ebenen, Transparenz und Sichtbarkeit. Das PNG-ZIP enthält jede Ebene mit Transparenz, ein Gesamtbild und ein Manifest mit Angaben zur Sichtbarkeit. Exportierte Ebenen behalten ihre eigenen Namen. Die Projektdatei enthält die Quellbilder und die Anordnungseinstellungen zur weiteren Bearbeitung.",
+    },
+  "Export supports up to 12 layers.": {
+    zh: "导出最多支持 12 个图层。",
+    ja: "書き出しに対応するレイヤーは 12 枚までです。",
+    de: "Der Export unterstützt bis zu 12 Ebenen.",
+  },
+  "Unable to read image encoder response.": {
+    zh: "无法读取图像编码器响应。",
+    ja: "画像エンコーダーの応答を読み取れませんでした。",
+    de: "Die Antwort des Bild-Encoders konnte nicht gelesen werden.",
+  },
+  "Unable to read export pixels from the GPU.": {
+    zh: "无法从 GPU 读取图像像素。",
+    ja: "書き出し用のピクセルデータを GPU から読み取れませんでした。",
+    de: "Die Pixeldaten für den Export konnten nicht aus der GPU ausgelesen werden.",
+  },
+  "{size} × {size} · PSD / PNG ZIP": {
+    zh: "{size} × {size} · 分层 PSD / PNG ZIP",
+    ja: "{size} × {size} · PSD / PNG ZIP",
+    de: "{size} × {size} · PSD / PNG-ZIP",
+  },
 };

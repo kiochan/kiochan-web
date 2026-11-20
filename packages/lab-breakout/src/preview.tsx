@@ -1,11 +1,16 @@
 import styles from "@kiochan/lab-ui/preview.module.css";
+import type { ReactNode } from "react";
 
 const bricks = Array.from({ length: 21 }, (_, i) => ({
   x: 34 + (i % 7) * 43,
   y: 26 + Math.floor(i / 7) * 21,
   opacity: 0.28 + Math.floor(i / 7) * 0.22,
 }));
-export function BreakoutPreview() {
+export function BreakoutPreview({
+  renderLabel = (label) => label,
+}: {
+  renderLabel?: (label: string) => ReactNode;
+} = {}) {
   return (
     <svg
       className={styles.scene}
@@ -42,7 +47,7 @@ export function BreakoutPreview() {
         className={`${styles.paddle} ${styles.motion}`}
       />
       <text x="30" y="190" className={styles.label}>
-        AIM / BOUNCE / BREAK
+        {renderLabel("AIM / BOUNCE / BREAK")}
       </text>
     </svg>
   );

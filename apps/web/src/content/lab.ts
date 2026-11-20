@@ -1,5 +1,25 @@
 export const experiments = [
   {
+    slug: "photo-waterfall",
+    name: "Photo Waterfall",
+    category: "Creative tools",
+    description:
+      "Arrange full photos in balanced columns, choose a background color, and download a PNG collage.",
+    stack: "React · Canvas",
+    packageName: "lab-photo-waterfall",
+    original: null,
+  },
+  {
+    slug: "photo-mosaic",
+    name: "Photo Mosaic",
+    category: "Creative tools",
+    description:
+      "Drop in local photos, move and resize tiles, and shuffle the layout around locked photos.",
+    stack: "React · Canvas",
+    packageName: "lab-photo-mosaic",
+    original: null,
+  },
+  {
     slug: "texture-array",
     name: "Texture Array",
     category: "Creative tools",

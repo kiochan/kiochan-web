@@ -9,7 +9,11 @@
 
 ## Current collection
 
-Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, and Texture Array each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, Texture Array, Photo Mosaic, and Photo Waterfall each own a package and README. Routes share the Lab layout, responsive sidebar, navbar, project provenance, canonical metadata, and breadcrumb structured data. Runtime code stays in individual routes.
+
+Photo Waterfall arranges local photos in equal-width columns without cropping them. It balances column heights, supports dragging within and between columns, and exports a PNG with adjustable gap placement and a solid or transparent background.
+
+Photo Mosaic tiles local photos into a gapless rectangular canvas. Drop files onto the canvas, position or resize a tile with live reflow, lock tile bounds through rerolls, and export a single PNG. Its layout engine is independent of React and the editor processes photos in the browser.
 
 Texture Array is an original WebGL2 instanced-array editor for local images. It exports square layered PSD and PNG ZIP files at custom integer sides from 1–4096px, previews a finite 3 × 3 repeat, and preserves source images plus bounded undo history in downloadable projects and browser-local autosave. The focused `/lab/texture-array/app` route shares the same editor/runtime and stored project, retains the global navbar and Lab sidebar, and supports confirmed synchronization of mixed multi-layer parameters. Canvas pan and zoom are bounded view transforms. No animation loop, backend, or uploaded reference artwork is included.
 

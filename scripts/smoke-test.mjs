@@ -30,6 +30,8 @@ async function verify() {
     ["/lab/lattice", "Download layered SVG"],
     ["/lab/texture-array", "Texture Array"],
     ["/lab/texture-array/app", "Texture Array"],
+    ["/lab/photo-mosaic", "Drop photos here"],
+    ["/lab/photo-waterfall", "Canvas width (px)"],
     ["/lab/cubism", "Model manifest"],
     ["/lab/breakout", "Read the game engine source"],
     ["/lab/snake", "Read the game engine source"],
@@ -53,6 +55,39 @@ async function verify() {
     assert.equal(response.status, 200, path);
     const body = await response.text();
     assert.ok(body.includes(content), path);
+    if (path === "/lab/photo-mosaic") {
+      const editor = body.match(
+        /<section\b[^>]*aria-label="Photo mosaic editor"[^>]*>/,
+      )?.[0];
+      const editorClass = editor?.match(/\bclass="([^"\s]+)"/)?.[1];
+      assert.ok(editorClass, "The mosaic editor must have a CSS module class.");
+      const assets = new Set(
+        [
+          ...body.matchAll(
+            /\b(?:href|src)="([^"]*\/_next\/static\/[^"\s]+\.(?:css|js))"/g,
+          ),
+        ].map((match) => match[1]),
+      );
+      assert.ok([...assets].some((asset) => asset.endsWith(".js")));
+      const styles = await Promise.all(
+        [...assets].map(async (asset) => {
+          const file = await fetch(new URL(asset, baseUrl), {
+            signal: AbortSignal.timeout(10_000),
+          });
+          assert.equal(file.status, 200, asset);
+          if (!asset.endsWith(".css")) {
+            await file.arrayBuffer();
+            return "";
+          }
+          assert.match(file.headers.get("content-type") ?? "", /text\/css/);
+          return file.text();
+        }),
+      );
+      assert.ok(
+        styles.some((css) => css.includes(`.${editorClass}`)),
+        "The served CSS must style the mosaic editor.",
+      );
+    }
     if (path === "/projects") {
       assert.ok(body.includes('href="/projects/panel-tools"'));
       assert.ok(body.includes("Source on GitHub"));
@@ -81,6 +116,8 @@ async function verify() {
       );
     }
     if (path === "/sitemap.xml") {
+      assert.ok(body.includes("/lab/photo-mosaic"));
+      assert.ok(body.includes("/lab/photo-waterfall"));
       assert.ok(body.includes("/lab/texture-array"));
       assert.ok(body.includes("/lab/texture-array/app"));
       assert.ok(!body.includes("/projects/kiochan-web"));
@@ -91,11 +128,13 @@ async function verify() {
       assert.ok(!body.includes("https://kiochan.one/releases"));
     }
     if (path === "/lab") {
-      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 6);
+      assert.equal((body.match(/data-lab-card="/g) ?? []).length, 8);
       for (const name of [
         "Liquid Playground",
         "Lattice Generator",
         "Texture Array",
+        "Photo Mosaic",
+        "Photo Waterfall",
         "Cubism Workbench",
         "Breakout",
         "Quick Snake",

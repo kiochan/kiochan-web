@@ -2,6 +2,8 @@ import { BreakoutPreview } from "@kiochan/lab-breakout/preview";
 import { CubismPreview } from "@kiochan/lab-cubism/preview";
 import { LatticePreview } from "@kiochan/lab-lattice/preview";
 import { LiquidPreview } from "@kiochan/lab-liquid/preview";
+import { PhotoMosaicPreview } from "@kiochan/lab-photo-mosaic/preview";
+import { PhotoWaterfallPreview } from "@kiochan/lab-photo-waterfall/preview";
 import { SnakePreview } from "@kiochan/lab-snake/preview";
 import { TextureArrayPreview } from "@kiochan/lab-texture-array/preview";
 import type { Metadata } from "next";
@@ -16,6 +18,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/lab" },
 };
 const previews = {
+  "photo-mosaic": PhotoMosaicPreview,
+  "photo-waterfall": PhotoWaterfallPreview,
   "texture-array": TextureArrayPreview,
   liquid: LiquidPreview,
   lattice: LatticePreview,

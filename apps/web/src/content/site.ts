@@ -1435,6 +1435,12 @@ export const translations: Record<
       ja: "写真全体を高さのそろった列に並べ、背景色を選んで PNG コラージュをダウンロードできます。",
       de: "Vollständige Fotos in ausgeglichenen Spalten anordnen, eine Hintergrundfarbe wählen und die Collage als PNG herunterladen.",
     },
+  "Drop in local photos, move and resize tiles, and shuffle the layout around locked photos.":
+    {
+      zh: "拖入本地照片，自由移动或缩放拼图块，也可以固定照片后随机重排其余照片。",
+      ja: "ローカルの写真をドロップしてタイルを移動・拡大縮小し、固定した写真を残したまま配置をシャッフルできます。",
+      de: "Lokale Fotos hineinziehen, Kacheln verschieben oder in der Größe ändern und das Layout um fixierte Fotos neu mischen.",
+    },
   "Build seamless square textures from local images with GPU arrays, a movable canvas, and editable project history.":
     {
       zh: "使用本地图片、GPU 阵列、可移动画布和可编辑工程历史，制作无缝正方形贴图。",

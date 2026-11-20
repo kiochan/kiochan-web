@@ -17,6 +17,7 @@ COPY packages/lab-cubism/package.json packages/lab-cubism/package.json
 COPY packages/lab-breakout/package.json packages/lab-breakout/package.json
 COPY packages/lab-snake/package.json packages/lab-snake/package.json
 COPY packages/lab-texture-array/package.json packages/lab-texture-array/package.json
+COPY packages/lab-photo-mosaic/package.json packages/lab-photo-mosaic/package.json
 COPY packages/lab-photo-waterfall/package.json packages/lab-photo-waterfall/package.json
 RUN pnpm install --frozen-lockfile
 

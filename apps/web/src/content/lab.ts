@@ -10,6 +10,16 @@ export const experiments = [
     original: null,
   },
   {
+    slug: "photo-mosaic",
+    name: "Photo Mosaic",
+    category: "Creative tools",
+    description:
+      "Drop in local photos, move and resize tiles, and shuffle the layout around locked photos.",
+    stack: "React · Canvas",
+    packageName: "lab-photo-mosaic",
+    original: null,
+  },
+  {
     slug: "texture-array",
     name: "Texture Array",
     category: "Creative tools",

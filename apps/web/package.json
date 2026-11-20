@@ -15,6 +15,7 @@
     "@kiochan/lab-cubism": "workspace:*",
     "@kiochan/lab-lattice": "workspace:*",
     "@kiochan/lab-liquid": "workspace:*",
+    "@kiochan/lab-photo-waterfall": "workspace:*",
     "@kiochan/lab-snake": "workspace:*",
     "@kiochan/lab-texture-array": "workspace:*",
     "@kiochan/theme": "workspace:*",

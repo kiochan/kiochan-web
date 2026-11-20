@@ -32,6 +32,9 @@ importers:
       '@kiochan/lab-liquid':
         specifier: workspace:*
         version: link:../../packages/lab-liquid
+      '@kiochan/lab-photo-waterfall':
+        specifier: workspace:*
+        version: link:../../packages/lab-photo-waterfall
       '@kiochan/lab-snake':
         specifier: workspace:*
         version: link:../../packages/lab-snake
@@ -168,6 +171,22 @@ importers:
         version: 5.9.3
 
   packages/lab-liquid:
+    dependencies:
+      '@kiochan/lab-ui':
+        specifier: workspace:*
+        version: link:../lab-ui
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/lab-photo-waterfall:
     dependencies:
       '@kiochan/lab-ui':
         specifier: workspace:*

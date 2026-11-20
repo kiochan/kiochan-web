@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   turbopack: { root: workspaceRoot },
   transpilePackages: [
     "@kiochan/lab-texture-array",
+    "@kiochan/lab-photo-waterfall",
     "@kiochan/database",
     "@kiochan/lab-ui",
     "@kiochan/lab-liquid",

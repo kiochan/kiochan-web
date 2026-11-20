@@ -16,7 +16,7 @@ export const experiments = [
     category: "Creative tools",
     tags: ["Photo collages"],
     description:
-      "Arrange full photos in balanced columns, choose a background color, and download a PNG collage.",
+      "Arrange full photos in balanced columns and export the collage as PNG, WebP, or JPG.",
     stack: "React · Canvas",
     packageName: "lab-photo-waterfall",
     original: null,

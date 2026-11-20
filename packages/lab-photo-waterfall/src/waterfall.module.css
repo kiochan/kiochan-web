@@ -97,6 +97,8 @@
 }
 
 .stage {
+  --stage-padding: clamp(0.5rem, 3vw, 1.5rem);
+  --preview-fit-height: calc(max(68vh, 13rem) - 2 * var(--stage-padding) - 2px);
   box-sizing: border-box;
   display: grid;
   justify-items: center;
@@ -105,7 +107,7 @@
   overflow: auto;
   border-block: 1px solid var(--kio-color-border);
   background: var(--kio-color-surface-muted);
-  padding: clamp(0.5rem, 3vw, 1.5rem);
+  padding: var(--stage-padding);
 }
 
 .stage[data-dragging] {
@@ -113,9 +115,17 @@
   outline-offset: -4px;
 }
 
+.previewTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding: 0 1rem 0.75rem;
+}
+
 .editHint {
   margin: 0;
-  padding: 0 1rem 0.75rem;
   color: var(--kio-color-text-muted);
   font-size: 0.875rem;
 }
@@ -137,12 +147,6 @@
   background-size: 16px 16px;
 }
 
-.board canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
 .board .tile {
   position: absolute;
   display: grid;
@@ -153,7 +157,17 @@
   border: 0;
   border-radius: 0;
   background: transparent;
+  content-visibility: auto;
   user-select: none;
+}
+
+.tile img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .board .tile:enabled {
@@ -174,6 +188,7 @@
 }
 
 .grip {
+  position: relative;
   display: grid;
   place-items: center;
   width: min(44px, 100%);

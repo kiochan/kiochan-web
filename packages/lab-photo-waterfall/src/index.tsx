@@ -5,12 +5,12 @@ import {
   formatMessage,
   type Translate,
 } from "@kiochan/lab-ui/localization";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { WaterfallFormat } from "./export";
 import {
   buildWaterfall,
   type GapPlacement,
   moveWaterfallPhoto,
-  type WaterfallLayout,
 } from "./layout";
 import { PreviewBoard } from "./preview-board";
 import styles from "./waterfall.module.css";
@@ -20,14 +20,54 @@ type Photo = {
   name: string;
   width: number;
   height: number;
-  image: HTMLImageElement;
+  file: File;
+  url: string;
 };
 
-const minWidth = 120;
-const maxWidth = 8192;
 const maxColumns = 12;
+const formatLabels = {
+  png: "PNG",
+  webp: "WebP",
+  jpg: "JPG",
+};
+const exportErrors = {
+  "jpeg-size":
+    "JPG supports up to 65,535 pixels per side. Choose PNG for larger collages.",
+  "png-size": "The collage exceeds PNG’s maximum image dimensions.",
+  "webp-size":
+    "WebP supports up to 16,383 pixels per side. Choose PNG for larger collages.",
+  encoding: "Could not export the collage on this device.",
+};
 
-async function readPhoto(file: File, id: number): Promise<Photo> {
+async function makeThumbnail(image: HTMLImageElement) {
+  const { naturalWidth: width, naturalHeight: height } = image;
+  const scale = Math.min(
+    1,
+    Math.sqrt((768 * 768) / (width * height)),
+    4096 / Math.max(width, height),
+  );
+  if (scale === 1) return null;
+
+  const canvas = document.createElement("canvas");
+  try {
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", 0.86),
+    );
+  } catch {
+    return null;
+  } finally {
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
+async function readPhoto(file: File, id: number) {
   const url = URL.createObjectURL(file);
   try {
     const image = new Image();
@@ -38,39 +78,11 @@ async function readPhoto(file: File, id: number): Promise<Photo> {
       name: file.name,
       width: image.naturalWidth,
       height: image.naturalHeight,
-      image,
+      file,
+      preview: (await makeThumbnail(image)) ?? file,
     };
   } finally {
     URL.revokeObjectURL(url);
-  }
-}
-
-function draw(
-  canvas: HTMLCanvasElement,
-  photos: readonly Photo[],
-  layout: WaterfallLayout,
-  color: string | null,
-  scale = 1,
-) {
-  const pixel = (value: number) => Math.round(value * scale);
-  canvas.width = Math.max(1, pixel(layout.width));
-  canvas.height = Math.max(1, pixel(layout.height));
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Canvas is unavailable.");
-
-  context.imageSmoothingQuality = "high";
-  if (color !== null) {
-    context.fillStyle = color;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-  }
-  for (const { index, x, y, width, height } of layout.tiles) {
-    context.drawImage(
-      photos[index].image,
-      pixel(x),
-      pixel(y),
-      pixel(x + width) - pixel(x),
-      pixel(y + height) - pixel(y),
-    );
   }
 }
 
@@ -110,6 +122,8 @@ export function PhotoWaterfall({
   const [columns, setColumns] = useState("3");
   const [color, setColor] = useState("#ffffff");
   const [transparent, setTransparent] = useState(false);
+  const [format, setFormat] = useState<WaterfallFormat>("png");
+  const [fit, setFit] = useState(true);
   const [gap, setGap] = useState<GapPlacement>("bottom");
   const [manualOrder, setManualOrder] = useState<number[][] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -118,14 +132,15 @@ export function PhotoWaterfall({
   const [rejectedFiles, setRejectedFiles] = useState<string[]>([]);
   const [exportError, setExportError] = useState("");
   const nextId = useRef(0);
-  const importing = useRef(false);
+  const importRequest = useRef<AbortController | null>(null);
+  const exportRequest = useRef<AbortController | null>(null);
+  const previewUrls = useRef(new Set<string>());
   const dragDepth = useRef(0);
   const widthValue = Number(width);
   const columnValue = Number(columns);
   const valid =
-    Number.isInteger(widthValue) &&
-    widthValue >= minWidth &&
-    widthValue <= maxWidth &&
+    Number.isSafeInteger(widthValue) &&
+    widthValue >= columnValue &&
     Number.isInteger(columnValue) &&
     columnValue >= 1 &&
     columnValue <= maxColumns;
@@ -145,31 +160,35 @@ export function PhotoWaterfall({
     [photos, valid, widthValue, columnValue, gap, manualOrder],
   );
 
-  const background = transparent ? null : color;
-  const paint = useCallback(
-    (canvas: HTMLCanvasElement, scale: number) => {
-      if (layout) draw(canvas, photos, layout, background, scale);
+  const showTransparency = transparent && format !== "jpg";
+  const background = showTransparency ? null : color;
+  const move = useCallback(
+    (index: number, column: number, before: number | undefined) => {
+      if (!layout) return;
+      setManualOrder(
+        moveWaterfallPhoto(layout, index, column, before).map((group) =>
+          group.map((item) => photos[item].id),
+        ),
+      );
+      setExportError("");
     },
-    [layout, photos, background],
+    [layout, photos],
   );
 
-  function move(index: number, column: number, before: number | undefined) {
-    if (!layout) return;
-    setManualOrder(
-      moveWaterfallPhoto(layout, index, column, before).map((group) =>
-        group.map((item) => photos[item].id),
-      ),
-    );
-    setExportError("");
-  }
-
-  const tooLarge =
-    layout &&
-    (layout.height > 16_384 || layout.width * layout.height > 32_000_000);
+  useEffect(() => {
+    const urls = previewUrls.current;
+    return () => {
+      importRequest.current?.abort();
+      exportRequest.current?.abort();
+      for (const url of urls) URL.revokeObjectURL(url);
+      urls.clear();
+    };
+  }, []);
 
   async function addPhotos(files: FileList) {
-    if (!files.length || importing.current) return;
-    importing.current = true;
+    if (!files.length || importRequest.current) return;
+    const request = new AbortController();
+    importRequest.current = request;
     setLoading(true);
     setRejectedFiles([]);
     setExportError("");
@@ -177,41 +196,65 @@ export function PhotoWaterfall({
     const rejected: string[] = [];
     for (const file of Array.from(files)) {
       try {
-        accepted.push(await readPhoto(file, nextId.current++));
+        const { preview, ...photo } = await readPhoto(file, nextId.current++);
+        if (request.signal.aborted) return;
+        const url = URL.createObjectURL(preview);
+        previewUrls.current.add(url);
+        accepted.push({ ...photo, url });
       } catch {
         rejected.push(file.name);
       }
+      if (request.signal.aborted) return;
     }
     setPhotos((current) => [...current, ...accepted]);
     setRejectedFiles(rejected);
-    importing.current = false;
+    importRequest.current = null;
     setLoading(false);
   }
 
   async function download() {
-    if (!layout || tooLarge || exporting) return;
+    if (!layout || exportRequest.current || importRequest.current) return;
+    const request = new AbortController();
+    exportRequest.current = request;
     setExporting(true);
     setExportError("");
-    const canvas = document.createElement("canvas");
     try {
-      paint(canvas, 1);
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png"),
+      const { exportWaterfall, WaterfallExportError } = await import(
+        "./export"
       );
-      if (!blob) throw new Error("PNG encoding failed.");
+      const blob = await exportWaterfall(
+        photos,
+        layout,
+        background,
+        format,
+        request.signal,
+      ).catch((error: unknown) => {
+        if (error instanceof WaterfallExportError && !request.signal.aborted) {
+          setExportError(exportErrors[error.code]);
+          return null;
+        }
+        throw error;
+      });
+      if (!blob || request.signal.aborted) return;
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "photo-waterfall.png";
+      link.download = `photo-waterfall.${format}`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
     } catch {
-      setExportError("PNG export failed. Try a smaller canvas width.");
+      if (!request.signal.aborted) setExportError(exportErrors.encoding);
     } finally {
-      canvas.width = 0;
-      canvas.height = 0;
-      setExporting(false);
+      exportRequest.current = null;
+      if (!request.signal.aborted) setExporting(false);
     }
+  }
+
+  function removePhoto(photo: Photo) {
+    URL.revokeObjectURL(photo.url);
+    previewUrls.current.delete(photo.url);
+    setPhotos((current) => current.filter(({ id }) => id !== photo.id));
+    setExportError("");
   }
 
   return (
@@ -247,10 +290,12 @@ export function PhotoWaterfall({
             {t("Canvas width (px)")}
             <input
               type="number"
-              min={minWidth}
-              max={maxWidth}
+              min="1"
               value={width}
-              onChange={(event) => setWidth(event.currentTarget.value)}
+              onChange={(event) => {
+                setWidth(event.currentTarget.value);
+                setExportError("");
+              }}
             />
           </label>
           <label>
@@ -263,6 +308,7 @@ export function PhotoWaterfall({
               onChange={(event) => {
                 const input = event.currentTarget;
                 setColumns(input.value);
+                setExportError("");
                 if (
                   input.value &&
                   input.validity.valid &&
@@ -292,17 +338,34 @@ export function PhotoWaterfall({
             <input
               type="color"
               value={color}
-              disabled={transparent}
+              disabled={showTransparency}
               onChange={(event) => setColor(event.currentTarget.value)}
             />
           </label>
           <label className={styles.checkbox}>
             <input
               type="checkbox"
-              checked={transparent}
+              checked={showTransparency}
+              disabled={format === "jpg"}
               onChange={(event) => setTransparent(event.currentTarget.checked)}
             />
             {t("Transparent")}
+          </label>
+          <label>
+            {t("Export format")}
+            <select
+              value={format}
+              onChange={(event) => {
+                setFormat(event.currentTarget.value as WaterfallFormat);
+                setExportError("");
+              }}
+            >
+              {Object.entries(formatLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
         <div className={styles.actions}>
@@ -328,26 +391,35 @@ export function PhotoWaterfall({
           <button
             type="button"
             className={styles.download}
-            disabled={!layout || !!tooLarge || exporting || loading}
+            disabled={!layout || exporting || loading}
             onClick={() => void download()}
           >
-            {t(exporting ? "Exporting…" : "Download PNG")}
+            {exporting
+              ? t("Exporting…")
+              : formatMessage(t, "Download {format}", {
+                  format: formatLabels[format],
+                })}
           </button>
         </div>
       </div>
 
       {layout && (
-        <p className={styles.editHint}>
-          {t("Drag photos to reorder them or move them to another column.")}
-        </p>
+        <div className={styles.previewTools}>
+          <p className={styles.editHint}>
+            {t("Drag photos to reorder them or move them to another column.")}
+          </p>
+          <button type="button" onClick={() => setFit((current) => !current)}>
+            {t(fit ? "Scroll to edit" : "Fit all")}
+          </button>
+        </div>
       )}
       <div className={styles.stage} data-dragging={dragging || undefined}>
         {layout ? (
           <PreviewBoard
             layout={layout}
             photos={photos}
-            transparent={transparent}
-            paint={paint}
+            background={background}
+            fit={fit}
             onMove={move}
             t={t}
           />
@@ -402,18 +474,15 @@ export function PhotoWaterfall({
               )}
             </summary>
             <ul className={styles.files}>
-              {photos.map(({ id, name }) => (
-                <li key={id}>
-                  <span>{name}</span>
+              {photos.map((photo) => (
+                <li key={photo.id}>
+                  <span>{photo.name}</span>
                   <button
                     type="button"
-                    aria-label={formatMessage(t, "Remove {name}", { name })}
-                    onClick={() => {
-                      setPhotos((current) =>
-                        current.filter((photo) => photo.id !== id),
-                      );
-                      setExportError("");
-                    }}
+                    aria-label={formatMessage(t, "Remove {name}", {
+                      name: photo.name,
+                    })}
+                    onClick={() => removePhoto(photo)}
                   >
                     {t("Remove")}
                   </button>
@@ -424,13 +493,8 @@ export function PhotoWaterfall({
         )}
         {!valid && (
           <p role="status">
-            {t("Use a width of 120–8192 px and 1–12 columns.")}
-          </p>
-        )}
-        {tooLarge && (
-          <p role="status">
             {t(
-              "This collage is too large to export. Reduce the canvas width or add columns.",
+              "Use 1–12 columns and a whole-pixel width at least as large as the column count.",
             )}
           </p>
         )}

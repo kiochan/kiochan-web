@@ -1,7 +1,15 @@
 "use client";
 
 import { formatMessage, type Translate } from "@kiochan/lab-ui/localization";
-import { type PointerEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  type PointerEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { WaterfallLayout } from "./layout";
 import styles from "./waterfall.module.css";
 
@@ -22,42 +30,48 @@ function insertionTarget(
   y: number,
   index: number,
 ): Target {
-  const tiles = layout.columns[column].tiles.filter(
-    (tile) => tile.index !== index,
-  );
-  const next = tiles.find((tile) => y < tile.y + tile.height / 2);
-  const last = tiles.at(-1);
+  const { tiles } = layout.columns[column];
+  let first = 0;
+  let end = tiles.length;
+  while (first < end) {
+    const middle = Math.floor((first + end) / 2);
+    const tile = tiles[middle];
+    if (y < tile.y + tile.height / 2) end = middle;
+    else first = middle + 1;
+  }
+  const next = tiles[first]?.index === index ? tiles[first + 1] : tiles[first];
+  const last = tiles.at(-1)?.index === index ? tiles.at(-2) : tiles.at(-1);
   const edge = last ? last.y + last.height : layout.height / 2;
   return { column, before: next?.index, y: next?.y ?? edge };
+}
+
+function percent(value: number, total: number) {
+  return `${(100 * value) / total}%`;
 }
 
 export function PreviewBoard({
   layout,
   photos,
-  transparent,
-  paint,
+  background,
+  fit = true,
   onMove,
   t,
 }: {
   layout: WaterfallLayout;
-  photos: readonly { id: number; name: string }[];
-  transparent: boolean;
-  paint: (canvas: HTMLCanvasElement, scale: number) => void;
+  photos: readonly { id: number; name: string; url: string }[];
+  background: string | null;
+  fit?: boolean;
   onMove: (index: number, column: number, before: number | undefined) => void;
   t: Translate;
 }) {
-  const board = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
+  const board = useRef<HTMLElement>(null);
   const drag = useRef<Drag | null>(null);
   const frame = useRef(0);
   const help = useId();
   const [active, setActive] = useState<number | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
-  const scale = Math.min(1, 1200 / layout.width, 2400 / layout.height);
-
-  useEffect(() => {
-    if (canvas.current) paint(canvas.current, scale);
-  }, [paint, scale]);
+  const boardWidth = Math.min(layout.width, 1200);
+  const fitWidth = `min(${boardWidth}px, max(1px, calc(var(--preview-fit-height) * ${layout.width / layout.height})))`;
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
@@ -67,6 +81,8 @@ export function PreviewBoard({
     if (
       !rect ||
       !stage ||
+      !rect.width ||
+      !rect.height ||
       x < rect.left ||
       x > rect.right ||
       y < stage.top ||
@@ -115,30 +131,33 @@ export function PreviewBoard({
     frame.current = requestAnimationFrame(scrollWhileDragging);
   }
 
-  function start(event: PointerEvent<HTMLButtonElement>, index: number) {
-    const element = board.current;
-    if (!element || event.button !== 0 || drag.current) return;
-    if (
-      event.pointerType === "touch" &&
-      !(
-        event.target instanceof HTMLElement &&
-        event.target.hasAttribute("data-grip")
+  const start = useCallback(
+    (event: PointerEvent<HTMLButtonElement>, index: number) => {
+      const element = board.current;
+      if (!element || event.button !== 0 || drag.current) return;
+      if (
+        event.pointerType === "touch" &&
+        !(
+          event.target instanceof HTMLElement &&
+          event.target.hasAttribute("data-grip")
+        )
       )
-    )
-      return;
-    drag.current = {
-      id: event.pointerId,
-      index,
-      startX: event.clientX,
-      startY: event.clientY,
-      x: event.clientX,
-      y: event.clientY,
-      moved: false,
-    };
-    element.setPointerCapture(event.pointerId);
-  }
+        return;
+      drag.current = {
+        id: event.pointerId,
+        index,
+        startX: event.clientX,
+        startY: event.clientY,
+        x: event.clientX,
+        y: event.clientY,
+        moved: false,
+      };
+      element.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
 
-  function finish(event: PointerEvent<HTMLDivElement>, apply: boolean) {
+  function finish(event: PointerEvent<HTMLElement>, apply: boolean) {
     const pointer = drag.current;
     if (pointer?.id !== event.pointerId) return;
     drag.current = null;
@@ -151,16 +170,98 @@ export function PreviewBoard({
     if (next) onMove(pointer.index, next.column, next.before);
   }
 
-  const percentX = (value: number) => `${(100 * value) / layout.width}%`;
-  const percentY = (value: number) => `${(100 * value) / layout.height}%`;
+  const photoTiles = useMemo(
+    () =>
+      layout.columns.flatMap(({ tiles }, column) =>
+        tiles.map((tile, position) => {
+          const photo = photos[tile.index];
+          return (
+            <button
+              type="button"
+              key={photo.id}
+              className={styles.tile}
+              data-active={tile.index === active || undefined}
+              style={{
+                left: percent(tile.x, layout.width),
+                top: percent(tile.y, layout.height),
+                width: percent(tile.width, layout.width),
+                height: percent(tile.height, layout.height),
+              }}
+              aria-label={formatMessage(
+                t,
+                "{name}, column {column}, position {position}",
+                {
+                  name: photo.name,
+                  column: column + 1,
+                  position: position + 1,
+                },
+              )}
+              aria-describedby={help}
+              onPointerDown={(event) => start(event, tile.index)}
+              onKeyDown={(event) => {
+                switch (event.key) {
+                  case "ArrowUp":
+                    if (position > 0)
+                      onMove(tile.index, column, tiles[position - 1].index);
+                    break;
+                  case "ArrowDown":
+                    if (position + 1 < tiles.length)
+                      onMove(tile.index, column, tiles[position + 2]?.index);
+                    break;
+                  case "ArrowLeft":
+                  case "ArrowRight": {
+                    const destination =
+                      column + (event.key === "ArrowLeft" ? -1 : 1);
+                    if (
+                      destination >= 0 &&
+                      destination < layout.columns.length
+                    ) {
+                      const next = insertionTarget(
+                        layout,
+                        destination,
+                        tile.y + tile.height / 2,
+                        tile.index,
+                      );
+                      onMove(tile.index, destination, next.before);
+                    }
+                    break;
+                  }
+                  default:
+                    return;
+                }
+                event.preventDefault();
+              }}
+            >
+              <img
+                src={photo.url}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+              />
+              <span className={styles.grip} data-grip="" aria-hidden="true">
+                ⠿
+              </span>
+            </button>
+          );
+        }),
+      ),
+    [active, help, layout, onMove, photos, start, t],
+  );
 
   return (
-    <div
+    <section
       ref={board}
       className={styles.board}
-      data-transparent={transparent || undefined}
+      aria-label={t("Waterfall collage preview")}
+      data-transparent={background === null || undefined}
       data-moving={active !== null || undefined}
-      style={{ width: Math.max(1, Math.round(layout.width * scale)) }}
+      style={{
+        width: fit ? fitWidth : boardWidth,
+        aspectRatio: `${layout.width} / ${layout.height}`,
+        maxHeight: fit ? "var(--preview-fit-height)" : undefined,
+        backgroundColor: background ?? undefined,
+      }}
       onPointerMove={(event) => {
         const pointer = drag.current;
         if (pointer?.id !== event.pointerId) return;
@@ -183,89 +284,23 @@ export function PreviewBoard({
       onPointerCancel={(event) => finish(event, false)}
       onLostPointerCapture={(event) => finish(event, false)}
     >
-      <canvas
-        ref={canvas}
-        width={Math.max(1, Math.round(layout.width * scale))}
-        height={Math.max(1, Math.round(layout.height * scale))}
-        aria-label={t("Waterfall collage preview")}
-      />
       <span id={help} className={styles.srOnly}>
         {t(
           "Use the arrow keys to reorder this photo or move it to another column.",
         )}
       </span>
-      {layout.columns.flatMap(({ tiles }, column) =>
-        tiles.map((tile, position) => (
-          <button
-            type="button"
-            key={photos[tile.index].id}
-            className={styles.tile}
-            data-active={tile.index === active || undefined}
-            style={{
-              left: percentX(tile.x),
-              top: percentY(tile.y),
-              width: percentX(tile.width),
-              height: percentY(tile.height),
-            }}
-            aria-label={formatMessage(
-              t,
-              "{name}, column {column}, position {position}",
-              {
-                name: photos[tile.index].name,
-                column: column + 1,
-                position: position + 1,
-              },
-            )}
-            aria-describedby={help}
-            onPointerDown={(event) => start(event, tile.index)}
-            onKeyDown={(event) => {
-              switch (event.key) {
-                case "ArrowUp":
-                  if (position > 0)
-                    onMove(tile.index, column, tiles[position - 1].index);
-                  break;
-                case "ArrowDown":
-                  if (position + 1 < tiles.length)
-                    onMove(tile.index, column, tiles[position + 2]?.index);
-                  break;
-                case "ArrowLeft":
-                case "ArrowRight": {
-                  const destination =
-                    column + (event.key === "ArrowLeft" ? -1 : 1);
-                  if (destination >= 0 && destination < layout.columns.length) {
-                    const next = insertionTarget(
-                      layout,
-                      destination,
-                      tile.y + tile.height / 2,
-                      tile.index,
-                    );
-                    onMove(tile.index, destination, next.before);
-                  }
-                  break;
-                }
-                default:
-                  return;
-              }
-              event.preventDefault();
-            }}
-          >
-            <span className={styles.grip} data-grip="" aria-hidden="true">
-              ⠿
-            </span>
-          </button>
-        )),
-      )}
+      {photoTiles}
       {target && (
         <span
           className={styles.dropIndicator}
           aria-hidden="true"
           style={{
-            left: percentX(layout.columns[target.column].x),
-            width: percentX(layout.columns[target.column].width),
-            top: percentY(target.y),
+            left: percent(layout.columns[target.column].x, layout.width),
+            width: percent(layout.columns[target.column].width, layout.width),
+            top: percent(target.y, layout.height),
           }}
         />
       )}
-    </div>
+    </section>
   );
 }

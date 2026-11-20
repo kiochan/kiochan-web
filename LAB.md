@@ -13,7 +13,7 @@ Liquid, Lattice, Cubism Workbench, Breakout, Quick Snake, Texture Array, Photo M
 
 Image Palette extracts several sets of copyable HEX colors from a single local image. Sampling and palette generation run in the browser.
 
-Photo Waterfall arranges local photos in equal-width columns without cropping them. It balances column heights, supports dragging within and between columns, and exports a PNG with adjustable gap placement and a solid or transparent background.
+Photo Waterfall arranges local photos in equal-width columns without cropping them. It balances column heights, previews the full collage, supports dragging within and between columns, and exports PNG, WebP, or JPG with adjustable gap placement. PNG and WebP support transparent backgrounds.
 
 Photo Mosaic tiles local photos into a gapless rectangular canvas. Drop files onto the canvas, position or resize a tile with live reflow, lock tile bounds through rerolls, and export a single PNG. Its layout engine is independent of React and the editor processes photos in the browser.
 

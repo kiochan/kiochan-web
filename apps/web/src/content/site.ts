@@ -1507,11 +1507,11 @@ export const translations: Record<
     ja: "アーケード",
     de: "Arcade",
   },
-  "Arrange full photos in balanced columns, choose a background color, and download a PNG collage.":
+  "Arrange full photos in balanced columns and export the collage as PNG, WebP, or JPG.":
     {
-      zh: "用等宽列完整排列照片，自选底色，然后下载 PNG 拼图。",
-      ja: "写真全体を高さのそろった列に並べ、背景色を選んで PNG コラージュをダウンロードできます。",
-      de: "Vollständige Fotos in ausgeglichenen Spalten anordnen, eine Hintergrundfarbe wählen und die Collage als PNG herunterladen.",
+      zh: "将完整照片排列在高度均衡的列中，将拼图导出为 PNG、WebP 或 JPG。",
+      ja: "写真全体を高さのそろった列に並べ、コラージュを PNG、WebP、JPG のいずれかで書き出せます。",
+      de: "Vollständige Fotos in ausgeglichenen Spalten anordnen und die Collage als PNG, WebP oder JPG exportieren.",
     },
   "Drop in local photos, move and resize tiles, and shuffle the layout around locked photos.":
     {
@@ -2349,6 +2349,11 @@ export const translations: Record<
     ja: "PNG をダウンロード",
     de: "PNG herunterladen",
   },
+  "Download {format}": {
+    zh: "下载 {format}",
+    ja: "{format} をダウンロード",
+    de: "{format} herunterladen",
+  },
   "PNG export failed. Try downloading the SVG instead.": {
     zh: "PNG 导出失败。请尝试下载 SVG。",
     ja: "PNG の書き出しに失敗しました。SVG のダウンロードをお試しください。",
@@ -2820,10 +2825,25 @@ export const translations: Record<
     ja: "自動配置",
     de: "Automatisch anordnen",
   },
+  "Export format": {
+    zh: "导出格式",
+    ja: "書き出し形式",
+    de: "Exportformat",
+  },
   "Exporting…": {
     zh: "正在导出…",
     ja: "書き出し中…",
     de: "Export läuft…",
+  },
+  "Fit all": {
+    zh: "查看整张拼图",
+    ja: "全体を表示",
+    de: "Gesamte Collage anzeigen",
+  },
+  "Scroll to edit": {
+    zh: "放大并滚动编辑",
+    ja: "拡大してスクロール編集",
+    de: "Zum Bearbeiten vergrößern",
   },
   "Drag photos to reorder them or move them to another column.": {
     zh: "拖动照片可以调整顺序，也可以将照片移到其他列。",
@@ -2855,27 +2875,39 @@ export const translations: Record<
     ja: "{name} を削除",
     de: "{name} entfernen",
   },
-  "Use a width of 120–8192 px and 1–12 columns.": {
-    zh: "宽度须为 120–8192 px，列数须为 1–12。",
-    ja: "幅は 120〜8192 px、列数は 1〜12 に設定してください。",
-    de: "Erlaubt sind 120–8192 px Breite und 1–12 Spalten.",
-  },
-  "This collage is too large to export. Reduce the canvas width or add columns.":
+  "Use 1–12 columns and a whole-pixel width at least as large as the column count.":
     {
-      zh: "拼图太大，无法导出。请缩小画布宽度或增加列数。",
-      ja: "コラージュが大きすぎて書き出せません。幅を狭くするか、列を増やしてください。",
-      de: "Die Collage ist für den Export zu groß. Verringere die Breite oder füge Spalten hinzu.",
+      zh: "列数须为 1–12，宽度须为整数像素且至少等于列数。",
+      ja: "列数は 1〜12、幅は列数以上の整数ピクセルで指定してください。",
+      de: "Wähle 1–12 Spalten und eine ganzzahlige Pixelbreite von mindestens der Spaltenanzahl.",
     },
   "Could not open {files}.": {
     zh: "无法打开 {files}。",
     ja: "{files} を開けませんでした。",
     de: "Folgende Dateien konnten nicht geöffnet werden: {files}.",
   },
-  "PNG export failed. Try a smaller canvas width.": {
-    zh: "PNG 导出失败。请尝试缩小画布宽度。",
-    ja: "PNG の書き出しに失敗しました。キャンバスの幅を狭くしてみてください。",
-    de: "Der PNG-Export ist fehlgeschlagen. Versuche es mit einer kleineren Breite.",
+  "Could not export the collage on this device.": {
+    zh: "当前设备无法导出此拼图。",
+    ja: "この端末ではコラージュを書き出せませんでした。",
+    de: "Die Collage konnte auf diesem Gerät nicht exportiert werden.",
   },
+  "The collage exceeds PNG’s maximum image dimensions.": {
+    zh: "拼图尺寸超出 PNG 格式的上限。",
+    ja: "コラージュの寸法が PNG 形式の上限を超えています。",
+    de: "Die Collage überschreitet die maximalen PNG-Bildabmessungen.",
+  },
+  "WebP supports up to 16,383 pixels per side. Choose PNG for larger collages.":
+    {
+      zh: "WebP 每边最多支持 16,383 像素。导出更大的拼图时请选择 PNG。",
+      ja: "WebP は各辺 16,383 ピクセルまでです。より大きいコラージュには PNG を選んでください。",
+      de: "WebP unterstützt bis zu 16.383 Pixel pro Seite. Wähle für größere Collagen PNG.",
+    },
+  "JPG supports up to 65,535 pixels per side. Choose PNG for larger collages.":
+    {
+      zh: "JPG 每边最多支持 65,535 像素。导出更大的拼图时请选择 PNG。",
+      ja: "JPG は各辺 65,535 ピクセルまでです。より大きいコラージュには PNG を選んでください。",
+      de: "JPG unterstützt bis zu 65.535 Pixel pro Seite. Wähle für größere Collagen PNG.",
+    },
   "Waterfall collage preview": {
     zh: "瀑布流拼图预览",
     ja: "段組みコラージュのプレビュー",

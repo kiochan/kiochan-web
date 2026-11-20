@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { inflateSync } from "node:zlib";
 import {
   buildWaterfall,
   moveWaterfallPhoto,
 } from "../packages/lab-photo-waterfall/src/layout.ts";
+import { encodePng } from "../packages/lab-photo-waterfall/src/png.ts";
 
 test("finds an even partition when shortest-column placement leaves gaps", () => {
   const heights = [8, 7, 6, 5, 4];
@@ -113,4 +115,36 @@ test("gap placement redistributes the same spare space without resizing photos",
   }
   const single = buildWaterfall(photos, 300, 3, "between", [[0], [1], [2]]);
   assert.equal(single.columns[1].tiles[0].y, 82);
+});
+
+test("PNG bands preserve full height and alpha beyond the former export limit", async () => {
+  const height = 16_385;
+  const rows = Buffer.alloc(height * 5);
+  rows.set([0, 255, 0, 0, 255]);
+  rows.set([0, 0, 0, 255, 128], rows.length - 5);
+  async function* bands() {
+    yield rows.subarray(0, 5);
+    yield rows.subarray(5);
+  }
+
+  const png = await encodePng(1, height, 4, bands());
+  assert.equal(png.type, "image/png");
+  const bytes = Buffer.from(await png.arrayBuffer());
+  assert.deepEqual(
+    [...bytes.subarray(0, 8)],
+    [137, 80, 78, 71, 13, 10, 26, 10],
+  );
+  assert.equal(bytes.readUInt32BE(16), 1);
+  assert.equal(bytes.readUInt32BE(20), height);
+  assert.equal(bytes[25], 6);
+
+  const data = [];
+  for (let start = 8; start < bytes.length; ) {
+    const length = bytes.readUInt32BE(start);
+    if (bytes.toString("ascii", start + 4, start + 8) === "IDAT") {
+      data.push(bytes.subarray(start + 8, start + 8 + length));
+    }
+    start += length + 12;
+  }
+  assert.deepEqual(inflateSync(Buffer.concat(data)), rows);
 });

@@ -15,7 +15,7 @@ Image Palette extracts several sets of copyable HEX colors from a single local i
 
 Photo Waterfall arranges local photos in equal-width columns without cropping them. It balances column heights, previews the full collage, supports dragging within and between columns, and exports PNG, WebP, or JPG with adjustable gap placement. PNG and WebP support transparent backgrounds.
 
-Photo Mosaic tiles local photos into a gapless rectangular canvas. Drop files onto the canvas, position or resize a tile with live reflow, lock tile bounds through rerolls, and export a single PNG. Its layout engine is independent of React and the editor processes photos in the browser.
+Photo Mosaic tiles local photos on a rectangular canvas. Drop files onto the canvas, choose cropped or whole-photo fitting, position or resize a tile with live reflow, lock tile bounds through rerolls, and export a PNG, WebP, or JPG. Its layout engine is independent of React and the editor processes photos in the browser.
 
 Texture Array is an original WebGL2 instanced-array editor for local images. It exports square layered PSD and PNG ZIP files at custom integer sides from 1–4096px, previews a finite 3 × 3 repeat, and preserves source images plus bounded undo history in downloadable projects and browser-local autosave. The focused `/lab/texture-array/app` route shares the same editor/runtime and stored project, retains the global navbar and Lab sidebar, and supports confirmed synchronization of mixed multi-layer parameters. Canvas pan and zoom are bounded view transforms. No animation loop, backend, or uploaded reference artwork is included.
 

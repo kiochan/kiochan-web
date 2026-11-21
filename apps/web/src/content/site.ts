@@ -2472,46 +2472,6 @@ export const translations: Record<
     ja: "写真の段組みエディター",
     de: "Editor für Spaltencollagen",
   },
-  "Calculating preview…": {
-    zh: "正在生成预览…",
-    ja: "プレビューを生成中…",
-    de: "Vorschau wird berechnet…",
-  },
-  "The matched preview could not be rendered.": {
-    zh: "无法生成配色匹配预览。",
-    ja: "色を合わせたプレビューを表示できませんでした。",
-    de: "Die Vorschau mit Farbanpassung konnte nicht angezeigt werden.",
-  },
-  "Opening target…": {
-    zh: "正在打开目标图片…",
-    ja: "目標画像を開いています…",
-    de: "Zielbild wird geöffnet…",
-  },
-  "The target could not be opened as an image.": {
-    zh: "无法打开目标图片。",
-    ja: "目標画像を開けませんでした。",
-    de: "Die Zieldatei konnte nicht als Bild geöffnet werden.",
-  },
-  "Calculating photo matches…": {
-    zh: "正在匹配照片颜色…",
-    ja: "写真の色の一致を計算中…",
-    de: "Passende Fotos werden berechnet…",
-  },
-  "Photos arranged by target color.": {
-    zh: "已按目标图片的颜色排列照片。",
-    ja: "目標画像の色に合わせて写真を配置しました。",
-    de: "Die Fotos wurden nach den Farben des Zielbilds angeordnet.",
-  },
-  "The current layout already matches these photos.": {
-    zh: "当前布局已符合这些照片的色彩匹配结果。",
-    ja: "現在の配置はすでにこれらの写真に合っています。",
-    de: "Das aktuelle Layout passt bereits zu diesen Fotos.",
-  },
-  "The photos could not be rearranged by color.": {
-    zh: "无法按颜色重新排列照片。",
-    ja: "写真を色に合わせて並べ替えられませんでした。",
-    de: "Die Fotos konnten nicht nach Farbe neu angeordnet werden.",
-  },
   "Opening photos…": {
     zh: "正在打开照片…",
     ja: "写真を開いています…",
@@ -2559,35 +2519,160 @@ export const translations: Record<
     ja: "すべての写真を配置するにはキャンバスが小さすぎます。",
     de: "Die Arbeitsfläche ist zu klein für alle Fotos.",
   },
-  "Calculating and encoding PNG…": {
-    zh: "正在计算并编码 PNG…",
-    ja: "画像を計算し、PNG に変換しています…",
-    de: "PNG wird berechnet und kodiert…",
+  "Calculating and encoding {format}…": {
+    zh: "正在计算并编码 {format}…",
+    ja: "画像を計算し、{format} に変換しています…",
+    de: "{format} wird berechnet und kodiert…",
   },
-  "PNG download started.": {
-    zh: "已开始下载 PNG。",
-    ja: "PNG のダウンロードを開始しました。",
-    de: "PNG-Download wurde gestartet.",
+  "{format} download started.": {
+    zh: "已开始下载 {format}。",
+    ja: "{format} のダウンロードを開始しました。",
+    de: "Der {format}-Download wurde gestartet.",
   },
-  "The PNG could not be exported.": {
-    zh: "无法导出 PNG。",
-    ja: "PNG を書き出せませんでした。",
-    de: "Das PNG konnte nicht exportiert werden.",
+  "Could not export {format}. Try a smaller canvas.": {
+    zh: "无法导出 {format}。请尝试缩小画布。",
+    ja: "{format} を書き出せませんでした。キャンバスを小さくしてみてください。",
+    de: "{format} konnte nicht exportiert werden. Versuche eine kleinere Arbeitsfläche.",
   },
-  "That spot cannot be filled. Kept the last gapless layout.": {
-    zh: "无法填满该位置，已保留上一个无缝布局。",
-    ja: "その位置には隙間ができるため、直前の配置を維持しました。",
-    de: "An dieser Stelle würde eine Lücke entstehen. Das letzte lückenlose Layout bleibt erhalten.",
+  "Could not export {format}. Try PNG or a smaller canvas.": {
+    zh: "无法导出 {format}。请尝试 PNG 或缩小画布。",
+    ja: "{format} を書き出せませんでした。PNG を選ぶか、キャンバスを小さくしてみてください。",
+    de: "{format} konnte nicht exportiert werden. Versuche PNG oder eine kleinere Arbeitsfläche.",
   },
-  "There is no gapless layout at that position.": {
-    zh: "在该位置无法实现无缝布局。",
-    ja: "その位置には隙間なく配置できません。",
-    de: "An dieser Position ist kein lückenloses Layout möglich.",
+  "Photo fit": {
+    zh: "图片填充方式",
+    ja: "写真の収め方",
+    de: "Fotoeinpassung",
+  },
+  "Automatic layout": {
+    zh: "自动",
+    ja: "自動配置",
+    de: "Automatisches Layout",
+  },
+  "Keep more of each photo": {
+    zh: "最大保留图片",
+    ja: "写真をできるだけ残す",
+    de: "Möglichst viel vom Foto behalten",
+  },
+  "Keep whole photos": {
+    zh: "完全保留图片",
+    ja: "写真全体を表示",
+    de: "Ganze Fotos behalten",
+  },
+  "Balances photo sizes and fills the canvas.": {
+    zh: "尽量让照片大小接近，并填满画布。",
+    ja: "写真の大きさをそろえ、キャンバス全体を埋めます。",
+    de: "Gleicht die Fotogrößen an und füllt die Arbeitsfläche.",
+  },
+  "Fills the canvas while keeping more of each photo visible.": {
+    zh: "填满画布，同时尽量减少每张照片的裁剪。",
+    ja: "写真の切り抜きを抑えながら、キャンバス全体を埋めます。",
+    de: "Füllt die Arbeitsfläche und hält den Zuschnitt möglichst gering.",
+  },
+  "Fits whole photos together and minimizes leftover space.": {
+    zh: "不裁剪照片，尽量让照片贴合并减少留白。",
+    ja: "写真を切り抜かずに敷き詰め、余白を抑えます。",
+    de: "Ordnet ganze Fotos dicht an und hält freie Flächen möglichst klein.",
+  },
+  "Photo spacing (px)": {
+    zh: "照片间距（像素）",
+    ja: "写真の間隔（px）",
+    de: "Fotoabstand (px)",
+  },
+  "Blank areas": {
+    zh: "留白背景",
+    ja: "余白の背景",
+    de: "Hintergrund freier Flächen",
+  },
+  "Solid color": {
+    zh: "纯色",
+    ja: "単色",
+    de: "Einfarbig",
+  },
+  "JPG fills transparent areas with white.": {
+    zh: "JPG 会将透明区域填为白色。",
+    ja: "JPG では透明部分が白になります。",
+    de: "JPG füllt transparente Bereiche mit Weiß.",
+  },
+  "Preview zoom": {
+    zh: "预览缩放",
+    ja: "プレビューのズーム",
+    de: "Vorschauzoom",
+  },
+  "Fit to view": {
+    zh: "适应窗口",
+    ja: "画面に合わせる",
+    de: "Ansicht einpassen",
+  },
+  "Pan preview": {
+    zh: "拖动查看",
+    ja: "プレビューを移動",
+    de: "Vorschau verschieben",
+  },
+  "Locked photos": {
+    zh: "已锁定照片",
+    ja: "固定した写真",
+    de: "Fixierte Fotos",
+  },
+  "Unlock {name}": {
+    zh: "解锁 {name}",
+    ja: "{name} の固定を解除",
+    de: "Fixierung von {name} lösen",
+  },
+  Unlock: {
+    zh: "解锁",
+    ja: "固定を解除",
+    de: "Fixierung lösen",
+  },
+  "Selected photo": {
+    zh: "选中的照片",
+    ja: "選択した写真",
+    de: "Ausgewähltes Foto",
+  },
+  "Tile width (px)": {
+    zh: "拼块宽度（像素）",
+    ja: "タイルの幅（px）",
+    de: "Kachelbreite (px)",
+  },
+  "Tile height (px)": {
+    zh: "拼块高度（像素）",
+    ja: "タイルの高さ（px）",
+    de: "Kachelhöhe (px)",
+  },
+  "Resize tile": {
+    zh: "调整拼块大小",
+    ja: "タイルのサイズを変更",
+    de: "Kachelgröße ändern",
+  },
+  "Select a photo to resize, lock, or remove it.": {
+    zh: "选择一张照片即可调整大小、锁定或移除。",
+    ja: "サイズ変更、固定、削除を行う写真を選んでください。",
+    de: "Wähle ein Foto aus, um seine Größe zu ändern, es zu fixieren oder es zu entfernen.",
+  },
+  "That change does not fit around the other photos.": {
+    zh: "调整后无法在其他照片周围完成排版。",
+    ja: "この変更ではほかの写真の周りに配置できません。",
+    de: "Mit dieser Änderung lassen sich die übrigen Fotos nicht passend anordnen.",
+  },
+  "That tile size does not fit. Try a smaller size or unlock a photo.": {
+    zh: "此拼块尺寸放不下。请缩小尺寸或解锁一张照片。",
+    ja: "このサイズではタイルが収まりません。サイズを小さくするか、写真の固定を解除してください。",
+    de: "Diese Kachelgröße passt nicht. Wähle eine kleinere Größe oder löse die Fixierung eines Fotos.",
+  },
+  "Unlock a photo to switch to a filled canvas.": {
+    zh: "请先解锁一张照片，再切换到填满画布。",
+    ja: "キャンバス全体を埋めるには、先に写真の固定を解除してください。",
+    de: "Löse die Fixierung eines Fotos, um die Arbeitsfläche vollständig zu füllen.",
   },
   "Add photos": {
     zh: "添加照片",
     ja: "写真を追加",
     de: "Fotos hinzufügen",
+  },
+  "Tidy layout": {
+    zh: "整理排版",
+    ja: "配置を整える",
+    de: "Layout ordnen",
   },
   "Shuffle layout": {
     zh: "随机重排",
@@ -2644,51 +2729,6 @@ export const translations: Record<
     ja: "高",
     de: "Hoch",
   },
-  "Replace target image": {
-    zh: "更换目标图片",
-    ja: "目標画像を変更",
-    de: "Zielbild ersetzen",
-  },
-  "Choose target image": {
-    zh: "选择目标图片",
-    ja: "目標画像を選択",
-    de: "Zielbild auswählen",
-  },
-  "Color strength": {
-    zh: "配色强度",
-    ja: "色補正の強さ",
-    de: "Stärke der Farbanpassung",
-  },
-  "Tiles per side": {
-    zh: "每边拼图块数",
-    ja: "一辺あたりのタイル数",
-    de: "Kacheln pro Seite",
-  },
-  "Apply density": {
-    zh: "应用密度",
-    ja: "密度を適用",
-    de: "Dichte übernehmen",
-  },
-  "{count} tiles": {
-    zh: "{count} 个拼图块",
-    ja: "タイル {count} 枚",
-    de: "{count} Kacheln",
-  },
-  "Match target brightness": {
-    zh: "匹配目标亮度",
-    ja: "目標画像の明るさに合わせる",
-    de: "Helligkeit an Zielbild anpassen",
-  },
-  "Match photos again": {
-    zh: "重新匹配照片",
-    ja: "写真の色合わせをやり直す",
-    de: "Fotos erneut abgleichen",
-  },
-  "Remove target": {
-    zh: "移除目标图片",
-    ja: "目標画像を削除",
-    de: "Zielbild entfernen",
-  },
   "Mosaic canvas": {
     zh: "马赛克画布",
     ja: "モザイクキャンバス",
@@ -2708,11 +2748,6 @@ export const translations: Record<
     zh: "最多可拖入 {count} 张图片，也可以点击「添加照片」浏览文件。",
     ja: "最大 {count} 枚の画像をドロップするか、「写真を追加」から選択してください。",
     de: "Lege bis zu {count} Bilder ab oder wähle sie über „Fotos hinzufügen“ aus.",
-  },
-  "Color-matched mosaic preview": {
-    zh: "配色匹配后的马赛克预览",
-    ja: "色を合わせたモザイクのプレビュー",
-    de: "Mosaikvorschau mit Farbanpassung",
   },
   Locked: {
     zh: "已锁定",

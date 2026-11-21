@@ -4,17 +4,56 @@ export type Axis = "x" | "y";
 export type Photo = { id: string; aspect: number };
 export type Cell = Rect & { id: string };
 export type Edge = "left" | "right" | "top" | "bottom";
+export type PhotoFit = "cover" | "maximize" | "contain";
 
 export const photoLimit = 100;
-const minimumTileSide = 12;
+export const minimumTileSide = 12;
 const right = (rect: Rect) => rect.x + rect.width;
 const bottom = (rect: Rect) => rect.y + rect.height;
-const area = (rect: Rect) => rect.width * rect.height;
+const area = (size: Size) => size.width * size.height;
 const capacity = (rect: Rect) =>
   Math.floor(rect.width / minimumTileSide) *
   Math.floor(rect.height / minimumTileSide);
 const overlaps = (a: Rect, b: Rect) =>
   a.x < right(b) && b.x < right(a) && a.y < bottom(b) && b.y < bottom(a);
+
+function fitInsets(side: number, start: number, end: number) {
+  const total = start + end;
+  if (total < side) return { start, end };
+  const scale = (side - 1) / total;
+  return { start: Math.floor(start * scale), end: Math.floor(end * scale) };
+}
+
+export function photoFrames(layout: Cell[], spacing = 0): Cell[] {
+  if (spacing <= 0) return layout;
+  const start = Math.floor(spacing / 2);
+  const end = spacing - start;
+  return layout.map((cell) => {
+    let leftInset = 0;
+    let rightInset = 0;
+    let topInset = 0;
+    let bottomInset = 0;
+    for (const other of layout) {
+      if (cell.y < bottom(other) && other.y < bottom(cell)) {
+        if (right(other) === cell.x) leftInset = start;
+        if (right(cell) === other.x) rightInset = end;
+      }
+      if (cell.x < right(other) && other.x < right(cell)) {
+        if (bottom(other) === cell.y) topInset = start;
+        if (bottom(cell) === other.y) bottomInset = end;
+      }
+    }
+    const x = fitInsets(cell.width, leftInset, rightInset);
+    const y = fitInsets(cell.height, topInset, bottomInset);
+    return {
+      id: cell.id,
+      x: cell.x + x.start,
+      y: cell.y + y.start,
+      width: cell.width - x.start - x.end,
+      height: cell.height - y.start - y.end,
+    };
+  });
+}
 
 function transpose({ x, y, width, height }: Rect): Rect {
   return { x: y, y: x, width: height, height: width };
@@ -163,66 +202,300 @@ function sameRect(a: Rect, b: Rect) {
   );
 }
 
+function wholePhotoRegions(
+  partition: Rect[],
+  count: number,
+  availableArea: number,
+) {
+  const ranked = partition
+    .filter((rect) => capacity(rect) > 0)
+    .toSorted((a, b) => area(b) - area(a));
+  const largest = ranked.slice(0, count);
+  const typicalArea = availableArea / count;
+  const typicalSide = Math.sqrt(typicalArea);
+  const plans = [largest];
+  // Narrow spaces beside locks can technically hold a photo, but often make
+  // it look like a stray thumbnail. Try leaving those regions open.
+  for (const fraction of [0.35, 0.55]) {
+    plans.push(
+      ranked
+        .filter(
+          (rect) =>
+            Math.min(rect.width, rect.height) >= typicalSide * fraction &&
+            area(rect) >= typicalArea * fraction,
+        )
+        .slice(0, count),
+    );
+  }
+  let space = 0;
+  const lastNeeded = largest.findIndex((rect) => {
+    space += capacity(rect);
+    return space >= count;
+  });
+  // Compare spreading photos across the available regions with packing them
+  // together, which can avoid squeezing a photo into a narrow strip.
+  const compactCount = lastNeeded + 1;
+  if (compactCount > 0) plans.push(largest.slice(0, compactCount));
+  return plans.filter(
+    (regions, index) =>
+      regions.length > 0 &&
+      !plans
+        .slice(0, index)
+        .some(
+          (earlier) =>
+            earlier.length === regions.length &&
+            earlier.every((rect, slot) => rect === regions[slot]),
+        ),
+  );
+}
+
+function scoreLayout(
+  cells: Cell[],
+  aspects: Map<string, number>,
+  availableArea: number,
+  fit: PhotoFit,
+) {
+  const retained = cells.map((cell) => {
+    const ratio = cell.width / cell.height / (aspects.get(cell.id) ?? 1);
+    return Math.min(ratio, 1 / ratio);
+  });
+  const visibleAreas = cells.map((cell, index) => area(cell) * retained[index]);
+  const displayedAreas = fit === "contain" ? visibleAreas : cells.map(area);
+  const mean =
+    displayedAreas.reduce((sum, value) => sum + value, 0) / cells.length;
+  const variation =
+    displayedAreas.reduce(
+      (sum, value) => sum + Math.log2(value / mean) ** 2,
+      0,
+    ) / cells.length;
+  if (fit === "maximize") {
+    const cut = retained.reduce((sum, value) => sum + 1 - value, 0);
+    return cut / cells.length + 0.05 * variation;
+  }
+  const visibleTotal = visibleAreas.reduce((sum, value) => sum + value, 0);
+  const gaps = 1 - visibleTotal / availableArea;
+  if (fit === "contain") {
+    const smallest = Math.min(...visibleAreas);
+    const tinyPhotoPenalty = Math.max(0, Math.log2(mean / (4 * smallest)));
+    return gaps + 0.2 * variation + 0.25 * tinyPhotoPenalty;
+  }
+  return gaps + variation;
+}
+
+function justifiedRows(
+  photos: Photo[],
+  bounds: Rect,
+  turn: boolean,
+  rowCount: number,
+  sums: number[],
+  bestScore: number,
+) {
+  const totalAspect = sums[photos.length];
+  const rows: { end: number; height: number }[] = [];
+  let start = 0;
+  let fullHeight = 0;
+  for (let left = rowCount; left > 0; left--) {
+    const limit = photos.length - left + 1;
+    const target = sums[start] + (totalAspect - sums[start]) / left;
+    let end = start + 1;
+    while (
+      end < limit &&
+      Math.abs(sums[end + 1] - target) < Math.abs(sums[end] - target)
+    )
+      end++;
+    const height = bounds.width / (sums[end] - sums[start]);
+    rows.push({ end, height });
+    fullHeight += height;
+    start = end;
+  }
+  const scale = Math.min(1, bounds.height / fullHeight);
+  const roundedArea =
+    Math.ceil(bounds.width * scale + 1) * Math.ceil(fullHeight * scale + 1);
+  if (1 - roundedArea / area(bounds) > bestScore) return null;
+  const x = bounds.x + (bounds.width * (1 - scale)) / 2;
+  let y = bounds.y + (bounds.height - fullHeight * scale) / 2;
+  start = 0;
+  const cells: Cell[] = [];
+  for (const row of rows) {
+    const height = row.height * scale;
+    const top = Math.round(y);
+    const bottom = Math.round(y + height);
+    if (bottom - top < minimumTileSide) return null;
+    for (let index = start; index < row.end; index++) {
+      const left = Math.round(x + (sums[index] - sums[start]) * height);
+      const right = Math.round(x + (sums[index + 1] - sums[start]) * height);
+      if (right - left < minimumTileSide) return null;
+      const cell = {
+        x: left,
+        y: top,
+        width: right - left,
+        height: bottom - top,
+      };
+      cells.push({ ...(turn ? transpose(cell) : cell), id: photos[index].id });
+    }
+    y += height;
+    start = row.end;
+  }
+  return cells;
+}
+
+function packWholePhotos(
+  photos: Photo[],
+  rect: Rect,
+  aspects: Map<string, number>,
+) {
+  let best: Cell[] | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  // Justified rows and columns use shared edges. Scale the entire group when
+  // necessary so the space left over stays outside the photos.
+  for (const turn of [false, true]) {
+    const bounds = turn ? transpose(rect) : rect;
+    const sums = [0];
+    for (const photo of photos) {
+      sums.push(
+        sums[sums.length - 1] + (turn ? 1 / photo.aspect : photo.aspect),
+      );
+    }
+    const limit = Math.min(
+      photos.length,
+      Math.floor(bounds.height / minimumTileSide),
+    );
+    for (let rows = 1; rows <= limit; rows++) {
+      const cells = justifiedRows(photos, bounds, turn, rows, sums, bestScore);
+      if (!cells) continue;
+      const score = scoreLayout(cells, aspects, area(rect), "contain");
+      if (score < bestScore) {
+        best = cells;
+        bestScore = score;
+      }
+    }
+  }
+  return best;
+}
+
 function fill(
   size: Size,
   anchors: Cell[],
   remaining: Photo[],
   previous: Cell[],
   random?: () => number,
+  fit: PhotoFit = "cover",
 ): Cell[] | null {
+  const availableArea =
+    area(size) - anchors.reduce((sum, cell) => sum + area(cell), 0);
+  if (!remaining.length)
+    return fit === "contain" || availableArea === 0 ? anchors : null;
   const partitions = [openRegions(size, anchors, false)];
   if (anchors.length) partitions.push(openRegions(size, anchors, true));
+  const fixed = new Set(anchors.map(({ id }) => id));
+  const previousFree = previous.filter(({ id }) => !fixed.has(id));
+  const previousFillsSpace =
+    previousFree.reduce((sum, cell) => sum + area(cell), 0) === availableArea;
   // For an unchanged set of anchors, the current unlocked rectangles already
   // form an exact partition even if neither scan finds a partition as small.
-  if (random && previous.length && anchors.length) {
-    const fixed = new Set(anchors.map(({ id }) => id));
-    partitions.push(previous.filter(({ id }) => !fixed.has(id)));
-  }
+  if (
+    random &&
+    previous.length &&
+    anchors.length &&
+    (fit === "contain" || previousFillsSpace)
+  )
+    partitions.push(previousFree);
   const byId = new Map(previous.map((cell) => [cell.id, cell]));
   const aspects = new Map(remaining.map(({ id, aspect }) => [id, aspect]));
-  let best: Cell[] | null = null;
-  let bestScore = Number.POSITIVE_INFINITY;
-  for (const regions of partitions) {
+  const byAspect =
+    fit === "contain" || (fit === "maximize" && random)
+      ? remaining.toSorted((a, b) => a.aspect - b.aspect)
+      : undefined;
+  const best: { cells: Cell[] | null; score: number } = {
+    cells: null,
+    score: Number.POSITIVE_INFINITY,
+  };
+  function matchesPrevious(cells: Cell[]) {
+    return (
+      cells.length === previous.length &&
+      cells.every((cell) => {
+        const before = byId.get(cell.id);
+        return before && sameRect(before, cell);
+      })
+    );
+  }
+  function consider(candidate: Cell[]) {
+    const score = scoreLayout(
+      candidate.slice(anchors.length),
+      aspects,
+      availableArea,
+      fit,
+    );
+    if (score > best.score) return;
+    if (
+      score === best.score &&
+      (!random ||
+        fit !== "contain" ||
+        !best.cells ||
+        !matchesPrevious(best.cells) ||
+        matchesPrevious(candidate))
+    )
+      return;
+    best.cells = candidate;
+    best.score = score;
+  }
+  if (
+    fit === "maximize" &&
+    byAspect &&
+    previousFillsSpace &&
+    previousFree.length === remaining.length &&
+    previousFree.every(({ id }) => aspects.has(id))
+  ) {
+    consider([...anchors, ...previousFree]);
+  }
+  const candidates =
+    fit === "contain"
+      ? partitions.flatMap((partition) =>
+          wholePhotoRegions(partition, remaining.length, availableArea),
+        )
+      : partitions;
+  for (const regions of candidates) {
     const counts = slots(regions, remaining.length);
     if (!counts) continue;
-    for (let attempt = 0; attempt < (random ? 6 : 1); attempt++) {
-      const order = random ? shuffled(remaining, random) : [...remaining];
+    const attempts =
+      fit === "contain" ? (random ? 4 : 2) : random ? (byAspect ? 18 : 6) : 1;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const order =
+        fit === "contain" && attempt === 0 && byAspect
+          ? byAspect
+          : random
+            ? shuffled(remaining, random)
+            : remaining;
       const candidate = [...anchors];
       let offset = 0;
       for (const [index, rect] of regions.entries()) {
         const count = counts[index];
-        build(
-          order.slice(offset, offset + count),
-          rect,
-          random ?? (() => 0.5),
-          candidate,
-        );
+        const photos = order.slice(offset, offset + count);
+        const whole =
+          fit === "contain" ? packWholePhotos(photos, rect, aspects) : null;
+        if (whole) candidate.push(...whole);
+        else build(photos, rect, random ?? (() => 0.5), candidate);
         offset += count;
       }
-      if (
-        random &&
-        candidate.length === previous.length &&
-        candidate.every((cell) => {
-          const original = byId.get(cell.id);
-          return original && sameRect(original, cell);
-        })
-      )
-        continue;
-      const score = candidate.reduce((sum, cell) => {
-        const aspect = aspects.get(cell.id);
-        return aspect
-          ? sum + Math.abs(Math.log(cell.width / cell.height / aspect))
-          : sum;
-      }, 0);
-      if (score < bestScore) {
-        best = candidate;
-        bestScore = score;
+      if (random && !byAspect && matchesPrevious(candidate)) continue;
+      consider(candidate);
+      if (fit === "maximize" && byAspect) {
+        const ordered = candidate
+          .slice(anchors.length)
+          .sort((a, b) => a.width / a.height - b.width / b.height);
+        consider([
+          ...anchors,
+          ...ordered.map((rect, index) => ({
+            ...rect,
+            id: byAspect[index].id,
+          })),
+        ]);
       }
     }
     // During a gesture, prefer the first valid scan throughout the drag.
-    if (best && !random) return best;
+    if (best.cells && !random && fit === "cover") return best.cells;
   }
-  return best;
+  return best.cells && matchesPrevious(best.cells) ? previous : best.cells;
 }
 
 export function repack(
@@ -231,11 +504,12 @@ export function repack(
   photos: Photo[],
   pinned: ReadonlySet<string>,
   random = Math.random,
+  fit: PhotoFit = "cover",
 ): Cell[] {
   if (!photos.length) return [];
   const anchors = layout.filter(({ id }) => pinned.has(id));
   const remaining = photos.filter(({ id }) => !pinned.has(id));
-  const result = fill(size, anchors, remaining, layout, random);
+  const result = fill(size, anchors, remaining, layout, random, fit);
   if (result) return result;
   // The same geometry is still a valid reroll if unlocked images exchange
   // assignments. Imports and removals need a partition for the new count.
@@ -262,9 +536,10 @@ export function resizeCanvas(
   next: Size,
   photos: Photo[],
   pinned: ReadonlySet<string>,
+  fit: PhotoFit = "cover",
 ): Cell[] | null {
   if (!layout.length) return layout;
-  if (!pinned.size) {
+  if (!pinned.size && fit !== "contain") {
     const scaleX = next.width / previous.width;
     const scaleY = next.height / previous.height;
     const scaled = layout.map((cell) => {
@@ -278,7 +553,11 @@ export function resizeCanvas(
         height: Math.round(bottom(cell) * scaleY) - y,
       };
     });
-    if (scaled.every((cell) => capacity(cell) > 0)) return scaled;
+    if (scaled.every((cell) => capacity(cell) > 0)) {
+      return fit === "maximize"
+        ? repack(scaled, next, photos, pinned, undefined, fit)
+        : scaled;
+    }
   }
 
   const anchors = layout.filter(({ id }) => pinned.has(id));
@@ -291,10 +570,18 @@ export function resizeCanvas(
   const remaining = photos.filter(({ id }) => !pinned.has(id));
   // The old unlocked rectangles describe a different canvas. Use only the
   // pinned rectangles as obstacles when packing the resized canvas.
-  return fill(next, anchors, remaining, []);
+  return fill(
+    next,
+    anchors,
+    remaining,
+    [],
+    fit === "maximize" ? Math.random : undefined,
+    fit,
+  );
 }
 
-export function edges(cell: Cell, size: Size): Edge[] {
+export function edges(cell: Cell, size: Size, fit: PhotoFit = "cover"): Edge[] {
+  if (fit === "contain") return ["left", "right", "top", "bottom"];
   const result: Edge[] = [];
   if (cell.x > 0) result.push("left");
   if (right(cell) < size.width) result.push("right");
@@ -341,6 +628,51 @@ function positions(
     .slice(0, 4);
 }
 
+function fitAroundTile(
+  size: Size,
+  layout: Cell[],
+  cell: Cell,
+  target: Cell,
+  anchors: Cell[],
+  remaining: Photo[],
+  fit: PhotoFit,
+) {
+  if (sameRect(cell, target)) return layout;
+  if (anchors.some((anchor) => overlaps(anchor, target))) return null;
+  return fill(size, [...anchors, target], remaining, layout, undefined, fit);
+}
+
+export function resizeTile(
+  layout: Cell[],
+  size: Size,
+  photos: Photo[],
+  pinned: ReadonlySet<string>,
+  cell: Cell,
+  dimensions: Size,
+  fit: PhotoFit = "cover",
+): Cell[] | null {
+  const { width, height } = dimensions;
+  if (
+    pinned.has(cell.id) ||
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width < minimumTileSide ||
+    height < minimumTileSide ||
+    cell.x + width > size.width ||
+    cell.y + height > size.height
+  )
+    return null;
+  return fitAroundTile(
+    size,
+    layout,
+    cell,
+    { ...cell, ...dimensions },
+    layout.filter(({ id }) => pinned.has(id)),
+    photos.filter(({ id }) => id !== cell.id && !pinned.has(id)),
+    fit,
+  );
+}
+
 export function place(
   layout: Cell[],
   size: Size,
@@ -351,6 +683,7 @@ export function place(
   dy: number,
   snap: Size,
   edge?: Edge,
+  fit: PhotoFit = "cover",
 ): Cell[] | null {
   if (pinned.has(cell.id)) return null;
   const anchors = layout.filter(({ id }) => pinned.has(id));
@@ -358,9 +691,7 @@ export function place(
     ({ id }) => id !== cell.id && !pinned.has(id),
   );
   function tryRect(target: Cell) {
-    if (sameRect(cell, target)) return layout;
-    if (anchors.some((anchor) => overlaps(anchor, target))) return null;
-    return fill(size, [...anchors, target], remaining, layout);
+    return fitAroundTile(size, layout, cell, target, anchors, remaining, fit);
   }
   const guidesX = [
     0,

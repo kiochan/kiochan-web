@@ -10,28 +10,35 @@ import {
   type KeyboardEvent,
   type PointerEvent,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { densityTileCount, maxDensity } from "./density";
 import {
   type Cell,
   type Edge,
   edgeAxis,
   edgePosition,
   edges,
+  minimumTileSide,
   type Photo,
+  type PhotoFit,
+  photoFrames,
   photoLimit,
   place,
   repack,
   resizeCanvas,
+  resizeTile,
   type Size,
 } from "./layout";
 import styles from "./mosaic.module.css";
 import {
+  defaultBackground,
+  type ExportFormat,
+  exportBackground,
   type RasterSource,
   type Smoothing,
-  scaledSize,
 } from "./render-request";
 import { processMosaic } from "./worker-client";
 
@@ -43,13 +50,25 @@ const formats = {
   "9:16": { width: 1800, height: 3200 },
 } satisfies Record<string, Size>;
 const minSide = 64;
-const maxSide = 8192;
-const maxPixels = 32 * 1024 * 1024;
+const maxSide = 16383;
+const maxPixels = 64 * 1024 * 1024;
+const zoomLevels = [50, 75, 100, 125, 150, 200, 300, 400];
+const fitZoom = zoomLevels.indexOf(100);
+const fitDescriptions: Record<PhotoFit, string> = {
+  cover: "Balances photo sizes and fills the canvas.",
+  maximize: "Fills the canvas while keeping more of each photo visible.",
+  contain: "Fits whole photos together and minimizes leftover space.",
+};
+const exportLabels = { png: "PNG", webp: "WebP", jpg: "JPG" } satisfies Record<
+  ExportFormat,
+  string
+>;
 type Asset = Photo & RasterSource & { name: string; url: string };
 type Project = {
   layout: Cell[];
   size: Size;
   pinned: ReadonlySet<string>;
+  fit: PhotoFit;
 };
 type History = { past: Project[]; present: Project; future: Project[] };
 type Notice =
@@ -66,8 +85,20 @@ type Gesture = {
   edge?: Edge;
   lastValid: Cell[];
 };
+type PanGesture = {
+  pointer: number;
+  x: number;
+  y: number;
+  left: number;
+  top: number;
+};
 
-const empty: Project = { layout: [], size: formats["4:3"], pinned: new Set() };
+const empty: Project = {
+  layout: [],
+  size: formats["4:3"],
+  pinned: new Set(),
+  fit: "cover",
+};
 let nextAssetId = 0;
 const arrows: Record<string, [number, number]> = {
   ArrowLeft: [-1, 0],
@@ -106,13 +137,28 @@ async function loadPhoto(file: File): Promise<Asset | null> {
   }
 }
 
-function downloadMosaic(blob: Blob, size: Size) {
+function downloadMosaic(blob: Blob, size: Size, format: ExportFormat) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `photo-mosaic-${size.width}x${size.height}.png`;
+  link.download = `photo-mosaic-${size.width}x${size.height}.${format}`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function centerPreview(
+  viewport: HTMLDivElement,
+  board: HTMLDivElement,
+  x: number,
+  y: number,
+) {
+  const frame = viewport.getBoundingClientRect();
+  const canvas = board.getBoundingClientRect();
+  viewport.scrollBy({
+    left:
+      canvas.left - frame.left + x * canvas.width - viewport.clientWidth / 2,
+    top: canvas.top - frame.top + y * canvas.height - viewport.clientHeight / 2,
+  });
 }
 
 export function PhotoMosaic({
@@ -131,23 +177,35 @@ export function PhotoMosaic({
   const [draft, setDraft] = useState<Cell[]>();
   const [dragging, setDragging] = useState(false);
   const [dropActive, setDropActive] = useState(false);
+  const [zoom, setZoom] = useState(fitZoom);
+  const [panMode, setPanMode] = useState(false);
   const [smoothing, setSmoothing] = useState<Smoothing>("high");
-  const [target, setTarget] = useState<Asset>();
-  const [strength, setStrength] = useState(72);
-  const [density, setDensity] = useState(1);
-  const [matchBrightness, setMatchBrightness] = useState(false);
-  const [previewStatus, setPreviewStatus] = useState("");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
+  const [transparent, setTransparent] = useState(true);
+  const [backgroundColor, setBackgroundColor] = useState(defaultBackground);
+  const [spacingInput, setSpacingInput] = useState("0");
   const [busy, setBusy] = useState(false);
   const [notices, setNotices] = useState<Notice[]>([]);
   const assets = useRef(new Map<string, Asset>());
-  const targetAsset = useRef<Asset | undefined>(undefined);
-  const preview = useRef<HTMLCanvasElement>(null);
   const mounted = useRef(false);
   const lifetime = useRef(new AbortController());
   const working = useRef(false);
   const gesture = useRef<Gesture | null>(null);
   const dragEntries = useRef(0);
+  const viewport = useRef<HTMLDivElement>(null);
   const board = useRef<HTMLDivElement>(null);
+  const panGesture = useRef<PanGesture | null>(null);
+  const zoomCenter = useRef<{ level: number; x: number; y: number } | null>(
+    null,
+  );
+
+  useLayoutEffect(() => {
+    const anchor = zoomCenter.current;
+    if (anchor?.level !== zoom) return;
+    zoomCenter.current = null;
+    if (viewport.current && board.current)
+      centerPreview(viewport.current, board.current, anchor.x, anchor.y);
+  }, [zoom]);
 
   useEffect(() => {
     const photos = assets.current;
@@ -159,8 +217,6 @@ export function PhotoMosaic({
       mounted.current = false;
       for (const photo of photos.values()) URL.revokeObjectURL(photo.url);
       photos.clear();
-      if (targetAsset.current) URL.revokeObjectURL(targetAsset.current.url);
-      targetAsset.current = undefined;
     };
   }, []);
 
@@ -178,95 +234,35 @@ export function PhotoMosaic({
   }, [history]);
 
   const project = history.present;
-  const { layout: original, pinned, size } = project;
+  const { layout: original, pinned, size, fit } = project;
+  const background = transparent ? null : backgroundColor;
+  const previewBackground = exportBackground(exportFormat, background);
   const preset =
     Object.entries(formats).find(
       ([, value]) => value.width === size.width && value.height === size.height,
     )?.[0] ?? "custom";
   const layout = draft ?? original;
+  const requestedSpacing = Number(spacingInput);
+  const spacing =
+    Number.isSafeInteger(requestedSpacing) && requestedSpacing > 0
+      ? requestedSpacing
+      : 0;
+  const frames = useMemo(
+    () => new Map(photoFrames(layout, spacing).map((cell) => [cell.id, cell])),
+    [layout, spacing],
+  );
   const active = layout.find(({ id }) => id === selected);
   const freeCount = layout.length - pinned.size;
-  const handles = active && !pinned.has(active.id) ? edges(active, size) : [];
+  const locked = active ? pinned.has(active.id) : false;
+  const handles = active && !locked && !panMode ? edges(active, size, fit) : [];
   const blocked = busy || dragging;
+  const hasOpenSpace =
+    original.reduce((sum, cell) => sum + cell.width * cell.height, 0) <
+    size.width * size.height;
   const canImport =
-    !blocked && layout.length < photoLimit && (freeCount > 0 || !layout.length);
-  const showMatching = Boolean(
-    target && (strength || density > 1) && layout.length,
-  );
-  const previewSize = scaledSize(size, 768);
-  const status =
-    !busy && previewStatus
-      ? t(previewStatus)
-      : notices
-          .map((notice) =>
-            typeof notice === "string"
-              ? t(notice)
-              : formatMessage(t, ...notice, locale),
-          )
-          .join(" ");
-
-  useEffect(() => {
-    const canvas = preview.current;
-    if (!canvas || !target || dragging) {
-      if (canvas) delete canvas.dataset.rendered;
-      setPreviewStatus("");
-      return;
-    }
-    const controller = new AbortController();
-    delete canvas.dataset.rendered;
-    setPreviewStatus("Calculating preview…");
-    // Coalesce rapid strength changes before decoding the source files.
-    const timer = window.setTimeout(() => {
-      void (async () => {
-        try {
-          const { bitmap } = await processMosaic(
-            {
-              kind: "preview",
-              layout,
-              size,
-              smoothing,
-              target,
-              sources: layout.map(({ id }) => assets.current.get(id) as Asset),
-              pinned: [...pinned],
-              strength: strength / 100,
-              density,
-              matchBrightness,
-            },
-            controller.signal,
-          );
-          try {
-            if (controller.signal.aborted) return;
-            const context = canvas.getContext("2d");
-            if (!context) throw new Error("The preview canvas is unavailable.");
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(bitmap, 0, 0);
-            canvas.dataset.rendered = "true";
-            setPreviewStatus("");
-          } finally {
-            bitmap.close();
-          }
-        } catch {
-          if (!controller.signal.aborted)
-            setPreviewStatus("The matched preview could not be rendered.");
-        }
-      })();
-    }, 100);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [
-    layout,
-    size,
-    smoothing,
-    target,
-    strength,
-    density,
-    matchBrightness,
-    pinned,
-    dragging,
-  ]);
-
+    !blocked &&
+    layout.length < photoLimit &&
+    (freeCount > 0 || !layout.length || (fit === "contain" && hasOpenSpace));
   function setNotice(...messages: Notice[]) {
     setNotices(messages);
   }
@@ -301,90 +297,6 @@ export function PhotoMosaic({
     return original.map(({ id }) => assets.current.get(id) as Asset);
   }
 
-  async function openTarget(file: File) {
-    if (working.current || gesture.current) return;
-    working.current = true;
-    setBusy(true);
-    setNotice("Opening target…");
-    try {
-      const image = await loadPhoto(file);
-      if (!mounted.current) {
-        if (image) URL.revokeObjectURL(image.url);
-        return;
-      }
-      if (!image) {
-        setNotice("The target could not be opened as an image.");
-        return;
-      }
-      if (targetAsset.current) URL.revokeObjectURL(targetAsset.current.url);
-      targetAsset.current = image;
-      setTarget(image);
-      await arrangePhotos(image);
-    } finally {
-      working.current = false;
-      if (mounted.current) setBusy(false);
-    }
-  }
-
-  function calculateArrangement(image: Asset, cells: Cell[]) {
-    return processMosaic(
-      {
-        kind: "arrange",
-        layout: cells,
-        size,
-        smoothing,
-        target: image,
-        sources: cells.map(({ id }) => assets.current.get(id) as Asset),
-        pinned: [...pinned],
-        strength: strength / 100,
-        density,
-        matchBrightness,
-      },
-      lifetime.current.signal,
-    );
-  }
-
-  async function arrangePhotos(image: Asset) {
-    if (freeCount < 2) {
-      setNotice();
-      return;
-    }
-    setNotice("Calculating photo matches…");
-    try {
-      const result = await calculateArrangement(image, original);
-      if (!mounted.current) return;
-      if (result.changed) commit({ ...project, layout: result.layout });
-      setNotice(
-        result.changed
-          ? "Photos arranged by target color."
-          : "The current layout already matches these photos.",
-      );
-    } catch {
-      if (mounted.current)
-        setNotice("The photos could not be rearranged by color.");
-    }
-  }
-
-  async function matchPhotos(image: Asset) {
-    if (working.current || gesture.current) return;
-    working.current = true;
-    setBusy(true);
-    try {
-      await arrangePhotos(image);
-    } finally {
-      working.current = false;
-      if (mounted.current) setBusy(false);
-    }
-  }
-
-  function removeTarget() {
-    if (!target) return;
-    URL.revokeObjectURL(target.url);
-    targetAsset.current = undefined;
-    setTarget(undefined);
-    setNotice();
-  }
-
   async function addPhotos(files: File[]) {
     if (!files.length || !canImport || working.current || gesture.current)
       return;
@@ -403,21 +315,11 @@ export function PhotoMosaic({
       if (photo) added.push(photo);
       else failed++;
     }
-    let next = added.length
-      ? repack(original, size, [...existing, ...added], pinned)
+    const next = added.length
+      ? repack(original, size, [...existing, ...added], pinned, undefined, fit)
       : original;
     if (mounted.current && next !== original) {
       for (const photo of added) assets.current.set(photo.id, photo);
-      if (target) {
-        try {
-          setNotice("Calculating photo matches…");
-          const result = await calculateArrangement(target, next);
-          if (result.changed) next = result.layout;
-        } catch {
-          // Photo import remains usable even if color sampling is unavailable.
-        }
-      }
-      if (!mounted.current) return;
       setSelected(added[0].id);
       commit({ ...project, layout: next });
     } else {
@@ -449,7 +351,14 @@ export function PhotoMosaic({
   }
 
   function reroll() {
-    const next = repack(original, size, currentPhotos(), pinned);
+    const next = repack(
+      original,
+      size,
+      currentPhotos(),
+      pinned,
+      undefined,
+      fit,
+    );
     if (next !== original) commit({ ...project, layout: next });
     setNotice();
   }
@@ -460,6 +369,8 @@ export function PhotoMosaic({
       size,
       currentPhotos().filter((photo) => photo.id !== id),
       pinned,
+      undefined,
+      fit,
     );
     if (next === original) {
       setNotice(
@@ -486,7 +397,14 @@ export function PhotoMosaic({
       ]);
       return;
     }
-    const resized = resizeCanvas(original, size, next, currentPhotos(), pinned);
+    const resized = resizeCanvas(
+      original,
+      size,
+      next,
+      currentPhotos(),
+      pinned,
+      fit,
+    );
     if (!resized) {
       setNotice(
         pinned.size
@@ -499,33 +417,139 @@ export function PhotoMosaic({
     setNotice();
   }
 
-  async function exportPng() {
+  function setPhotoFit(next: PhotoFit) {
+    if (next === fit) return;
+    let cells = original;
+    if (original.length && (next !== "cover" || hasOpenSpace)) {
+      cells = repack(original, size, currentPhotos(), pinned, undefined, next);
+      if (
+        next !== "contain" &&
+        cells.reduce((sum, cell) => sum + cell.width * cell.height, 0) <
+          size.width * size.height
+      ) {
+        setNotice("Unlock a photo to switch to a filled canvas.");
+        return;
+      }
+    }
+    commit({ ...project, fit: next, layout: cells });
+    setNotice();
+  }
+
+  function setTileSize(cell: Cell, dimensions: Size) {
+    const next = resizeTile(
+      original,
+      size,
+      currentPhotos(),
+      pinned,
+      cell,
+      dimensions,
+      fit,
+    );
+    if (!next) {
+      setNotice(
+        "That tile size does not fit. Try a smaller size or unlock a photo.",
+      );
+      return;
+    }
+    if (next !== original) commit({ ...project, layout: next });
+    setNotice();
+  }
+
+  function setPhotoLocked(id: string, next: boolean) {
+    const locks = new Set(pinned);
+    if (next) locks.add(id);
+    else locks.delete(id);
+    commit({ ...project, pinned: locks });
+    setNotice();
+  }
+
+  function showLockedPhoto(cell: Cell) {
+    setSelected(cell.id);
+    if (!viewport.current || !board.current) return;
+    viewport.current.scrollIntoView({ block: "nearest" });
+    centerPreview(
+      viewport.current,
+      board.current,
+      (cell.x + cell.width / 2) / size.width,
+      (cell.y + cell.height / 2) / size.height,
+    );
+  }
+
+  function changeZoom(next: number) {
+    const view = viewport.current;
+    if (dragging || zoom === next || !view || !board.current) return;
+    const frame = view.getBoundingClientRect();
+    const canvas = board.current.getBoundingClientRect();
+    zoomCenter.current = {
+      level: next,
+      x: (frame.left + view.clientWidth / 2 - canvas.left) / canvas.width,
+      y: (frame.top + view.clientHeight / 2 - canvas.top) / canvas.height,
+    };
+    if (next <= fitZoom) setPanMode(false);
+    setZoom(next);
+  }
+
+  function startPan(event: PointerEvent<HTMLDivElement>) {
+    if (!panMode || event.pointerType === "touch" || event.button !== 0) return;
+    const frame = event.currentTarget;
+    event.preventDefault();
+    frame.setPointerCapture(event.pointerId);
+    panGesture.current = {
+      pointer: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      left: frame.scrollLeft,
+      top: frame.scrollTop,
+    };
+  }
+
+  function movePan(event: PointerEvent<HTMLDivElement>) {
+    const pan = panGesture.current;
+    if (!pan || pan.pointer !== event.pointerId) return;
+    event.currentTarget.scrollTo(
+      pan.left + pan.x - event.clientX,
+      pan.top + pan.y - event.clientY,
+    );
+  }
+
+  function endPan(event: PointerEvent<HTMLDivElement>) {
+    if (panGesture.current?.pointer === event.pointerId)
+      panGesture.current = null;
+  }
+
+  async function exportImage() {
     if (working.current || gesture.current) return;
     working.current = true;
     setBusy(true);
-    setNotice("Calculating and encoding PNG…");
+    const format = exportLabels[exportFormat];
+    setNotice(["Calculating and encoding {format}…", { format }]);
     try {
       const result = await processMosaic(
         {
-          kind: "export",
+          format: exportFormat,
+          fit,
+          background,
+          spacing,
           layout,
           size,
           smoothing,
-          target,
           sources: currentPhotos(),
-          pinned: [...pinned],
-          strength: strength / 100,
-          density,
-          matchBrightness,
         },
         lifetime.current.signal,
       );
       if (mounted.current) {
-        downloadMosaic(result.blob, size);
-        setNotice("PNG download started.");
+        downloadMosaic(result.blob, size, exportFormat);
+        setNotice(["{format} download started.", { format }]);
       }
     } catch {
-      if (mounted.current) setNotice("The PNG could not be exported.");
+      if (mounted.current) {
+        setNotice([
+          exportFormat === "png"
+            ? "Could not export {format}. Try a smaller canvas."
+            : "Could not export {format}. Try PNG or a smaller canvas.",
+          { format },
+        ]);
+      }
     } finally {
       working.current = false;
       if (mounted.current) setBusy(false);
@@ -537,7 +561,8 @@ export function PhotoMosaic({
     cell: Cell,
     edge?: Edge,
   ) {
-    if (working.current || gesture.current || event.button !== 0) return;
+    if (panMode || working.current || gesture.current || event.button !== 0)
+      return;
     setSelected(cell.id);
     const surface = board.current;
     if (!surface || pinned.has(cell.id)) return;
@@ -573,6 +598,7 @@ export function PhotoMosaic({
       y * scaleY,
       { width: 12 * scaleX, height: 12 * scaleY },
       drag.edge,
+      fit,
     );
   }
 
@@ -587,7 +613,7 @@ export function PhotoMosaic({
     const next = final ?? drag.lastValid;
     if (next !== drag.layout) commit({ ...project, layout: next });
     if (final) setNotice();
-    else setNotice("That spot cannot be filled. Kept the last gapless layout.");
+    else setNotice("That change does not fit around the other photos.");
   }
 
   function adjustByKey(
@@ -596,7 +622,7 @@ export function PhotoMosaic({
     edge?: Edge,
   ) {
     const direction = arrows[event.key];
-    if (!direction || blocked || pinned.has(cell.id)) return;
+    if (!direction || blocked || panMode || pinned.has(cell.id)) return;
     const [dx, dy] = direction;
     if (edge && !(edgeAxis(edge) === "x" ? dx : dy)) return;
     event.preventDefault();
@@ -611,11 +637,12 @@ export function PhotoMosaic({
       dy * step,
       { width: 0, height: 0 },
       edge,
+      fit,
     );
     setSelected(cell.id);
     if (next && next !== original) commit({ ...project, layout: next });
     if (next) setNotice();
-    else setNotice("There is no gapless layout at that position.");
+    else setNotice("That change does not fit around the other photos.");
   }
 
   return (
@@ -637,10 +664,10 @@ export function PhotoMosaic({
         </label>
         <button
           type="button"
-          disabled={blocked || freeCount < 2}
+          disabled={blocked || freeCount < (fit === "contain" ? 1 : 2)}
           onClick={reroll}
         >
-          {t("Shuffle layout")}
+          {t(fit === "contain" ? "Tidy layout" : "Shuffle layout")}
         </button>
         <div className={styles.history}>
           <button
@@ -658,16 +685,48 @@ export function PhotoMosaic({
             {t("Redo")}
           </button>
         </div>
-        <button
-          className={styles.export}
-          type="button"
-          disabled={blocked || !layout.length}
-          onClick={() => void exportPng()}
-        >
-          {t("Download PNG")}
-        </button>
+        <div className={styles.exportGroup}>
+          <label className={styles.format}>
+            {t("Export format")}
+            <select
+              value={exportFormat}
+              disabled={blocked}
+              onChange={(event) =>
+                setExportFormat(event.currentTarget.value as ExportFormat)
+              }
+            >
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+              <option value="jpg">JPG</option>
+            </select>
+          </label>
+          <button
+            className={styles.export}
+            type="button"
+            disabled={blocked || !layout.length}
+            onClick={() => void exportImage()}
+          >
+            {formatMessage(t, "Download {format}", {
+              format: exportLabels[exportFormat],
+            })}
+          </button>
+        </div>
       </div>
       <div className={styles.settings}>
+        <label className={styles.format}>
+          {t("Photo fit")}
+          <select
+            value={fit}
+            disabled={blocked}
+            onChange={(event) =>
+              setPhotoFit(event.currentTarget.value as PhotoFit)
+            }
+          >
+            <option value="cover">{t("Automatic layout")}</option>
+            <option value="maximize">{t("Keep more of each photo")}</option>
+            <option value="contain">{t("Keep whole photos")}</option>
+          </select>
+        </label>
         <label className={styles.format}>
           {t("Preset")}
           <select
@@ -743,115 +802,100 @@ export function PhotoMosaic({
             <option value="high">{t("High")}</option>
           </select>
         </label>
-      </div>
-      <div className={styles.targetControls}>
-        <label className={styles.upload}>
-          {t(target ? "Replace target image" : "Choose target image")}
-          <input
-            type="file"
-            accept="image/*"
-            disabled={blocked}
-            onChange={(event) => {
-              const file = event.currentTarget.files?.[0];
-              event.currentTarget.value = "";
-              if (file) void openTarget(file);
-            }}
-          />
-        </label>
-        {target && (
-          <>
-            <div className={styles.targetFile}>
-              <img src={target.url} alt="" />
-              <span title={target.name}>{target.name}</span>
-            </div>
-            <label className={styles.strength}>
-              {t("Color strength")}
+        <div className={styles.backgroundSettings}>
+          <label className={styles.format}>
+            {t("Photo spacing (px)")}
+            <input
+              className={styles.spacingInput}
+              type="number"
+              min={0}
+              step={1}
+              value={spacingInput}
+              disabled={blocked}
+              onChange={(event) => setSpacingInput(event.currentTarget.value)}
+              onBlur={() => setSpacingInput(String(spacing))}
+            />
+          </label>
+          <label className={styles.format}>
+            {t("Blank areas")}
+            <select
+              value={transparent ? "transparent" : "color"}
+              disabled={blocked}
+              onChange={(event) =>
+                setTransparent(event.currentTarget.value === "transparent")
+              }
+            >
+              <option value="transparent">{t("Transparent")}</option>
+              <option value="color">{t("Solid color")}</option>
+            </select>
+          </label>
+          {!transparent && (
+            <label className={styles.format}>
+              {t("Background color")}
               <input
-                type="range"
-                min="0"
-                max="100"
-                value={strength}
-                aria-valuetext={`${strength}%`}
+                type="color"
+                value={backgroundColor}
                 disabled={blocked}
                 onChange={(event) =>
-                  setStrength(event.currentTarget.valueAsNumber)
+                  setBackgroundColor(event.currentTarget.value)
                 }
               />
-              <span aria-hidden="true">{strength}%</span>
             </label>
-            <form
-              className={styles.density}
-              onSubmit={(event) => {
-                event.preventDefault();
-                const value = Number(
-                  new FormData(event.currentTarget).get("density"),
-                );
-                if (
-                  !blocked &&
-                  Number.isInteger(value) &&
-                  value >= 1 &&
-                  value <= maxDensity
-                ) {
-                  setDensity(value);
-                  setNotice();
-                }
-              }}
-            >
-              <label className={styles.format}>
-                {t("Tiles per side")}
-                <input
-                  type="number"
-                  name="density"
-                  defaultValue={density}
-                  min={1}
-                  max={maxDensity}
-                  step={1}
-                  required
-                  disabled={blocked}
-                />
-              </label>
-              <button type="submit" disabled={blocked}>
-                {t("Apply density")}
-              </button>
-              {layout.length > 0 && (
-                <span className={styles.stats}>
-                  {density} × {density} ·{" "}
-                  {formatMessage(
-                    t,
-                    "{count} tiles",
-                    { count: densityTileCount(layout, pinned, density) },
-                    locale,
-                  )}
-                </span>
-              )}
-            </form>
-            <label className={styles.check}>
-              <input
-                type="checkbox"
-                checked={matchBrightness}
-                disabled={blocked || strength === 0}
-                onChange={(event) =>
-                  setMatchBrightness(event.currentTarget.checked)
-                }
-              />
-              {t("Match target brightness")}
-            </label>
-            <button
-              type="button"
-              disabled={blocked || freeCount < 2}
-              onClick={() => void matchPhotos(target)}
-            >
-              {t("Match photos again")}
-            </button>
-            <button type="button" disabled={blocked} onClick={removeTarget}>
-              {t("Remove target")}
-            </button>
-          </>
-        )}
+          )}
+          {transparent && exportFormat === "jpg" && (
+            <span className={styles.stats}>
+              {t("JPG fills transparent areas with white.")}
+            </span>
+          )}
+        </div>
+        <p className={styles.fitDescription}>{t(fitDescriptions[fit])}</p>
       </div>
       <p className={styles.status} role="status">
-        {status}
+        {notices
+          .map((notice) =>
+            typeof notice === "string"
+              ? t(notice)
+              : formatMessage(t, ...notice, locale),
+          )
+          .join(" ")}
       </p>
+      {layout.length > 0 && (
+        <div className={styles.previewTools}>
+          <span>{t("Preview zoom")}</span>
+          <button
+            type="button"
+            aria-label={t("Zoom out")}
+            disabled={dragging || zoom === 0}
+            onClick={() => changeZoom(zoom - 1)}
+          >
+            −
+          </button>
+          <output>{zoomLevels[zoom]}%</output>
+          <button
+            type="button"
+            aria-label={t("Zoom in")}
+            disabled={dragging || zoom === zoomLevels.length - 1}
+            onClick={() => changeZoom(zoom + 1)}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            disabled={dragging || zoom === fitZoom}
+            onClick={() => changeZoom(fitZoom)}
+          >
+            {t("Fit to view")}
+          </button>
+          <button
+            type="button"
+            aria-pressed={panMode}
+            disabled={dragging || zoom <= fitZoom}
+            onClick={() => setPanMode(!panMode)}
+          >
+            {t("Pan preview")}
+          </button>
+        </div>
+      )}
       <section
         aria-label={t("Mosaic canvas")}
         className={styles.stage}
@@ -908,90 +952,113 @@ export function PhotoMosaic({
           </div>
         ) : (
           <div
-            ref={board}
-            className={styles.board}
-            data-smoothing={smoothing}
-            style={{ "--ratio": size.width / size.height } as CSSProperties}
-            onPointerMove={(event) => {
-              const drag = gesture.current;
-              if (!drag || drag.pointer !== event.pointerId) return;
-              const next = proposal(event, drag);
-              if (next) {
-                drag.lastValid = next;
-                setDraft(next);
-              }
-            }}
-            onPointerUp={(event) => end(event, true)}
-            onPointerCancel={(event) => end(event, false)}
-            onLostPointerCapture={(event) => end(event, false)}
+            ref={viewport}
+            className={styles.previewViewport}
+            data-pan={panMode}
+            style={{ "--zoom": zoomLevels[zoom] / 100 } as CSSProperties}
+            onPointerDown={startPan}
+            onPointerMove={movePan}
+            onPointerUp={endPan}
+            onPointerCancel={endPan}
+            onLostPointerCapture={endPan}
           >
-            {showMatching && (
-              <canvas
-                ref={preview}
-                className={styles.matchedPreview}
-                width={previewSize.width}
-                height={previewSize.height}
-                aria-label={t("Color-matched mosaic preview")}
-              />
-            )}
-            {layout
-              .toSorted((a, b) => Number(a.id) - Number(b.id))
-              .map((cell) => {
-                const asset = assets.current.get(cell.id);
-                const locked = pinned.has(cell.id);
-                return (
-                  <button
-                    key={cell.id}
-                    type="button"
-                    className={styles.tile}
-                    aria-label={
-                      asset && locked
-                        ? formatMessage(t, "{name} (locked)", {
-                            name: asset.name,
-                          })
-                        : asset?.name
-                    }
-                    aria-pressed={selected === cell.id}
-                    data-locked={locked}
-                    style={{
-                      left: `${(100 * cell.x) / size.width}%`,
-                      top: `${(100 * cell.y) / size.height}%`,
-                      width: `${(100 * cell.width) / size.width}%`,
-                      height: `${(100 * cell.height) / size.height}%`,
-                    }}
-                    onPointerDown={(event) => start(event, cell)}
-                    onClick={() => setSelected(cell.id)}
-                    onKeyDown={(event) => adjustByKey(event, cell)}
-                  >
-                    <img src={asset?.url} alt="" draggable={false} />
-                    {locked && (
-                      <span className={styles.lock} aria-hidden="true">
-                        {t("Locked")}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            {active &&
-              handles.map((edge) => {
-                const axis = edgeAxis(edge);
-                const position = edgePosition(active, edge);
-                return (
-                  <button
-                    type="button"
-                    key={edge}
-                    className={styles.handle}
-                    data-axis={axis}
-                    aria-label={t(edgeLabels[edge])}
-                    style={{
-                      left: `${(100 * (axis === "x" ? position : active.x + active.width / 2)) / size.width}%`,
-                      top: `${(100 * (axis === "y" ? position : active.y + active.height / 2)) / size.height}%`,
-                    }}
-                    onPointerDown={(event) => start(event, active, edge)}
-                    onKeyDown={(event) => adjustByKey(event, active, edge)}
-                  />
-                );
-              })}
+            <div className={styles.previewTrack}>
+              <div
+                ref={board}
+                className={styles.board}
+                data-fit={fit}
+                data-smoothing={smoothing}
+                data-transparent={previewBackground === null}
+                style={
+                  {
+                    "--ratio": size.width / size.height,
+                    "--photo-background": previewBackground ?? undefined,
+                  } as CSSProperties
+                }
+                onPointerMove={(event) => {
+                  const drag = gesture.current;
+                  if (!drag || drag.pointer !== event.pointerId) return;
+                  const next = proposal(event, drag);
+                  if (next) {
+                    drag.lastValid = next;
+                    setDraft(next);
+                  }
+                }}
+                onPointerUp={(event) => end(event, true)}
+                onPointerCancel={(event) => end(event, false)}
+                onLostPointerCapture={(event) => end(event, false)}
+              >
+                {layout
+                  .toSorted((a, b) => Number(a.id) - Number(b.id))
+                  .map((cell) => {
+                    const asset = assets.current.get(cell.id);
+                    const frame = frames.get(cell.id) ?? cell;
+                    const locked = pinned.has(cell.id);
+                    return (
+                      <button
+                        key={cell.id}
+                        type="button"
+                        className={styles.tile}
+                        aria-label={
+                          asset && locked
+                            ? formatMessage(t, "{name} (locked)", {
+                                name: asset.name,
+                              })
+                            : asset?.name
+                        }
+                        aria-pressed={selected === cell.id}
+                        data-locked={locked}
+                        style={{
+                          left: `${(100 * cell.x) / size.width}%`,
+                          top: `${(100 * cell.y) / size.height}%`,
+                          width: `${(100 * cell.width) / size.width}%`,
+                          height: `${(100 * cell.height) / size.height}%`,
+                        }}
+                        onPointerDown={(event) => start(event, cell)}
+                        onClick={() => setSelected(cell.id)}
+                        onKeyDown={(event) => adjustByKey(event, cell)}
+                      >
+                        <img
+                          src={asset?.url}
+                          alt=""
+                          draggable={false}
+                          style={{
+                            left: `${(100 * (frame.x - cell.x)) / cell.width}%`,
+                            top: `${(100 * (frame.y - cell.y)) / cell.height}%`,
+                            width: `${(100 * frame.width) / cell.width}%`,
+                            height: `${(100 * frame.height) / cell.height}%`,
+                          }}
+                        />
+                        {locked && (
+                          <span className={styles.lock} aria-hidden="true">
+                            {t("Locked")}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                {active &&
+                  handles.map((edge) => {
+                    const axis = edgeAxis(edge);
+                    const position = edgePosition(active, edge);
+                    return (
+                      <button
+                        type="button"
+                        key={edge}
+                        className={styles.handle}
+                        data-axis={axis}
+                        aria-label={t(edgeLabels[edge])}
+                        style={{
+                          left: `${(100 * (axis === "x" ? position : active.x + active.width / 2)) / size.width}%`,
+                          top: `${(100 * (axis === "y" ? position : active.y + active.height / 2)) / size.height}%`,
+                        }}
+                        onPointerDown={(event) => start(event, active, edge)}
+                        onKeyDown={(event) => adjustByKey(event, active, edge)}
+                      />
+                    );
+                  })}
+              </div>
+            </div>
           </div>
         )}
         {dropActive && layout.length > 0 && (
@@ -1012,31 +1079,120 @@ export function PhotoMosaic({
           )}{" "}
           · {formatMessage(t, "{count} locked", { count: pinned.size })}
         </span>
-        {active && (
+        {active ? (
           <div className={styles.selection}>
-            <span title={assets.current.get(active.id)?.name}>
-              {assets.current.get(active.id)?.name}
-            </span>
-            <button
-              type="button"
-              disabled={blocked}
-              onClick={() => {
-                const next = new Set(pinned);
-                if (next.has(active.id)) next.delete(active.id);
-                else next.add(active.id);
-                commit({ ...project, pinned: next });
-                setNotice();
+            <div className={styles.selectedPhoto}>
+              <span>{t("Selected photo")}</span>
+              <strong title={assets.current.get(active.id)?.name}>
+                {assets.current.get(active.id)?.name}
+              </strong>
+            </div>
+            <form
+              className={styles.tileSize}
+              key={`${active.id}:${active.width}x${active.height}`}
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (blocked || locked) return;
+                const values = new FormData(event.currentTarget);
+                setTileSize(active, {
+                  width: Number(values.get("tile-width")),
+                  height: Number(values.get("tile-height")),
+                });
               }}
             >
-              {t(pinned.has(active.id) ? "Unlock photo" : "Lock photo")}
-            </button>
-            <button
-              type="button"
-              disabled={blocked || pinned.has(active.id)}
-              onClick={() => remove(active.id)}
-            >
-              {t("Remove")}
-            </button>
+              <label className={styles.format}>
+                {t("Tile width (px)")}
+                <input
+                  name="tile-width"
+                  type="number"
+                  required
+                  min={minimumTileSide}
+                  max={size.width - active.x}
+                  defaultValue={active.width}
+                  disabled={blocked || locked}
+                />
+              </label>
+              <label className={styles.format}>
+                {t("Tile height (px)")}
+                <input
+                  name="tile-height"
+                  type="number"
+                  required
+                  min={minimumTileSide}
+                  max={size.height - active.y}
+                  defaultValue={active.height}
+                  disabled={blocked || locked}
+                />
+              </label>
+              <button type="submit" disabled={blocked || locked}>
+                {t("Resize tile")}
+              </button>
+            </form>
+            <div className={styles.selectionActions}>
+              <button
+                type="button"
+                aria-pressed={locked}
+                disabled={blocked}
+                onClick={() => setPhotoLocked(active.id, !locked)}
+              >
+                {t(locked ? "Unlock photo" : "Lock photo")}
+              </button>
+              <button
+                type="button"
+                disabled={blocked || locked}
+                onClick={() => remove(active.id)}
+              >
+                {t("Remove")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          layout.length > 0 && (
+            <span className={styles.stats}>
+              {t("Select a photo to resize, lock, or remove it.")}
+            </span>
+          )
+        )}
+        {pinned.size > 0 && (
+          <div className={styles.lockedPhotos}>
+            <h3>{t("Locked photos")}</h3>
+            <ul>
+              {original
+                .filter(({ id }) => pinned.has(id))
+                .map((cell) => {
+                  const photo = assets.current.get(cell.id);
+                  if (!photo) return null;
+                  return (
+                    <li key={cell.id}>
+                      <button
+                        type="button"
+                        className={styles.lockedPhoto}
+                        aria-pressed={selected === cell.id}
+                        disabled={blocked}
+                        onClick={() => showLockedPhoto(cell)}
+                      >
+                        <img
+                          className={styles.lockedPhotoThumb}
+                          src={photo.url}
+                          alt=""
+                          loading="lazy"
+                        />
+                        <span title={photo.name}>{photo.name}</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={blocked}
+                        aria-label={formatMessage(t, "Unlock {name}", {
+                          name: photo.name,
+                        })}
+                        onClick={() => setPhotoLocked(cell.id, false)}
+                      >
+                        {t("Unlock")}
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
           </div>
         )}
       </div>

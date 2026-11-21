@@ -399,3 +399,174 @@ test("photo spacing defaults to zero and opens only shared edges", () => {
     ),
   );
 });
+
+test("a size lock permits moving and rearranging without changing dimensions", () => {
+  const canvas = { width: 600, height: 400 };
+  const first = { id: "first", x: 0, y: 0, width: 300, height: 400 };
+  const layout = [first, { ...first, id: "second", x: 300 }];
+  const input = layout.map(({ id }) => ({ id, aspect: 0.75 }));
+  const locks = { position: new Set(), size: new Set([first.id]) };
+  const moved = place(layout, canvas, input, locks, first, 300, 0, noSnap);
+  assertCoverage(moved, input, canvas);
+  assert.deepEqual(find(moved, first.id), { ...first, x: 300 });
+  assert.equal(
+    resizeTile(layout, canvas, input, locks, first, {
+      width: 200,
+      height: 400,
+    }),
+    null,
+  );
+  assert.equal(
+    place(layout, canvas, input, locks, first, -40, 0, noSnap, "right"),
+    null,
+  );
+
+  const rearranged = repack(layout, canvas, input, locks, random(14));
+  assertCoverage(rearranged, input, canvas);
+  assert.deepEqual(find(rearranged, first.id), { ...first, x: 300 });
+});
+
+test("a position lock permits resizing while the top-left corner stays fixed", () => {
+  const canvas = { width: 600, height: 400 };
+  const first = { id: "first", x: 0, y: 0, width: 300, height: 400 };
+  const layout = [first, { ...first, id: "second", x: 300 }];
+  const input = layout.map(({ id }) => ({ id, aspect: 0.75 }));
+  const locks = { position: new Set([first.id]), size: new Set() };
+  assert.equal(
+    place(layout, canvas, input, locks, first, 300, 0, noSnap),
+    null,
+  );
+  const dimensions = { width: 240, height: 400 };
+  const resized = resizeTile(layout, canvas, input, locks, first, dimensions);
+  assertCoverage(resized, input, canvas);
+  assert.deepEqual(find(resized, first.id), { ...first, ...dimensions });
+  assert.deepEqual(
+    find(
+      place(layout, canvas, input, locks, first, -60, 0, noSnap, "right"),
+      first.id,
+    ),
+    { ...first, ...dimensions },
+  );
+
+  const shorter = { width: 600, height: 300 };
+  const adapted = resizeCanvas(layout, canvas, shorter, input, locks);
+  assertCoverage(adapted, input, shorter);
+  assert.deepEqual(find(adapted, first.id), { ...first, height: 300 });
+});
+
+test("a movable size-locked tile reflows a position-locked neighbor without moving its origin", () => {
+  const canvas = { width: 600, height: 400 };
+  const moving = { id: "moving", x: 0, y: 0, width: 120, height: 180 };
+  const positioned = {
+    id: "positioned",
+    x: 120,
+    y: 0,
+    width: 240,
+    height: 180,
+  };
+  const layout = [moving, positioned];
+  const input = layout.map(({ id }) => ({ id, aspect: 1 }));
+  const locks = {
+    position: new Set([positioned.id]),
+    size: new Set([moving.id]),
+  };
+  const result = place(
+    layout,
+    canvas,
+    input,
+    locks,
+    moving,
+    240,
+    0,
+    noSnap,
+    undefined,
+    "contain",
+  );
+  assertCoverage(result, input, canvas, false);
+  assert.deepEqual(find(result, moving.id), { ...moving, x: 240 });
+  assert.deepEqual(find(result, positioned.id), { ...positioned, width: 120 });
+});
+
+test("corner handles scale both dimensions around the opposite corner", () => {
+  const canvas = { width: 600, height: 400 };
+  const tile = { id: "photo", x: 160, y: 120, width: 200, height: 100 };
+  const input = [{ id: tile.id, aspect: 2 }];
+  for (const [handle, dx, dy, x, y] of [
+    ["top-left", -100, -50, 60, 70],
+    ["top-right", 100, -50, 160, 70],
+    ["bottom-left", -100, 50, 60, 120],
+    ["bottom-right", 100, 50, 160, 120],
+  ]) {
+    const result = place(
+      [tile],
+      canvas,
+      input,
+      new Set(),
+      tile,
+      dx,
+      dy,
+      noSnap,
+      handle,
+      "contain",
+    );
+    assert.deepEqual(result, [{ ...tile, x, y, width: 300, height: 150 }]);
+  }
+});
+
+test("proportional scaling respects position and size locks and canvas limits", () => {
+  const canvas = { width: 600, height: 400 };
+  const tile = { id: "photo", x: 160, y: 120, width: 200, height: 100 };
+  const input = [{ id: tile.id, aspect: 2 }];
+  const moveCorner = (handle, locks) =>
+    place(
+      [tile],
+      canvas,
+      input,
+      locks,
+      tile,
+      2000,
+      1000,
+      noSnap,
+      handle,
+      "contain",
+    );
+  const position = { position: new Set([tile.id]), size: new Set() };
+  assert.equal(moveCorner("top-right", position), null);
+  assert.deepEqual(moveCorner("bottom-right", position), [
+    { ...tile, width: 440, height: 220 },
+  ]);
+  assert.equal(
+    moveCorner("bottom-right", {
+      position: new Set(),
+      size: new Set([tile.id]),
+    }),
+    null,
+  );
+});
+
+test("corner scaling reflows neighboring photos in the filled-canvas mode", () => {
+  const canvas = { width: 600, height: 400 };
+  const tile = { id: "photo", x: 0, y: 0, width: 300, height: 200 };
+  const layout = [
+    tile,
+    { id: "right", x: 300, y: 0, width: 300, height: 400 },
+    { id: "bottom", x: 0, y: 200, width: 300, height: 200 },
+  ];
+  const input = layout.map(({ id, width, height }) => ({
+    id,
+    aspect: width / height,
+  }));
+  const result = place(
+    layout,
+    canvas,
+    input,
+    new Set(),
+    tile,
+    60,
+    40,
+    noSnap,
+    "bottom-right",
+  );
+  assertCoverage(result, input, canvas);
+  assert.deepEqual(find(result, tile.id), { ...tile, width: 360, height: 240 });
+});

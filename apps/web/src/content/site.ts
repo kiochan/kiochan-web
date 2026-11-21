@@ -2609,6 +2609,36 @@ export const translations: Record<
     ja: "プレビューを移動",
     de: "Vorschau verschieben",
   },
+  "Fix position": {
+    zh: "固定位置",
+    ja: "位置を固定",
+    de: "Position fixieren",
+  },
+  "Fix size": {
+    zh: "固定大小",
+    ja: "サイズを固定",
+    de: "Größe fixieren",
+  },
+  "Position fixed": {
+    zh: "位置已固定",
+    ja: "位置を固定済み",
+    de: "Position fixiert",
+  },
+  "Size fixed": {
+    zh: "大小已固定",
+    ja: "サイズを固定済み",
+    de: "Größe fixiert",
+  },
+  "Position and size fixed": {
+    zh: "位置和大小已固定",
+    ja: "位置とサイズを固定済み",
+    de: "Position und Größe fixiert",
+  },
+  "{name} ({lock})": {
+    zh: "{name}（{lock}）",
+    ja: "{name}（{lock}）",
+    de: "{name} ({lock})",
+  },
   "Locked photos": {
     zh: "已锁定照片",
     ja: "固定した写真",
@@ -2809,11 +2839,31 @@ export const translations: Record<
     ja: "写真を固定",
     de: "Foto fixieren",
   },
-  "Drop files onto the canvas to add them. Drag a photo to move it, or drag an edge handle to resize it. The other unlocked photos reflow around it. Arrow keys work on focused photos and handles.":
+  "Scale from top-left corner": {
+    zh: "从左上角等比缩放",
+    ja: "左上の角から縦横比を保って拡大縮小",
+    de: "Über die obere linke Ecke proportional skalieren",
+  },
+  "Scale from top-right corner": {
+    zh: "从右上角等比缩放",
+    ja: "右上の角から縦横比を保って拡大縮小",
+    de: "Über die obere rechte Ecke proportional skalieren",
+  },
+  "Scale from bottom-left corner": {
+    zh: "从左下角等比缩放",
+    ja: "左下の角から縦横比を保って拡大縮小",
+    de: "Über die untere linke Ecke proportional skalieren",
+  },
+  "Scale from bottom-right corner": {
+    zh: "从右下角等比缩放",
+    ja: "右下の角から縦横比を保って拡大縮小",
+    de: "Über die untere rechte Ecke proportional skalieren",
+  },
+  "Drag photos to move them. Drag a side to resize one dimension or a corner to keep the tile's proportions. Arrow keys also work on focused photos and handles.":
     {
-      zh: "将文件拖入画布即可添加。拖动照片可移动位置，拖动边缘手柄可调整大小。其他未锁定的照片会自动重新排列。选中照片或手柄后，也可以使用方向键。",
-      ja: "キャンバスにファイルをドロップして追加できます。写真をドラッグして移動し、端のハンドルをドラッグしてサイズを変えます。固定していないほかの写真は自動で並び直します。写真やハンドルにフォーカスして矢印キーでも操作できます。",
-      de: "Lege Dateien zum Hinzufügen auf der Arbeitsfläche ab. Ziehe ein Foto zum Verschieben oder einen Randgriff zum Ändern der Größe. Die übrigen unfixierten Fotos ordnen sich neu an. Fokussierte Fotos und Griffe lassen sich mit den Pfeiltasten steuern.",
+      zh: "拖动照片可移动位置，拖动边缘可单独调整宽或高，拖动角点可等比缩放。选中照片或手柄后，也可以使用方向键。",
+      ja: "写真はドラッグで移動できます。辺をドラッグすると幅または高さを調整し、角をドラッグすると縦横比を保って拡大縮小できます。写真やハンドルにフォーカスして矢印キーでも操作できます。",
+      de: "Ziehe Fotos zum Verschieben. Ziehe an einer Kante, um eine Abmessung zu ändern, oder an einer Ecke, um die Proportionen zu erhalten. Fokussierte Fotos und Griffe lassen sich auch mit den Pfeiltasten bedienen.",
     },
   "Canvas width (px)": {
     zh: "画布宽度（px）",

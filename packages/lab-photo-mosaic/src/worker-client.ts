@@ -1,9 +1,9 @@
 import type { Reply, Request } from "./render-request";
 
-export function processMosaic<K extends Request["kind"]>(
-  request: Request & { kind: K },
+export function processMosaic(
+  request: Request,
   signal: AbortSignal,
-): Promise<Extract<Reply, { kind: K }>> {
+): Promise<Extract<Reply, { kind: "export" }>> {
   return new Promise((resolve, reject) => {
     signal.throwIfAborted();
     const worker = new Worker(new URL("./mosaic.worker.ts", import.meta.url), {
@@ -28,9 +28,7 @@ export function processMosaic<K extends Request["kind"]>(
     worker.onmessage = ({ data }: MessageEvent<Reply>) => {
       dispose();
       if (data.kind === "error") reject(new Error(data.message));
-      else if (data.kind === request.kind)
-        resolve(data as Extract<Reply, { kind: K }>);
-      else reject(new Error("Unexpected image worker response."));
+      else resolve(data);
     };
     try {
       worker.postMessage(request);

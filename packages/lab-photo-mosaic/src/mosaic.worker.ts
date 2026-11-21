@@ -1,27 +1,34 @@
-import { arrangeForTarget, renderMosaic } from "./render";
-import type { Reply, Request } from "./render-request";
+import { renderLargePng, renderMosaic } from "./render";
+import { exportTypes, type Reply, type Request } from "./render-request";
+
+async function exportMosaic(request: Request) {
+  const { format, size } = request;
+  if (
+    format === "png" &&
+    typeof CompressionStream !== "undefined" &&
+    (size.width > 4096 ||
+      size.height > 4096 ||
+      size.width * size.height > 16_000_000)
+  ) {
+    return renderLargePng(request);
+  }
+  const canvas = await renderMosaic(request);
+  try {
+    const type = exportTypes[format];
+    const blob = await canvas.convertToBlob({ type, quality: 0.92 });
+    if (blob.type !== type || !blob.size) {
+      throw new Error("The browser could not encode the selected format.");
+    }
+    return blob;
+  } finally {
+    canvas.width = 0;
+  }
+}
 
 self.onmessage = async ({ data }: MessageEvent<Request>) => {
   try {
-    if (data.kind === "arrange") {
-      const layout = await arrangeForTarget(data);
-      self.postMessage({
-        kind: "arrange",
-        layout,
-        changed: layout !== data.layout,
-      } satisfies Reply);
-      return;
-    }
-    const canvas = await renderMosaic(data);
-    if (data.kind === "preview") {
-      const bitmap = canvas.transferToImageBitmap();
-      self.postMessage({ kind: "preview", bitmap } satisfies Reply, {
-        transfer: [bitmap],
-      });
-    } else {
-      const blob = await canvas.convertToBlob({ type: "image/png" });
-      self.postMessage({ kind: "export", blob } satisfies Reply);
-    }
+    const blob = await exportMosaic(data);
+    self.postMessage({ kind: "export", blob } satisfies Reply);
   } catch (error) {
     self.postMessage({
       kind: "error",

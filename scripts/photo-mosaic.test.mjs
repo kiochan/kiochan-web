@@ -1,23 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  averageColor,
-  matchTiles,
-  regionColor,
-  samplingAxis,
-  tintPixels,
-} from "../packages/lab-photo-mosaic/src/color-match.ts";
-import {
-  densityTileCount,
-  maxDensity,
-  subdivideTile,
-} from "../packages/lab-photo-mosaic/src/density.ts";
-import {
   edges,
+  photoFrames,
   place,
   repack,
   resizeCanvas,
+  resizeTile,
 } from "../packages/lab-photo-mosaic/src/layout.ts";
+import { exportBackground } from "../packages/lab-photo-mosaic/src/render-request.ts";
 
 const size = { width: 3200, height: 1800 };
 const noSnap = { width: 0, height: 0 };
@@ -33,7 +24,12 @@ function random(seed) {
   };
 }
 
-function assertCoverage(layout, expected, output = size) {
+function assertCoverage(
+  layout,
+  expected,
+  output = size,
+  requireFullCoverage = true,
+) {
   assert.deepEqual(
     new Set(layout.map(({ id }) => id)),
     new Set(expected.map(({ id }) => id)),
@@ -60,7 +56,8 @@ function assertCoverage(layout, expected, output = size) {
       assert.ok(!overlap, `${cell.id} overlaps ${other.id}`);
     }
   }
-  assert.equal(area, output.width * output.height);
+  if (requireFullCoverage) assert.equal(area, output.width * output.height);
+  else assert.ok(area <= output.width * output.height);
 }
 
 const find = (layout, id) => layout.find((cell) => cell.id === id);
@@ -204,102 +201,201 @@ test("changing canvas size preserves locked rectangle coordinates", () => {
   );
 });
 
-test("target palette assigns each photo once while preserving locks", () => {
-  const strip = Array.from({ length: 4 }, (_, index) => ({
-    id: String(index),
-    x: index * 64,
-    y: 0,
-    width: 64,
-    height: 64,
+test("whole-photo mode resizes a tile beside a lock even with too few photos to fill every region", () => {
+  const canvas = { width: 600, height: 400 };
+  const locked = { id: "0", x: 0, y: 0, width: 100, height: 400 };
+  const selected = { id: "1", x: 100, y: 0, width: 500, height: 400 };
+  const current = [locked, selected];
+  const input = current.map(({ id }) => ({ id, aspect: 1 }));
+  const pins = new Set([locked.id]);
+  const dimensions = { width: 240, height: 170 };
+  assert.equal(
+    resizeTile(current, canvas, input, pins, selected, dimensions),
+    null,
+  );
+  const resized = resizeTile(
+    current,
+    canvas,
+    input,
+    pins,
+    selected,
+    dimensions,
+    "contain",
+  );
+  assert.deepEqual(resized, [locked, { ...selected, ...dimensions }]);
+
+  const allPinned = new Set(input.map(({ id }) => id));
+  const added = [...input, { id: "new", aspect: 1 }];
+  const reflowed = repack(
+    resized,
+    canvas,
+    added,
+    allPinned,
+    random(8),
+    "contain",
+  );
+  assert.deepEqual(reflowed.slice(0, 2), resized);
+  const extra = find(reflowed, "new");
+  assert.ok(
+    extra.x >= selected.x + dimensions.width || extra.y >= dimensions.height,
+  );
+});
+
+test("whole-photo reflow preserves multiple locks and keeps the remaining square photos similar in size", () => {
+  const canvas = { width: 600, height: 400 };
+  const anchors = [
+    { id: "left", x: 0, y: 0, width: 100, height: 400 },
+    { id: "right", x: 500, y: 0, width: 100, height: 400 },
+  ];
+  const input = [...anchors, ...photos.slice(0, 4)].map(({ id }) => ({
+    id,
+    aspect: 1,
   }));
-  const target = [8, 0, 15, 0];
-  const photos = [0, 10, 15, 8];
-  const gray = (value) => [value, value, value];
-  const result = matchTiles(
-    strip,
-    new Set(["3"]),
-    ({ x }) => gray(target[x / 64]),
-    (id) => gray(photos[Number(id)]),
+  const pins = new Set(anchors.map(({ id }) => id));
+  const result = repack(anchors, canvas, input, pins, random(7), "contain");
+  assert.deepEqual(result.slice(0, 2), anchors);
+  assertCoverage(result, input, canvas);
+  const visibleSides = result
+    .slice(2)
+    .map(({ width, height }) => Math.min(width, height));
+  assert.ok(Math.max(...visibleSides) <= 1.25 * Math.min(...visibleSides));
+});
+
+test("whole photos can share a wide open region instead of squeezing into uneven gaps", () => {
+  const canvas = { width: 640, height: 480 };
+  const anchors = [
+    { id: "wide", x: 0, y: 0, width: 240, height: 270 },
+    { id: "small", x: 0, y: 270, width: 90, height: 90 },
+  ];
+  const input = [...anchors, ...photos.slice(0, 2)].map(({ id }) => ({
+    id,
+    aspect: 1,
+  }));
+  const pins = new Set(anchors.map(({ id }) => id));
+  const result = repack(anchors, canvas, input, pins, random(7), "contain");
+  assert.deepEqual(result.slice(0, 2), anchors);
+  const visibleSides = result
+    .slice(2)
+    .map(({ width, height }) => Math.min(width, height));
+  assert.equal(visibleSides.length, 2);
+  assert.ok(Math.max(...visibleSides) <= 1.25 * Math.min(...visibleSides));
+  assert.ok(Math.min(...visibleSides) >= 160);
+});
+
+test("whole-photo packing tiles mixed aspect ratios without gaps between the photos", () => {
+  const canvas = { width: 600, height: 400 };
+  const input = [
+    { id: "wide-one", aspect: 2 },
+    { id: "portrait", aspect: 0.5 },
+    { id: "wide-two", aspect: 2 },
+  ];
+  const pins = new Set();
+  const result = repack([], canvas, input, pins, random(7), "contain");
+  assertCoverage(result, input, canvas);
+  assert.equal(find(result, "portrait").height, 400);
+  assert.equal(find(result, "wide-one").height, 200);
+
+  const square = { width: 500, height: 500 };
+  const resized = resizeCanvas(result, canvas, square, input, pins, "contain");
+  assert.ok(resized);
+  const left = Math.min(...resized.map(({ x }) => x));
+  const top = Math.min(...resized.map(({ y }) => y));
+  const right = Math.max(...resized.map(({ x, width }) => x + width));
+  const bottom = Math.max(...resized.map(({ y, height }) => y + height));
+  assert.ok(
+    left >= 0 && top >= 0 && right <= square.width && bottom <= square.height,
   );
-  assert.deepEqual(
-    result.map(({ id }) => id),
-    ["1", "0", "2", "3"],
+  assertCoverage(
+    resized.map(({ x, y, ...tile }) => ({ ...tile, x: x - left, y: y - top })),
+    input,
+    { width: right - left, height: bottom - top },
   );
-  assert.deepEqual(
-    result.map(({ id: _, ...rect }) => rect),
-    strip.map(({ id: _, ...rect }) => rect),
-  );
-  assert.equal(result[3], strip[3]);
+  for (const { id, aspect } of input) {
+    const { width, height } = find(resized, id);
+    assert.ok(Math.abs(width - aspect * height) <= 2);
+  }
+});
+
+test("whole-photo packing avoids tiny isolated photos in narrow strips by multiple locks", () => {
+  const canvas = { width: 1366, height: 1364 };
+  const locked = [
+    { id: "poster", x: 302, y: 28, width: 536, height: 824 },
+    { id: "card", x: 1072, y: 122, width: 160, height: 158 },
+  ];
+  const aspects = [2 / 3, 3 / 4, 4 / 5, 1, 16 / 9, 1.42, 0.72, 1.18, 0.6, 0.85];
+  const input = [
+    ...locked.map(({ id, width, height }) => ({ id, aspect: width / height })),
+    ...Array.from({ length: 44 }, (_, index) => ({
+      id: `photo-${index}`,
+      aspect: aspects[index % aspects.length],
+    })),
+  ];
+  const locks = new Set(locked.map(({ id }) => id));
+  const result = repack(locked, canvas, input, locks, random(19), "contain");
+  assert.deepEqual(result.slice(0, locked.length), locked);
+  assertCoverage(result, input, canvas, false);
+
+  const adjustable = result.slice(locked.length);
+  const areas = adjustable.map(({ width, height }) => width * height);
+  const covered = areas.reduce((sum, value) => sum + value, 0);
+  const available =
+    canvas.width * canvas.height -
+    locked.reduce((sum, { width, height }) => sum + width * height, 0);
+  assert.ok(Math.min(...areas) >= (0.35 * covered) / adjustable.length);
+  assert.ok(covered >= 0.85 * available);
+});
+
+test("maximum retention reflows unlocked photos to crop less while still covering the canvas", () => {
+  const canvas = { width: 800, height: 400 };
+  const locked = { id: "left", x: 0, y: 0, width: 200, height: 400 };
+  const input = [
+    { id: "left", aspect: 0.5 },
+    { id: "one", aspect: 3 },
+    { id: "two", aspect: 3 },
+  ];
+  const layout = [
+    locked,
+    { id: "one", x: 200, y: 0, width: 300, height: 400 },
+    { id: "two", x: 500, y: 0, width: 300, height: 400 },
+  ];
+  const pins = new Set([locked.id]);
+  const result = repack(layout, canvas, input, pins, random(7), "maximize");
+  assert.equal(result[0], locked);
+  assertCoverage(result, input, canvas);
+  assert.ok(result.slice(1).every(({ width, height }) => width / height === 3));
   assert.equal(
-    matchTiles(
-      strip,
-      new Set(),
-      () => null,
-      () => gray(0),
-    ),
-    strip,
+    repack(result, canvas, input, pins, random(8), "maximize"),
+    result,
   );
 });
 
-test("tone matching follows spatial target colors, retains texture, and preserves alpha", () => {
-  const field = {
-    width: 4,
-    height: 1,
-    data: new Uint8ClampedArray([
-      210, 30, 15, 255, 210, 30, 15, 255, 20, 50, 210, 0, 20, 50, 210, 255,
-    ]),
-  };
-  const source = new Uint8ClampedArray([
-    96, 96, 96, 255, 136, 136, 136, 137, 100, 100, 100, 255, 120, 120, 120, 0,
+test("blank areas use the selected color in all formats and JPG flattens transparency to white", () => {
+  for (const format of ["png", "webp", "jpg"]) {
+    assert.equal(exportBackground(format, "#3256ab"), "#3256ab");
+  }
+  assert.equal(exportBackground("png", null), null);
+  assert.equal(exportBackground("webp", null), null);
+  assert.equal(exportBackground("jpg", null), "#ffffff");
+});
+
+test("photo spacing defaults to zero and opens only shared edges", () => {
+  const tiles = [
+    { id: "left", x: 0, y: 0, width: 50, height: 100 },
+    { id: "top", x: 50, y: 0, width: 50, height: 60 },
+    { id: "bottom", x: 50, y: 60, width: 50, height: 40 },
+    { id: "isolated", x: 110, y: 0, width: 30, height: 100 },
+  ];
+  assert.equal(photoFrames(tiles), tiles);
+  assert.deepEqual(photoFrames(tiles, 7), [
+    { ...tiles[0], width: 46 },
+    { ...tiles[1], x: 53, width: 47, height: 56 },
+    { ...tiles[2], x: 53, y: 63, width: 47, height: 37 },
+    tiles[3],
   ]);
-  const rect = { x: 0, y: 0, width: 4, height: 1 };
-  const mean = averageColor(source);
-  assert.deepEqual(
-    regionColor(field, { ...rect, width: 2 }, field),
-    [210, 30, 15],
-  );
-  assert.equal(regionColor(field, { ...rect, x: 2, width: 1 }, field), null);
-  const pixels = source.slice();
-  const x = samplingAxis(4, 4);
-  const y = samplingAxis(1, 1);
-  tintPixels(pixels, rect, mean, field, x, y, 0);
-  assert.deepEqual(pixels, source);
-  tintPixels(pixels, rect, mean, field, x, y, 1, true);
-  assert.ok(pixels[0] > 195 && pixels[1] < 40);
-  assert.equal(pixels[4] - pixels[0], 12);
-  assert.deepEqual([...pixels.subarray(8)], [...source.subarray(8)]);
-  assert.deepEqual([pixels[3], pixels[7]], [255, 137]);
-
-  const originalBrightness = source.slice();
-  tintPixels(originalBrightness, rect, mean, field, x, y, 1);
-  const luma = (bytes, offset) =>
-    0.2126 * bytes[offset] +
-    0.7152 * bytes[offset + 1] +
-    0.0722 * bytes[offset + 2];
-  assert.notDeepEqual(originalBrightness, source);
-  for (const offset of [0, 4, 8, 12]) {
-    assert.ok(
-      Math.abs(luma(originalBrightness, offset) - luma(source, offset)) <= 0.5,
-    );
-    assert.equal(originalBrightness[offset + 3], source[offset + 3]);
-  }
-});
-
-test("dense subtiles share rounded edges and retain full pixel coverage", () => {
-  const output = { width: 641, height: 503 };
-  const tile = { ...output, x: 0, y: 0, id: "0" };
-  for (const density of [1, 3, 12, maxDensity]) {
-    const pieces = subdivideTile(tile, density).map((piece, index) => ({
-      ...piece,
-      id: String(index),
-    }));
-    assert.equal(pieces.length, density ** 2);
-    assertCoverage(pieces, pieces, output);
-  }
-  const tiny = { ...tile, x: 641, width: 4, id: "1" };
-  assert.equal(subdivideTile(tiny, maxDensity).length, 4 * maxDensity);
-  assert.equal(
-    densityTileCount([tile, tiny], new Set(["0"]), maxDensity),
-    1 + 4 * maxDensity,
+  assert.equal(tiles[0].width, 50);
+  assert.ok(
+    photoFrames(tiles, 200).every(
+      ({ width, height }) => width > 0 && height > 0,
+    ),
   );
 });

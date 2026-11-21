@@ -17,16 +17,20 @@ import {
 } from "react";
 import {
   type Cell,
-  type Edge,
+  type Corner,
+  cornerEdges,
   edgeAxis,
   edgePosition,
   edges,
+  isCorner,
   minimumTileSide,
   type Photo,
   type PhotoFit,
+  type PhotoLocks,
   photoFrames,
   photoLimit,
   place,
+  type ResizeHandle,
   repack,
   resizeCanvas,
   resizeTile,
@@ -67,7 +71,7 @@ type Asset = Photo & RasterSource & { name: string; url: string };
 type Project = {
   layout: Cell[];
   size: Size;
-  pinned: ReadonlySet<string>;
+  locks: PhotoLocks;
   fit: PhotoFit;
 };
 type History = { past: Project[]; present: Project; future: Project[] };
@@ -82,7 +86,7 @@ type Gesture = {
   rect: DOMRect;
   x: number;
   y: number;
-  edge?: Edge;
+  edge?: ResizeHandle;
   lastValid: Cell[];
 };
 type PanGesture = {
@@ -96,7 +100,7 @@ type PanGesture = {
 const empty: Project = {
   layout: [],
   size: formats["4:3"],
-  pinned: new Set(),
+  locks: { position: new Set(), size: new Set() },
   fit: "cover",
 };
 let nextAssetId = 0;
@@ -106,11 +110,15 @@ const arrows: Record<string, [number, number]> = {
   ArrowUp: [0, -1],
   ArrowDown: [0, 1],
 };
-const edgeLabels: Record<Edge, string> = {
+const handleLabels: Record<ResizeHandle, string> = {
   left: "Resize left edge",
   right: "Resize right edge",
   top: "Resize top edge",
   bottom: "Resize bottom edge",
+  "top-left": "Scale from top-left corner",
+  "top-right": "Scale from top-right corner",
+  "bottom-left": "Scale from bottom-left corner",
+  "bottom-right": "Scale from bottom-right corner",
 };
 
 async function loadPhoto(file: File): Promise<Asset | null> {
@@ -234,7 +242,7 @@ export function PhotoMosaic({
   }, [history]);
 
   const project = history.present;
-  const { layout: original, pinned, size, fit } = project;
+  const { layout: original, locks, size, fit } = project;
   const background = transparent ? null : backgroundColor;
   const previewBackground = exportBackground(exportFormat, background);
   const preset =
@@ -252,9 +260,24 @@ export function PhotoMosaic({
     [layout, spacing],
   );
   const active = layout.find(({ id }) => id === selected);
-  const freeCount = layout.length - pinned.size;
-  const locked = active ? pinned.has(active.id) : false;
-  const handles = active && !locked && !panMode ? edges(active, size, fit) : [];
+  const lockedIds = new Set([...locks.position, ...locks.size]);
+  const freeCount = layout.filter(
+    ({ id }) => !locks.position.has(id) || !locks.size.has(id),
+  ).length;
+  const positionLocked = Boolean(active && locks.position.has(active.id));
+  const sizeLocked = Boolean(active && locks.size.has(active.id));
+  const handles: ResizeHandle[] =
+    active && !sizeLocked && !panMode
+      ? [
+          ...edges(active, size, fit).filter(
+            (edge) => !positionLocked || edge === "right" || edge === "bottom",
+          ),
+          ...(positionLocked
+            ? ["bottom-right" as const]
+            : (Object.keys(cornerEdges) as Corner[])),
+        ]
+      : [];
+
   const blocked = busy || dragging;
   const hasOpenSpace =
     original.reduce((sum, cell) => sum + cell.width * cell.height, 0) <
@@ -316,7 +339,7 @@ export function PhotoMosaic({
       else failed++;
     }
     const next = added.length
-      ? repack(original, size, [...existing, ...added], pinned, undefined, fit)
+      ? repack(original, size, [...existing, ...added], locks, undefined, fit)
       : original;
     if (mounted.current && next !== original) {
       for (const photo of added) assets.current.set(photo.id, photo);
@@ -351,14 +374,7 @@ export function PhotoMosaic({
   }
 
   function reroll() {
-    const next = repack(
-      original,
-      size,
-      currentPhotos(),
-      pinned,
-      undefined,
-      fit,
-    );
+    const next = repack(original, size, currentPhotos(), locks, undefined, fit);
     if (next !== original) commit({ ...project, layout: next });
     setNotice();
   }
@@ -368,7 +384,7 @@ export function PhotoMosaic({
       original,
       size,
       currentPhotos().filter((photo) => photo.id !== id),
-      pinned,
+      locks,
       undefined,
       fit,
     );
@@ -402,12 +418,12 @@ export function PhotoMosaic({
       size,
       next,
       currentPhotos(),
-      pinned,
+      locks,
       fit,
     );
     if (!resized) {
       setNotice(
-        pinned.size
+        lockedIds.size
           ? "This size cannot be filled around the locked photos. Unlock photos or try a different size."
           : "This canvas is too small to fit all the photos.",
       );
@@ -421,7 +437,7 @@ export function PhotoMosaic({
     if (next === fit) return;
     let cells = original;
     if (original.length && (next !== "cover" || hasOpenSpace)) {
-      cells = repack(original, size, currentPhotos(), pinned, undefined, next);
+      cells = repack(original, size, currentPhotos(), locks, undefined, next);
       if (
         next !== "contain" &&
         cells.reduce((sum, cell) => sum + cell.width * cell.height, 0) <
@@ -440,7 +456,7 @@ export function PhotoMosaic({
       original,
       size,
       currentPhotos(),
-      pinned,
+      locks,
       cell,
       dimensions,
       fit,
@@ -455,12 +471,27 @@ export function PhotoMosaic({
     setNotice();
   }
 
-  function setPhotoLocked(id: string, next: boolean) {
-    const locks = new Set(pinned);
-    if (next) locks.add(id);
-    else locks.delete(id);
-    commit({ ...project, pinned: locks });
+  function toggleLock(id: string, axis: keyof PhotoLocks) {
+    const next = new Set(locks[axis]);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    commit({ ...project, locks: { ...locks, [axis]: next } });
     setNotice();
+  }
+
+  function unlockPhoto(id: string) {
+    const position = new Set(locks.position);
+    const size = new Set(locks.size);
+    position.delete(id);
+    size.delete(id);
+    commit({ ...project, locks: { position, size } });
+    setNotice();
+  }
+
+  function lockLabel(id: string) {
+    if (locks.position.has(id))
+      return locks.size.has(id) ? "Position and size fixed" : "Position fixed";
+    return "Size fixed";
   }
 
   function showLockedPhoto(cell: Cell) {
@@ -559,13 +590,17 @@ export function PhotoMosaic({
   function start(
     event: PointerEvent<HTMLButtonElement>,
     cell: Cell,
-    edge?: Edge,
+    edge?: ResizeHandle,
   ) {
     if (panMode || working.current || gesture.current || event.button !== 0)
       return;
     setSelected(cell.id);
     const surface = board.current;
-    if (!surface || pinned.has(cell.id)) return;
+    if (
+      !surface ||
+      (edge ? locks.size.has(cell.id) : locks.position.has(cell.id))
+    )
+      return;
     event.currentTarget.focus({ preventScroll: true });
     surface.setPointerCapture(event.pointerId);
     gesture.current = {
@@ -592,7 +627,7 @@ export function PhotoMosaic({
       drag.layout,
       size,
       drag.photos,
-      pinned,
+      locks,
       drag.cell,
       x * scaleX,
       y * scaleY,
@@ -619,22 +654,39 @@ export function PhotoMosaic({
   function adjustByKey(
     event: KeyboardEvent<HTMLButtonElement>,
     cell: Cell,
-    edge?: Edge,
+    edge?: ResizeHandle,
   ) {
     const direction = arrows[event.key];
-    if (!direction || blocked || panMode || pinned.has(cell.id)) return;
+    if (
+      !direction ||
+      blocked ||
+      panMode ||
+      (edge ? locks.size.has(cell.id) : locks.position.has(cell.id))
+    )
+      return;
     const [dx, dy] = direction;
-    if (edge && !(edgeAxis(edge) === "x" ? dx : dy)) return;
+    if (edge && !isCorner(edge) && !(edgeAxis(edge) === "x" ? dx : dy)) return;
     event.preventDefault();
     const step = event.shiftKey ? 1 : 24;
+    let deltaX = dx * step;
+    let deltaY = dy * step;
+    if (edge && isCorner(edge)) {
+      const [horizontal, vertical] = cornerEdges[edge];
+      const sx = horizontal === "left" ? -1 : 1;
+      const sy = vertical === "top" ? -1 : 1;
+      const direction = dx * sx + dy * sy;
+      const scale = (direction * step) / Math.max(cell.width, cell.height);
+      deltaX = scale * cell.width * sx;
+      deltaY = scale * cell.height * sy;
+    }
     const next = place(
       original,
       size,
       currentPhotos(),
-      pinned,
+      locks,
       cell,
-      dx * step,
-      dy * step,
+      deltaX,
+      deltaY,
       { width: 0, height: 0 },
       edge,
       fit,
@@ -993,7 +1045,7 @@ export function PhotoMosaic({
                   .map((cell) => {
                     const asset = assets.current.get(cell.id);
                     const frame = frames.get(cell.id) ?? cell;
-                    const locked = pinned.has(cell.id);
+                    const locked = lockedIds.has(cell.id);
                     return (
                       <button
                         key={cell.id}
@@ -1001,13 +1053,14 @@ export function PhotoMosaic({
                         className={styles.tile}
                         aria-label={
                           asset && locked
-                            ? formatMessage(t, "{name} (locked)", {
+                            ? formatMessage(t, "{name} ({lock})", {
                                 name: asset.name,
+                                lock: t(lockLabel(cell.id)),
                               })
                             : asset?.name
                         }
                         aria-pressed={selected === cell.id}
-                        data-locked={locked}
+                        data-locked={locks.position.has(cell.id)}
                         style={{
                           left: `${(100 * cell.x) / size.width}%`,
                           top: `${(100 * cell.y) / size.height}%`,
@@ -1031,7 +1084,7 @@ export function PhotoMosaic({
                         />
                         {locked && (
                           <span className={styles.lock} aria-hidden="true">
-                            {t("Locked")}
+                            {t(lockLabel(cell.id))}
                           </span>
                         )}
                       </button>
@@ -1039,18 +1092,29 @@ export function PhotoMosaic({
                   })}
                 {active &&
                   handles.map((edge) => {
-                    const axis = edgeAxis(edge);
-                    const position = edgePosition(active, edge);
+                    const corner = isCorner(edge);
+                    const axis = corner ? undefined : edgeAxis(edge);
+                    const x = corner
+                      ? edgePosition(active, cornerEdges[edge][0])
+                      : axis === "x"
+                        ? edgePosition(active, edge)
+                        : active.x + active.width / 2;
+                    const y = corner
+                      ? edgePosition(active, cornerEdges[edge][1])
+                      : axis === "y"
+                        ? edgePosition(active, edge)
+                        : active.y + active.height / 2;
                     return (
                       <button
                         type="button"
                         key={edge}
                         className={styles.handle}
                         data-axis={axis}
-                        aria-label={t(edgeLabels[edge])}
+                        data-corner={corner ? edge : undefined}
+                        aria-label={t(handleLabels[edge])}
                         style={{
-                          left: `${(100 * (axis === "x" ? position : active.x + active.width / 2)) / size.width}%`,
-                          top: `${(100 * (axis === "y" ? position : active.y + active.height / 2)) / size.height}%`,
+                          left: `${(100 * x) / size.width}%`,
+                          top: `${(100 * y) / size.height}%`,
                         }}
                         onPointerDown={(event) => start(event, active, edge)}
                         onKeyDown={(event) => adjustByKey(event, active, edge)}
@@ -1077,7 +1141,7 @@ export function PhotoMosaic({
               count: layout.length,
             },
           )}{" "}
-          · {formatMessage(t, "{count} locked", { count: pinned.size })}
+          · {formatMessage(t, "{count} locked", { count: lockedIds.size })}
         </span>
         {active ? (
           <div className={styles.selection}>
@@ -1092,7 +1156,7 @@ export function PhotoMosaic({
               key={`${active.id}:${active.width}x${active.height}`}
               onSubmit={(event) => {
                 event.preventDefault();
-                if (blocked || locked) return;
+                if (blocked || sizeLocked) return;
                 const values = new FormData(event.currentTarget);
                 setTileSize(active, {
                   width: Number(values.get("tile-width")),
@@ -1109,7 +1173,7 @@ export function PhotoMosaic({
                   min={minimumTileSide}
                   max={size.width - active.x}
                   defaultValue={active.width}
-                  disabled={blocked || locked}
+                  disabled={blocked || sizeLocked}
                 />
               </label>
               <label className={styles.format}>
@@ -1121,25 +1185,33 @@ export function PhotoMosaic({
                   min={minimumTileSide}
                   max={size.height - active.y}
                   defaultValue={active.height}
-                  disabled={blocked || locked}
+                  disabled={blocked || sizeLocked}
                 />
               </label>
-              <button type="submit" disabled={blocked || locked}>
+              <button type="submit" disabled={blocked || sizeLocked}>
                 {t("Resize tile")}
               </button>
             </form>
             <div className={styles.selectionActions}>
               <button
                 type="button"
-                aria-pressed={locked}
+                aria-pressed={positionLocked}
                 disabled={blocked}
-                onClick={() => setPhotoLocked(active.id, !locked)}
+                onClick={() => toggleLock(active.id, "position")}
               >
-                {t(locked ? "Unlock photo" : "Lock photo")}
+                {t("Fix position")}
               </button>
               <button
                 type="button"
-                disabled={blocked || locked}
+                aria-pressed={sizeLocked}
+                disabled={blocked}
+                onClick={() => toggleLock(active.id, "size")}
+              >
+                {t("Fix size")}
+              </button>
+              <button
+                type="button"
+                disabled={blocked || positionLocked || sizeLocked}
                 onClick={() => remove(active.id)}
               >
                 {t("Remove")}
@@ -1153,12 +1225,12 @@ export function PhotoMosaic({
             </span>
           )
         )}
-        {pinned.size > 0 && (
+        {lockedIds.size > 0 && (
           <div className={styles.lockedPhotos}>
             <h3>{t("Locked photos")}</h3>
             <ul>
               {original
-                .filter(({ id }) => pinned.has(id))
+                .filter(({ id }) => lockedIds.has(id))
                 .map((cell) => {
                   const photo = assets.current.get(cell.id);
                   if (!photo) return null;
@@ -1177,7 +1249,11 @@ export function PhotoMosaic({
                           alt=""
                           loading="lazy"
                         />
-                        <span title={photo.name}>{photo.name}</span>
+                        <span title={photo.name}>
+                          {photo.name}
+                          <br />
+                          <small>{t(lockLabel(cell.id))}</small>
+                        </span>
                       </button>
                       <button
                         type="button"
@@ -1185,7 +1261,7 @@ export function PhotoMosaic({
                         aria-label={formatMessage(t, "Unlock {name}", {
                           name: photo.name,
                         })}
-                        onClick={() => setPhotoLocked(cell.id, false)}
+                        onClick={() => unlockPhoto(cell.id)}
                       >
                         {t("Unlock")}
                       </button>
@@ -1199,7 +1275,7 @@ export function PhotoMosaic({
       {layout.length > 0 && (
         <p className={styles.hint}>
           {t(
-            "Drop files onto the canvas to add them. Drag a photo to move it, or drag an edge handle to resize it. The other unlocked photos reflow around it. Arrow keys work on focused photos and handles.",
+            "Drag photos to move them. Drag a side to resize one dimension or a corner to keep the tile's proportions. Arrow keys also work on focused photos and handles.",
           )}
         </p>
       )}

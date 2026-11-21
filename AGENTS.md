@@ -74,6 +74,7 @@
 - The website's proposed host port is `127.0.0.1:4095`; verify availability before deployment.
 - Use the standalone Next.js production output and a non-root container user.
 - Prefer building images in CI rather than on the 2-vCPU, 4-GB production server.
+- Merge every website change into `dev` first and wait for its CI checks to pass. Publish to production by promoting the verified `dev` changes to `prod`. Never merge a feature branch directly into `prod`.
 - Pushes to `prod` run reusable CI, publish website and migration images to GHCR, and deploy through the `deploy` account. Other branches and pull requests run checks without publishing or deploying.
 - Deploy the immutable `sha-<commit>` and `migrate-<commit>` image pair. Never select a release using a mutable tag alone. Serialize production deployments and do not cancel an active deployment.
 - The dedicated deployment key belongs in the repository's `PROD_SSH_KEY` Actions Secret. Pin the verified server public key in `infrastructure/web/known_hosts`. Never disable SSH host verification or store the temporary SSH password in GitHub.

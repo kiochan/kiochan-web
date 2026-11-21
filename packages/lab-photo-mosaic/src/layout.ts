@@ -4,7 +4,29 @@ export type Axis = "x" | "y";
 export type Photo = { id: string; aspect: number };
 export type Cell = Rect & { id: string };
 export type Edge = "left" | "right" | "top" | "bottom";
+export const cornerEdges = {
+  "top-left": ["left", "top"],
+  "top-right": ["right", "top"],
+  "bottom-left": ["left", "bottom"],
+  "bottom-right": ["right", "bottom"],
+} as const;
+export type Corner = keyof typeof cornerEdges;
+export type ResizeHandle = Edge | Corner;
+
+export function isCorner(handle: ResizeHandle): handle is Corner {
+  return handle in cornerEdges;
+}
+
 export type PhotoFit = "cover" | "maximize" | "contain";
+export type PhotoLocks = {
+  position: ReadonlySet<string>;
+  size: ReadonlySet<string>;
+};
+type Locks = PhotoLocks | ReadonlySet<string>;
+
+function lockAxes(locks: Locks): PhotoLocks {
+  return "position" in locks ? locks : { position: locks, size: locks };
+}
 
 export const photoLimit = 100;
 export const minimumTileSide = 12;
@@ -498,18 +520,198 @@ function fill(
   return best.cells && matchesPrevious(best.cells) ? previous : best.cells;
 }
 
+function placeSizedTile(
+  cell: Cell,
+  size: Size,
+  anchors: Cell[],
+  plan: number,
+): Cell | undefined {
+  if (cell.width > size.width || cell.height > size.height) return;
+  const previous = {
+    ...cell,
+    x: Math.min(cell.x, size.width - cell.width),
+    y: Math.min(cell.y, size.height - cell.height),
+  };
+  const fits = (rect: Cell) =>
+    anchors.every((anchor) => !overlaps(rect, anchor));
+  if (!plan && fits(previous)) return previous;
+  const regions = [
+    ...openRegions(size, anchors, false),
+    ...openRegions(size, anchors, true),
+  ];
+  const options = regions.flatMap((rect) => {
+    if (rect.width < cell.width || rect.height < cell.height) return [];
+    const x = right(rect) - cell.width;
+    const y = bottom(rect) - cell.height;
+    return [
+      { ...cell, x: rect.x, y: rect.y },
+      { ...cell, x, y: rect.y },
+      { ...cell, x: rect.x, y },
+      { ...cell, x, y },
+    ];
+  });
+  if (fits(previous)) options.push(previous);
+  function rank(rect: Cell) {
+    switch (plan % 4) {
+      case 1:
+        return rect.y * size.width + rect.x;
+      case 2:
+        return -rect.y * size.width - rect.x;
+      case 3:
+        return rect.x * size.height - rect.y;
+      default:
+        return Math.hypot(rect.x - cell.x, rect.y - cell.y);
+    }
+  }
+  return options.sort((a, b) => rank(a) - rank(b))[0];
+}
+
+function placePositionedTile(
+  cell: Cell,
+  size: Size,
+  obstacles: Cell[],
+  plan: number,
+  targetArea: number,
+) {
+  const remainingWidth = size.width - cell.x;
+  const remainingHeight = size.height - cell.y;
+  const ratio = cell.width / cell.height;
+  const widthHint =
+    plan === 2 ? Math.round(Math.sqrt(targetArea * ratio)) : cell.width;
+  const heightHint =
+    plan === 2 ? Math.round(Math.sqrt(targetArea / ratio)) : cell.height;
+  let width = Math.min(
+    remainingWidth,
+    plan === 3 ? remainingWidth : Math.max(minimumTileSide, widthHint),
+  );
+  let height = Math.min(
+    remainingHeight,
+    plan === 3 ? remainingHeight : Math.max(minimumTileSide, heightHint),
+  );
+  for (const obstacle of obstacles) {
+    if (!overlaps({ ...cell, width, height }, obstacle)) continue;
+    const left = obstacle.x - cell.x;
+    const above = obstacle.y - cell.y;
+    if (
+      left >= minimumTileSide &&
+      (above < minimumTileSide ||
+        (plan === 2
+          ? left / width < above / height
+          : left / width >= above / height))
+    ) {
+      width = left;
+    } else if (above >= minimumTileSide) {
+      height = above;
+    } else return;
+  }
+  if (width >= minimumTileSide && height >= minimumTileSide)
+    return { ...cell, width, height };
+}
+
+function fillWithLocks(
+  size: Size,
+  layout: Cell[],
+  photos: Photo[],
+  locks: PhotoLocks,
+  fit: PhotoFit,
+  random?: () => number,
+  target?: Cell,
+) {
+  const ids = new Set(photos.map(({ id }) => id));
+  const constrained = layout.filter(
+    ({ id }) =>
+      id !== target?.id &&
+      ids.has(id) &&
+      (locks.position.has(id) || locks.size.has(id)),
+  );
+  const fixed = constrained.filter(
+    ({ id }) => locks.position.has(id) && locks.size.has(id),
+  );
+  if (target) fixed.push(target);
+  if (
+    fixed.some(
+      (cell, index) =>
+        right(cell) > size.width ||
+        bottom(cell) > size.height ||
+        fixed.slice(0, index).some((other) => overlaps(cell, other)),
+    )
+  )
+    return null;
+  const fixedIds = new Set(fixed.map(({ id }) => id));
+  const partial = constrained.filter(({ id }) => !fixedIds.has(id));
+  const constrainedIds = new Set(constrained.map(({ id }) => id));
+  const remaining = photos.filter(
+    ({ id }) => id !== target?.id && !constrainedIds.has(id),
+  );
+  if (!partial.length) {
+    const previous =
+      !target && fixed.every((cell) => layout.includes(cell)) ? layout : [];
+    return fill(size, fixed, remaining, previous, random, fit);
+  }
+  const positioned = partial.filter(({ id }) => locks.position.has(id));
+  const sized = partial
+    .filter(({ id }) => locks.size.has(id))
+    .sort((a, b) => area(b) - area(a));
+  const before = new Map(layout.map((cell) => [cell.id, cell]));
+  const targetArea =
+    (area(size) - fixed.reduce((sum, cell) => sum + area(cell), 0)) /
+    (partial.length + remaining.length);
+  let fallback: Cell[] | null = null;
+  for (const plan of random ? [1, 2, 3, 0] : [0, 1, 2, 3]) {
+    const anchors = [...fixed];
+    for (const cell of positioned) {
+      const obstacles = [
+        ...anchors,
+        ...positioned
+          .filter((other) => other !== cell)
+          .map((other) => ({
+            ...other,
+            width: minimumTileSide,
+            height: minimumTileSide,
+          })),
+      ];
+      const rect = placePositionedTile(cell, size, obstacles, plan, targetArea);
+      if (rect) anchors.push(rect);
+    }
+    if (anchors.length !== fixed.length + positioned.length) continue;
+    for (const cell of sized) {
+      const rect = placeSizedTile(cell, size, anchors, plan);
+      if (rect) anchors.push(rect);
+    }
+    if (anchors.length !== fixed.length + partial.length) continue;
+    const unchanged = anchors.every((cell) => {
+      const old = before.get(cell.id);
+      return old && sameRect(cell, old);
+    });
+    const result = fill(
+      size,
+      anchors,
+      remaining,
+      unchanged ? layout : [],
+      random,
+      fit,
+    );
+    if (!result) continue;
+    if (!random || !unchanged) return result;
+    fallback = result;
+  }
+  return fallback;
+}
+
 export function repack(
   layout: Cell[],
   size: Size,
   photos: Photo[],
-  pinned: ReadonlySet<string>,
+  pinned: Locks,
   random = Math.random,
   fit: PhotoFit = "cover",
 ): Cell[] {
   if (!photos.length) return [];
-  const anchors = layout.filter(({ id }) => pinned.has(id));
-  const remaining = photos.filter(({ id }) => !pinned.has(id));
-  const result = fill(size, anchors, remaining, layout, random, fit);
+  const locks = lockAxes(pinned);
+  const remaining = photos.filter(
+    ({ id }) => !locks.position.has(id) && !locks.size.has(id),
+  );
+  const result = fillWithLocks(size, layout, photos, locks, fit, random);
   if (result) return result;
   // The same geometry is still a valid reroll if unlocked images exchange
   // assignments. Imports and removals need a partition for the new count.
@@ -535,11 +737,12 @@ export function resizeCanvas(
   previous: Size,
   next: Size,
   photos: Photo[],
-  pinned: ReadonlySet<string>,
+  pinned: Locks,
   fit: PhotoFit = "cover",
 ): Cell[] | null {
   if (!layout.length) return layout;
-  if (!pinned.size && fit !== "contain") {
+  const locks = lockAxes(pinned);
+  if (!locks.position.size && !locks.size.size && fit !== "contain") {
     const scaleX = next.width / previous.width;
     const scaleY = next.height / previous.height;
     const scaled = layout.map((cell) => {
@@ -560,24 +763,7 @@ export function resizeCanvas(
     }
   }
 
-  const anchors = layout.filter(({ id }) => pinned.has(id));
-  if (
-    anchors.some(
-      (cell) => right(cell) > next.width || bottom(cell) > next.height,
-    )
-  )
-    return null;
-  const remaining = photos.filter(({ id }) => !pinned.has(id));
-  // The old unlocked rectangles describe a different canvas. Use only the
-  // pinned rectangles as obstacles when packing the resized canvas.
-  return fill(
-    next,
-    anchors,
-    remaining,
-    [],
-    fit === "maximize" ? Math.random : undefined,
-    fit,
-  );
+  return fillWithLocks(next, layout, photos, locks, fit);
 }
 
 export function edges(cell: Cell, size: Size, fit: PhotoFit = "cover"): Edge[] {
@@ -633,27 +819,27 @@ function fitAroundTile(
   layout: Cell[],
   cell: Cell,
   target: Cell,
-  anchors: Cell[],
-  remaining: Photo[],
+  photos: Photo[],
+  locks: PhotoLocks,
   fit: PhotoFit,
 ) {
   if (sameRect(cell, target)) return layout;
-  if (anchors.some((anchor) => overlaps(anchor, target))) return null;
-  return fill(size, [...anchors, target], remaining, layout, undefined, fit);
+  return fillWithLocks(size, layout, photos, locks, fit, undefined, target);
 }
 
 export function resizeTile(
   layout: Cell[],
   size: Size,
   photos: Photo[],
-  pinned: ReadonlySet<string>,
+  pinned: Locks,
   cell: Cell,
   dimensions: Size,
   fit: PhotoFit = "cover",
 ): Cell[] | null {
   const { width, height } = dimensions;
+  const locks = lockAxes(pinned);
   if (
-    pinned.has(cell.id) ||
+    locks.size.has(cell.id) ||
     !Number.isInteger(width) ||
     !Number.isInteger(height) ||
     width < minimumTileSide ||
@@ -667,8 +853,8 @@ export function resizeTile(
     layout,
     cell,
     { ...cell, ...dimensions },
-    layout.filter(({ id }) => pinned.has(id)),
-    photos.filter(({ id }) => id !== cell.id && !pinned.has(id)),
+    photos,
+    locks,
     fit,
   );
 }
@@ -677,21 +863,30 @@ export function place(
   layout: Cell[],
   size: Size,
   photos: Photo[],
-  pinned: ReadonlySet<string>,
+  pinned: Locks,
   cell: Cell,
   dx: number,
   dy: number,
   snap: Size,
-  edge?: Edge,
+  edge?: ResizeHandle,
   fit: PhotoFit = "cover",
 ): Cell[] | null {
-  if (pinned.has(cell.id)) return null;
-  const anchors = layout.filter(({ id }) => pinned.has(id));
-  const remaining = photos.filter(
-    ({ id }) => id !== cell.id && !pinned.has(id),
+  const locks = lockAxes(pinned);
+  if (
+    edge
+      ? locks.size.has(cell.id) ||
+        (locks.position.has(cell.id) &&
+          edge !== "right" &&
+          edge !== "bottom" &&
+          edge !== "bottom-right")
+      : locks.position.has(cell.id)
+  )
+    return null;
+  const anchors = layout.filter(
+    ({ id }) => id !== cell.id && locks.position.has(id),
   );
   function tryRect(target: Cell) {
-    return fitAroundTile(size, layout, cell, target, anchors, remaining, fit);
+    return fitAroundTile(size, layout, cell, target, photos, locks, fit);
   }
   const guidesX = [
     0,
@@ -703,6 +898,55 @@ export function place(
     size.height,
     ...anchors.flatMap((anchor) => [anchor.y, bottom(anchor)]),
   ];
+
+  if (edge && isCorner(edge)) {
+    const [horizontal, vertical] = cornerEdges[edge];
+    const sx = horizontal === "left" ? -1 : 1;
+    const sy = vertical === "top" ? -1 : 1;
+    const anchorX = sx < 0 ? right(cell) : cell.x;
+    const anchorY = sy < 0 ? bottom(cell) : cell.y;
+    const maxWidth = sx < 0 ? anchorX : size.width - anchorX;
+    const maxHeight = sy < 0 ? anchorY : size.height - anchorY;
+    const minScale = minimumTileSide / Math.min(cell.width, cell.height);
+    const maxScale = Math.min(maxWidth / cell.width, maxHeight / cell.height);
+    // Project the pointer delta onto the diagonal so both axes share one scale.
+    const scale = Math.max(
+      minScale,
+      Math.min(
+        maxScale,
+        1 +
+          (dx * sx * cell.width + dy * sy * cell.height) /
+            (cell.width ** 2 + cell.height ** 2),
+      ),
+    );
+    const scales = [scale];
+    for (const guide of guidesX) {
+      const candidate = (sx * (guide - anchorX)) / cell.width;
+      if (Math.abs(candidate - scale) * cell.width <= snap.width)
+        scales.push(candidate);
+    }
+    for (const guide of guidesY) {
+      const candidate = (sy * (guide - anchorY)) / cell.height;
+      if (Math.abs(candidate - scale) * cell.height <= snap.height)
+        scales.push(candidate);
+    }
+    for (const candidate of [...new Set(scales)].sort(
+      (a, b) => Math.abs(a - scale) - Math.abs(b - scale),
+    )) {
+      if (candidate < minScale || candidate > maxScale) continue;
+      const width = Math.round(cell.width * candidate);
+      const height = Math.round(cell.height * candidate);
+      const result = tryRect({
+        ...cell,
+        x: sx < 0 ? anchorX - width : anchorX,
+        y: sy < 0 ? anchorY - height : anchorY,
+        width,
+        height,
+      });
+      if (result) return result;
+    }
+    return null;
+  }
 
   if (edge) {
     const axis = edgeAxis(edge);
